@@ -2,7 +2,7 @@
     "rewrites": [
         {
             "source": "/api-proxy/:path*",
-            "destination": "https://api-ent.isenengineering.fr/v1:path*"
+            "destination": "https://api-ent.isenengineering.fr/v1/:path*"
         }
     ]
 }
