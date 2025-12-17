@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
-import { login } from "./api/route";
+import { login } from "../constants/api/route";
 
 export default function Index() {
     const [email, setEmail] = useState("");
