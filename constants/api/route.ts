@@ -1,4 +1,5 @@
 import { API_URL } from "@/constants/api_route";
+import { getToken } from "../token";
 
 export async function login(loginData: {
     username: string,
@@ -26,6 +27,33 @@ export async function login(loginData: {
 
     } catch (error) {
         console.error("Erreur dans Login :", error);
+        throw error;
+    }
+}
+
+export async function getNotes() {
+    try {
+        const token = getToken();
+        if (!token) {
+            throw new Error("Utilisateur non connecté (Token manquant)");
+        }
+        const res = await fetch(`${API_URL}/notations`, {
+            method: "GET",
+            headers: {
+                Accept: "*/*",
+                "Token": token,
+                "Content-Type": "application/json",
+            }
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(errorText || "Erreur serveur");
+        }
+        return await res.json();
+
+    } catch (error) {
+        console.error("Erreur dans getNotes :", error);
         throw error;
     }
 }
