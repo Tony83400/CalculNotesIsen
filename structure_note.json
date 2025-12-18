@@ -1,0 +1,455 @@
+{
+    "version": "1.1",
+    "filieres": {
+        "CIN": [
+            {
+                "ue": "UE1 Electronique Analogique",
+                "ects": 6,
+                "matieres": [
+                    {
+                        "name": "Electronique Analog",
+                        "coeff_matiere": 2,
+                        "evaluations": [
+                            {
+                                "name": "Examen mi parcours",
+                                "code": "25_ISEN_MED_ISEN3_S5_ELEC_ANALOG_EX_mi-parcours",
+                                "coeff": 2
+                            },
+                            {
+                                "name": "QCM educ",
+                                "code": "25_ISEN_MED_ISEN3_S5_ELEC_ANALOG_QCM_interm",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "TP Elec analog",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "TP Note",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "ue": "UE2 Systèmes Elémentaires",
+                "ects": 3,
+                "matieres": [
+                    {
+                        "name": "Logique",
+                        "coeff_matiere": 2,
+                        "evaluations": [
+                            {
+                                "name": "Examen",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Architecture des ordis",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "Examen",
+                                "code": "25_ISEN_MED_ISEN3_S5_ARCHITECTURE_ORDIS",
+                                "coeff": 1
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "ue": "UE3 Informatique",
+                "ects": 5,
+                "matieres": [
+                    {
+                        "name": "JAVA (cours et projet)",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "Projet Java",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Réseaux Rasberry",
+                        "coeff_matiere": 2,
+                        "evaluations": [
+                            {
+                                "name": "TP Rasberry",
+                                "code": "25_ISEN_MED_ISEN3_S5_RESEAUX_RASB",
+                                "coeff": 1
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "ue": "UE4 Gestion de Données",
+                "ects": 4,
+                "matieres": [
+                    {
+                        "name": "BDD",
+                        "coeff_matiere": 2,
+                        "evaluations": [
+                            {
+                                "name": "Partiel BDD",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Maths Proba/Stats",
+                        "coeff_matiere": 2,
+                        "evaluations": [
+                            {
+                                "name": "DS Maths",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "ue": "UE5 Ingénierie Systemes",
+                "ects": 5,
+                "matieres": [
+                    {
+                        "name": "Algorithmie Avancée",
+                        "coeff_matiere": 2,
+                        "evaluations": [
+                            {
+                                "name": "Examen Algo",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Automatique",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "Examen Auto",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Développement mobile",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "Examen",
+                                "code": "25_ISEN_MED_ISEN3_S5_DevMobile",
+                                "coeff": 1
+                            },
+                            {
+                                "name": "Projet ",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "ue": "UE6 Dév. Personnel (SHES et LV2)",
+                "ects": 5,
+                "matieres": [
+                    {
+                        "name": "Créativité 4.0",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "Créativité 4.0",
+                                "code": "25_ISEN_MED_ISEN3_S5_SHES_CREATIVITE",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Gestion de projet",
+                        "coeff_matiere": 2,
+                        "evaluations": [
+                            {
+                                "name": "Soutenance",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Communication de l'ingénieur",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "Communication de l'ingénieur",
+                                "code": "25_ISEN_MED_ISEN3_S5_SHES_COMMUNICATION_ING",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "LV2 + anglais renforcé",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "Contrôle continu",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "ue": "UE7 Anglais",
+                "ects": 2,
+                "matieres": [
+                    {
+                        "name": "Anglais",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "TOEIC / CC",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "BIOST": [
+            {
+                "ue": "UE1 Electronique Analogique",
+                "ects": 6,
+                "matieres": [
+                    {
+                        "name": "Electronique Analog",
+                        "coeff_matiere": 2,
+                        "evaluations": [
+                            {
+                                "name": "Partiel",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "TP Elec analog",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "TP Note",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "ue": "UE2 Systèmes Elémentaires",
+                "ects": 3,
+                "matieres": [
+                    {
+                        "name": "Logique",
+                        "coeff_matiere": 2,
+                        "evaluations": [
+                            {
+                                "name": "Examen",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Architecture des ordis",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "Examen",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "ue": "UE3 Informatique",
+                "ects": 5,
+                "matieres": [
+                    {
+                        "name": "WEBDEV",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "Projet Web",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Réseaux level 1",
+                        "coeff_matiere": 2,
+                        "evaluations": [
+                            {
+                                "name": "CC Réseaux",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "ue": "UE4 Gestion de Données",
+                "ects": 4,
+                "matieres": [
+                    {
+                        "name": "BDD",
+                        "coeff_matiere": 2,
+                        "evaluations": [
+                            {
+                                "name": "Partiel BDD",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Maths Proba/Stats",
+                        "coeff_matiere": 2,
+                        "evaluations": [
+                            {
+                                "name": "DS Maths",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "ue": "UE5 Ingénierie Systemes",
+                "ects": 5,
+                "matieres": [
+                    {
+                        "name": "Algorithmique Avancée",
+                        "coeff_matiere": 2,
+                        "evaluations": [
+                            {
+                                "name": "Examen Algo",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Automatique",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "Examen Auto",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Biomécanique",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "Projet BioMéca",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "ue": "UE6 Dév. Personnel (SHES et LV2)",
+                "ects": 5,
+                "matieres": [
+                    {
+                        "name": "Créativité 4.0",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "Workshop",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Gestion de projet",
+                        "coeff_matiere": 2,
+                        "evaluations": [
+                            {
+                                "name": "Soutenance",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Communication",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "Oral",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "LV2 + anglais renforcé",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "Contrôle continu",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "ue": "UE7 Anglais",
+                "ects": 2,
+                "matieres": [
+                    {
+                        "name": "Anglais",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "TOEIC / CC",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

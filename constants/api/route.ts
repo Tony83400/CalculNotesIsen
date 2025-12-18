@@ -22,7 +22,6 @@ export async function login(loginData: {
 
         const token = await res.text();
 
-        console.log("Token reçu:", token);
         return { token: token };
 
     } catch (error) {

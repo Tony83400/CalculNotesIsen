@@ -15,9 +15,7 @@ export default function Index() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorText, setErrorText] = useState("");
-
   const onPressLogin = async () => {
-    // Reset l'erreur au début de la tentative
     setErrorText("");
     try {
       const rep = await login({
@@ -25,7 +23,7 @@ export default function Index() {
         password: password
       });
       setToken(rep.token);
-      router.push("/main")
+      router.push("/main");
     } catch (error) {
       console.log("Erreur", error);
       setErrorText("Nom d'utilisateur ou mot de passe invalide");

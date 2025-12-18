@@ -4,15 +4,20 @@ import { Note } from "@/constants/data";
 import {
     Text,
     View,
-    StyleSheet, // 1. On garde StyleSheet pour organiser proprement
-    FlatList
+    StyleSheet,
+    FlatList,
+    SafeAreaView,
+    TouchableOpacity
 } from "react-native";
+import configActuelle from '../structure_note.json';
+import UeCard from '../components/afficheUe'
 
 export default function Main() {
     const [notes, setNotes] = useState<Note[]>();
+    const [selectedFiliere, setSelectedFiliere] = useState<string | null>(null);
+    const filieresDisponibles = Object.keys(configActuelle.filieres);
 
     const fetchNote = async () => {
-        console.log("Lancement du fetch...");
         try {
             const rep = await getNotes();
             const formattedNotes: Note[] = rep.map((elt: any) => ({
@@ -30,6 +35,29 @@ export default function Main() {
     useEffect(() => {
         fetchNote();
     }, []);
+    if (!selectedFiliere) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.center}>
+                    <Text style={styles.title}>Choisissez votre filière</Text>
+
+                    <FlatList
+                        data={filieresDisponibles}
+                        keyExtractor={(item) => item}
+                        renderItem={({ item }) => (
+                            <TouchableOpacity
+                                style={styles.buttonChoice}
+                                onPress={() => setSelectedFiliere(item)}
+                            >
+                                <Text style={styles.buttonText}>{item}</Text>
+                            </TouchableOpacity>
+                        )}
+                        contentContainerStyle={{ padding: 20 }}
+                    />
+                </View>
+            </SafeAreaView>
+        );
+    }
 
     if (!notes) {
         return (
@@ -38,41 +66,56 @@ export default function Main() {
             </View>
         )
     }
+    const dataFiliere = configActuelle.filieres[selectedFiliere as keyof typeof configActuelle.filieres];
+    const getDonneesAvecNotes = () => {
+       
+        const structureCopie = JSON.parse(JSON.stringify(dataFiliere));
 
+        structureCopie.forEach((ue: { matieres: any[]; }) => {
+            ue.matieres.forEach((matiere: { evaluations: any[]; }) => {
+                matiere.evaluations.forEach((evaluation: { code: string; noteReelle: number | null; }) => {
+
+                    const noteTrouvee = notes.find(n => n.code === evaluation.code);
+
+                    if (noteTrouvee) {
+                        evaluation.noteReelle = noteTrouvee.note;
+                    } else {
+                        evaluation.noteReelle = null;
+                    }
+
+                });
+            });
+        });
+
+        return structureCopie;
+    };
+    const donneesAffichables = notes ? getDonneesAvecNotes() : [];
+    console.log(donneesAffichables)
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Mes Notes</Text>
-            
-            <FlatList
-                data={notes}
-                keyExtractor={(item, index) => item.code || index.toString()}
-                renderItem={({ item }) => (
-                    // Chaque item est une "boite" grise simple
-                    <View style={styles.item}>
-                        {/* Ligne du haut : Nom + Note */}
-                        <View style={styles.row}>
-                            <Text style={styles.name}>{item.name}</Text>
-                            <Text style={styles.note}>{item.note}/20</Text>
-                        </View>
-                        
-                        {/* Ligne du bas : Code + Date */}
-                        <View style={styles.row}>
-                            <Text style={styles.details}>{item.code}</Text>
-                            <Text style={styles.details}>{item.date}</Text>
-                        </View>
-                    </View>
-                )}
-            />
-        </View>
-    )
-}
+        <SafeAreaView style={styles.container}>
+            {/* Petit bouton retour en haut */}
+            <TouchableOpacity onPress={() => setSelectedFiliere(null)} style={styles.backButton}>
+                <Text style={styles.backText}>← Changer de filière</Text>
+            </TouchableOpacity>
 
-// --- LE STYLE SIMPLE ---
+            <Text style={styles.title}>Promo {selectedFiliere}</Text>
+
+            <FlatList
+                data={donneesAffichables}
+                keyExtractor={(item, index) => item.ue || index.toString()}
+                renderItem={({ item }) => (
+                    <UeCard ueData={item} />
+                )}
+                contentContainerStyle={{ paddingBottom: 20 }}
+            />
+        </SafeAreaView>
+    );
+}
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,         // Marge autour de l'écran
-        backgroundColor: '#fff',
+        backgroundColor: '#F5F7FA',
+        paddingTop: 10,
     },
     center: {
         flex: 1,
@@ -80,31 +123,38 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     title: {
-        fontSize: 22,
+        fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 20,    // Espace sous le titre
+        color: '#1a1a1a',
+        marginBottom: 20,
+        textAlign: 'center',
     },
-    item: {
-        backgroundColor: '#f0f0f0', // Fond gris clair
-        padding: 15,                // Espace à l'intérieur de la boite
-        borderRadius: 8,            // Coins un peu arrondis
-        marginBottom: 10,           // Espace entre les boites
+    // Styles pour les gros boutons de choix
+    buttonChoice: {
+        backgroundColor: '#2196F3', // Bleu
+        paddingVertical: 15,
+        paddingHorizontal: 40,
+        borderRadius: 10,
+        marginBottom: 15,
+        width: 200, // Largeur fixe pour être joli
+        alignItems: 'center',
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
     },
-    row: {
-        flexDirection: 'row',       // Met les textes sur la même ligne
-        justifyContent: 'space-between', // Ecarte les textes (gauche / droite)
-        marginBottom: 5,
-    },
-    name: {
+    buttonText: {
+        color: 'white',
+        fontSize: 18,
         fontWeight: 'bold',
-        fontSize: 16,
     },
-    note: {
-        fontWeight: 'bold',
-        fontSize: 16,
+    // Style bouton retour
+    backButton: {
+        padding: 10,
+        marginLeft: 10,
     },
-    details: {
-        color: '#666', // Gris foncé pour les infos secondaires
-        fontSize: 12,
+    backText: {
+        color: '#2196F3',
+        fontWeight: '600',
     }
 });
