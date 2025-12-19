@@ -41,7 +41,7 @@ export default function Index() {
         {/* Champ Email */}
         <TextInput
           style={styles.input}
-          placeholder="Nom d'utilisateur (nom.prenom)"
+          placeholder="Nom d'utilisateur (prenom.nom)"
           placeholderTextColor="#aaa"
           value={email}
           onChangeText={setEmail}

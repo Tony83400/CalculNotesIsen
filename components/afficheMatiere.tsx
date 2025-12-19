@@ -1,16 +1,11 @@
 import { Evaluations } from "@/constants/data";
-import {
-    Text,
-    View,
-    StyleSheet,
-    FlatList
-} from "react-native";
+import { Text, View, StyleSheet } from "react-native";
 
 export default function MatiereCard({ evaluationData }: { evaluationData: Evaluations[] }) {
 
-    // Petite fonction pour gérer la couleur de la note
+    // Gestion des couleurs pour les notes
     const getNoteColor = (note: number | undefined | null) => {
-        if (note === undefined || note === null) return "#BDBDBD"; // Gris si pas de note
+        if (note === undefined || note === null) return "#BDBDBD"; // Gris
         if (note >= 10) return "#4CAF50"; // Vert
         if (note >= 8) return "#FF9800";  // Orange
         return "#F44336";                 // Rouge
@@ -18,86 +13,91 @@ export default function MatiereCard({ evaluationData }: { evaluationData: Evalua
 
     return (
         <View style={styles.container}>
-            <FlatList
-                data={evaluationData}
-                keyExtractor={(item, index) => item.code || index.toString()}
-                renderItem={({ item }) => {
-                    const hasNote = item.noteReelle !== undefined && item.noteReelle !== null;
+            {evaluationData.map((item, index) => {
+                const hasNote = item.noteReelle !== undefined && item.noteReelle !== null;
+                // On affiche une ligne de séparation sauf pour le dernier élément
+                const isLast = index === evaluationData.length - 1;
 
-                    return (
-                        <View style={styles.row}>
-                            {/* Partie GAUCHE : Nom + Code */}
-                            <View style={styles.leftInfo}>
-                                <Text style={styles.name}>{item.name}</Text>
-                                {item.code ? <Text style={styles.code}>{item.code}</Text> : null}
-                            </View>
-
-                            {/* Partie DROITE : Note + Coeff */}
-                            <View style={styles.rightInfo}>
-                                {/* Affichage de la Note */}
-                                <Text style={[styles.noteText, { color: getNoteColor(item.noteReelle) }]}>
-                                    {hasNote ? item.noteReelle : "--"}
-                                    <Text style={styles.surVingt}>/20</Text>
-                                </Text>
-                                
-                                {/* Affichage du Coeff */}
-                                <Text style={styles.coeff}>Coeff. {item.coeff}</Text>
-                            </View>
+                return (
+                    <View 
+                        key={item.code || index} 
+                        style={[styles.row, !isLast && styles.separator]}
+                    >
+                        {/* GAUCHE : Nom et Code */}
+                        <View style={styles.leftInfo}>
+                            <Text style={styles.name}>{item.name}</Text>
+                            {item.code ? <Text style={styles.code}>{item.code}</Text> : null}
                         </View>
-                    );
-                }}
-            />
+
+                        {/* DROITE : Note et Coeff */}
+                        <View style={styles.rightInfo}>
+                            <View style={styles.noteContainer}>
+                                <Text style={[styles.noteValue, { color: getNoteColor(item.noteReelle) }]}>
+                                    {hasNote ? item.noteReelle : "--"}
+                                </Text>
+                                <Text style={styles.noteTotal}>/20</Text>
+                            </View>
+                            <Text style={styles.coeff}>x{item.coeff}</Text>
+                        </View>
+                    </View>
+                );
+            })}
         </View>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#F9FAFB',
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        marginTop: 5,
+        backgroundColor: '#F8F9FA', // Gris très léger
+        borderRadius: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 4,
     },
     row: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingVertical: 8,
+    },
+    separator: {
         borderBottomWidth: 1,
-        borderBottomColor: '#EEE', // Séparateur discret entre les évals
+        borderBottomColor: '#EAEAEA', // Trait de séparation très fin
     },
     leftInfo: {
-        flex: 1, // Prend la place disponible à gauche
-        flexDirection: 'column',
+        flex: 1,
         paddingRight: 10,
     },
     name: {
-        fontSize: 14,
-        color: '#444',
+        fontSize: 13,
+        color: '#333',
         fontWeight: '500',
     },
     code: {
-        fontSize: 11,
-        color: '#999',
-        marginTop: 2,
-    },
-    rightInfo: {
-        alignItems: 'flex-end', // Aligne tout à droite
-        minWidth: 60,
-    },
-    noteText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    surVingt: {
         fontSize: 10,
         color: '#999',
-        fontWeight: 'normal',
+        marginTop: 2,
+        fontFamily: 'monospace', // Pour donner un aspect "code"
+    },
+    rightInfo: {
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+    },
+    noteContainer: {
+        flexDirection: 'row',
+        alignItems: 'baseline', // Aligne le "20" sur la ligne de base du chiffre
+    },
+    noteValue: {
+        fontSize: 15,
+        fontWeight: '700',
+    },
+    noteTotal: {
+        fontSize: 10,
+        color: '#BBB',
+        marginLeft: 2,
     },
     coeff: {
         fontSize: 11,
         color: '#888',
         marginTop: 2,
     }
-});
+}); 

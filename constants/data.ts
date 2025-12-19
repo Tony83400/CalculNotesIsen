@@ -1,11 +1,29 @@
-import { Float } from "react-native/Libraries/Types/CodegenTypes";
 
 export interface Note {
-    code: string,
-    name: string,
-    note: Float,
-    date: string
+  code: string;
+  name: string;
+  note: number; 
+  date: string;
 }
-export interface Matiere { name: string; coeff_matiere: number, evaluations: Evaluations[] };
-export interface Evaluations { name: string, code: string, coeff: number, noteReelle?: number; };
-export interface UeData { ue: string; ects: number; matieres: Matiere[] };
+
+export interface Evaluations {
+  name: string;
+  code: string;
+  coeff: number;
+  noteReelle?: number | null; // Peut être null si pas encore noté
+}
+
+export interface Matiere {
+  name: string;
+  coeff_matiere: number; 
+  evaluations: Evaluations[];
+  moyenne?: number | null; 
+}
+
+export interface UeData {
+  ue: string;
+  ects: number;
+  matieres: Matiere[];
+  moyenne?: number | null; 
+  isValidated?: boolean; 
+}

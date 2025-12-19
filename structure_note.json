@@ -19,6 +19,11 @@
                                 "name": "QCM educ",
                                 "code": "25_ISEN_MED_ISEN3_S5_ELEC_ANALOG_QCM_interm",
                                 "coeff": 1
+                            },
+                            {
+                                "name" :"Partiel",
+                                "code" : "",
+                                "coeff" : 4
                             }
                         ]
                     },
@@ -102,8 +107,14 @@
                             {
                                 "name": "Partiel BDD",
                                 "code": "",
-                                "coeff": 1
+                                "coeff": 2
+                            },
+                            {
+                                "name" : "Contrôle continu",
+                                "code" : "",
+                                "coeff" : 1
                             }
+
                         ]
                     },
                     {
@@ -113,7 +124,12 @@
                             {
                                 "name": "DS Maths",
                                 "code": "",
-                                "coeff": 1
+                                "coeff": 4
+                            },
+                            {
+                                "name":"QCM educ",
+                                "code":"",
+                                "coeff":1
                             }
                         ]
                     }
@@ -183,7 +199,7 @@
                         "coeff_matiere": 2,
                         "evaluations": [
                             {
-                                "name": "Soutenance",
+                                "name": "Rendu projet",
                                 "code": "",
                                 "coeff": 1
                             }
@@ -222,7 +238,12 @@
                         "coeff_matiere": 1,
                         "evaluations": [
                             {
-                                "name": "TOEIC / CC",
+                                "name": "Examen",
+                                "code": "",
+                                "coeff": 4
+                            },
+                            {
+                                "name": "Contrôle continu",
                                 "code": "",
                                 "coeff": 1
                             }
