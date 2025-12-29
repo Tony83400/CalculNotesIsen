@@ -1,4 +1,3 @@
-
 export interface Note {
   code: string;
   name: string;
@@ -10,7 +9,11 @@ export interface Evaluations {
   name: string;
   code: string;
   coeff: number;
-  noteReelle?: number | null; // Peut être null si pas encore noté
+  noteReelle?: number | null; // Note finale (Simulée ou Réelle)
+  
+  // Nouveaux champs pour gérer ton affichage
+  hasApiNote?: boolean;       // True si la note vient de l'API (cache le slider)
+  uniqueId?: string;          // Identifiant unique pour le state du slider
 }
 
 export interface Matiere {

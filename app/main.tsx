@@ -1,5 +1,5 @@
 import { getNotes } from "@/constants/api/route";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Note, UeData } from "@/constants/data";
 import {
     Text,
@@ -16,10 +16,21 @@ export default function Main() {
     const [notes, setNotes] = useState<Note[]>();
     const [selectedFiliere, setSelectedFiliere] = useState<string | null>(null);
     const filieresDisponibles = Object.keys(configActuelle.filieres);
-    const [moyenne,setMoyenne] = useState(0);
-    const [nbEctsTot,setNbectsTot] = useState(0); 
+    
+    // State pour les simulations. Clé = uniqueId, Valeur = note
+    const [simulatedNotes, setSimulatedNotes] = useState<Record<string, number | null>>({});
+
+    // Mise à jour d'une simulation
+    const updateSimulation = useCallback((id: string, val: number | null) => {
+        setSimulatedNotes(prev => ({
+            ...prev,
+            [id]: val
+        }));
+    }, []);
+
     const fetchNote = async () => {
         try {
+            console.log("Recuperation des notes ...");
             const rep = await getNotes();
             const formattedNotes: Note[] = rep.map((elt: any) => ({
                 code: elt.code,
@@ -36,12 +47,12 @@ export default function Main() {
     useEffect(() => {
         fetchNote();
     }, []);
+
     if (!selectedFiliere) {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.center}>
                     <Text style={styles.title}>Choisissez votre filière</Text>
-
                     <FlatList
                         data={filieresDisponibles}
                         keyExtractor={(item) => item}
@@ -67,232 +78,164 @@ export default function Main() {
             </View>
         )
     }
+
     const dataFiliere = configActuelle.filieres[selectedFiliere as keyof typeof configActuelle.filieres];
-    const getDonneesAvecNotes = (): UeData[] => {
-    const structureCopie: UeData[] = JSON.parse(JSON.stringify(dataFiliere));
 
-    let ectsValides = 0; // ECTS réellement gagnés (sur 30)
-    let totalPointsSemestre = 0; // Pour calculer la vraie moyenne générale
-    let totalEctsSemestre = 0;   // Diviseur pour la moyenne générale
+    const getDonneesAvecNotes = () => {
+        const structureCopie: UeData[] = JSON.parse(JSON.stringify(dataFiliere));
 
-    structureCopie.forEach((ue) => {
-        let sommePointsUE = 0;
-        let totalCoeffUE = 0;
-        
-        // Drapeaux pour la validation
-        let ueEstComplete = true; // Toutes les notes sont là ?
-        let pasDeNoteEliminatoire = true; // Aucune matière <= 6 ?
+        let ectsValides = 0;
+        let totalPointsSemestre = 0;
+        let totalEctsSemestre = 0;
 
-        ue.matieres.forEach((matiere) => {
-            let sommePointsMat = 0;
-            let totalCoeffMat = 0;
+        structureCopie.forEach((ue) => {
+            let sommePointsUE = 0;
+            let totalCoeffUE = 0;
+            let ueEstComplete = true;
+            let pasDeNoteEliminatoire = true;
 
-            matiere.evaluations.forEach((evaluation) => {
-                const noteTrouvee = notes?.find(n => n.code === evaluation.code);
+            ue.matieres.forEach((matiere) => {
+                let sommePointsMat = 0;
+                let totalCoeffMat = 0;
 
-                if (noteTrouvee) {
-                    evaluation.noteReelle = noteTrouvee.note;
-                    sommePointsMat += noteTrouvee.note * evaluation.coeff;
-                    totalCoeffMat += evaluation.coeff;
+                matiere.evaluations.forEach((evaluation, indexEval) => {
+                    // 1. Génération d'un ID UNIQUE pour éviter le bug des sliders liés
+                    // Si pas de code, on combine nom_matiere + nom_eval + index
+                    const uniqueId = evaluation.code && evaluation.code.length > 0 
+                        ? evaluation.code 
+                        : `${matiere.name}_${evaluation.name}_${indexEval}`;
+                    
+                    evaluation.uniqueId = uniqueId;
+
+                    // 2. Recherche note API
+                    const noteFromApi = notes.find(n => n.code === evaluation.code);
+                    
+                    // 3. Gestion Priorité : Simulation > API > Rien
+                    const simu = simulatedNotes[uniqueId];
+                    
+                    let finalNote: number | null = null;
+                    let isFromApi = false;
+
+                    // Si une simulation existe, elle gagne
+                    if (simu !== undefined && simu !== null) {
+                        finalNote = simu;
+                    } 
+                    // Sinon, si on a une note API
+                    else if (noteFromApi) {
+                        finalNote = noteFromApi.note;
+                        isFromApi = true;
+                    }
+
+                    // On stocke les infos pour l'affichage
+                    evaluation.noteReelle = finalNote;
+                    evaluation.hasApiNote = isFromApi; // <-- Pour cacher le slider
+
+                    // Calculs
+                    if (finalNote !== null) {
+                        sommePointsMat += finalNote * evaluation.coeff;
+                        totalCoeffMat += evaluation.coeff;
+                    } else {
+                        ueEstComplete = false;
+                    }
+                });
+
+                if (totalCoeffMat > 0) {
+                    matiere.moyenne = sommePointsMat / totalCoeffMat;
+                    if (matiere.moyenne < 6) pasDeNoteEliminatoire = false;
+                    sommePointsUE += matiere.moyenne * matiere.coeff_matiere;
+                    totalCoeffUE += matiere.coeff_matiere;
                 } else {
-                    evaluation.noteReelle = null;
-                    ueEstComplete = false; // Il manque une note !
+                    matiere.moyenne = null;
+                    ueEstComplete = false;
                 }
             });
 
-            // --- CALCUL MOYENNE MATIÈRE ---
-            if (totalCoeffMat > 0) {
-                matiere.moyenne = sommePointsMat / totalCoeffMat;
-                
-                // Vérification note éliminatoire (Strictement supérieur à 6)
-                if (matiere.moyenne <= 6) {
-                    pasDeNoteEliminatoire = false;
-                }
+            if (totalCoeffUE > 0) {
+                ue.moyenne = sommePointsUE / totalCoeffUE;
+                const estValide = ueEstComplete && ue.moyenne >= 10 && pasDeNoteEliminatoire;
+                ue.isValidated = estValide;
 
-                sommePointsUE += matiere.moyenne * matiere.coeff_matiere;
-                totalCoeffUE += matiere.coeff_matiere;
+                if (estValide) ectsValides += ue.ects;
+
+                totalPointsSemestre += ue.moyenne * ue.ects;
+                totalEctsSemestre += ue.ects;
             } else {
-                matiere.moyenne = null;
-                ueEstComplete = false; // Pas de moyenne = incomplet
+                ue.moyenne = null;
+                ue.isValidated = false;
             }
         });
 
-        // --- CALCUL MOYENNE UE & VALIDATION ---
-        if (totalCoeffUE > 0) {
-            ue.moyenne = sommePointsUE / totalCoeffUE;
+        const moyGen = totalEctsSemestre > 0 ? totalPointsSemestre / totalEctsSemestre : 0;
 
-            // RÈGLES DE VALIDATION ECTS :
-            // 1. UE Complète (pas de note manquante)
-            // 2. Moyenne UE >= 10
-            // 3. Pas de matière <= 6
-            const estValide = ueEstComplete && ue.moyenne >= 10 && pasDeNoteEliminatoire;
-            
-            ue.isValidated = estValide; // On stocke l'info pour l'affichage
+        return {
+            structure: structureCopie,
+            stats: { ects: ectsValides, moyenne: moyGen }
+        };
+    };
 
-            if (estValide) {
-                ectsValides += ue.ects;
-            }
+    const resultats = getDonneesAvecNotes();
+    const donneesAffichables = resultats.structure;
+    const stats = resultats.stats;
 
-            // Pour la Moyenne Générale (on compte tout, même les échecs)
-            totalPointsSemestre += ue.moyenne * ue.ects;
-            totalEctsSemestre += ue.ects;
-
-        } else {
-            ue.moyenne = null;
-            ue.isValidated = false;
-        }
-    });
-
-    // Mise à jour des états
-    setNbectsTot(ectsValides); // Affiche seulement ceux validés (ex: 12/30)
-    
-    // Moyenne générale du semestre
-    if (totalEctsSemestre > 0) {
-        setMoyenne(totalPointsSemestre / totalEctsSemestre);
-    } else {
-        setMoyenne(0);
-    }
-
-    return structureCopie;
-};
-    const donneesAffichables = notes ? getDonneesAvecNotes() : [];
     return (
         <SafeAreaView style={styles.container}>
-            {/* Petit bouton retour en haut */}
-            <TouchableOpacity onPress={() => setSelectedFiliere(null)} style={styles.backButton}>
-                <Text style={styles.backText}>← Changer de filière</Text>
-            </TouchableOpacity>
+            <View style={styles.topBar}>
+                <TouchableOpacity onPress={() => setSelectedFiliere(null)} style={styles.backButton}>
+                    <Text style={styles.backText}>← Retour</Text>
+                </TouchableOpacity>
+                <Text style={styles.topTitle}>{selectedFiliere}</Text>
+                <View style={{width: 60}} /> 
+            </View>
 
-            <Text style={styles.title}>Promo {selectedFiliere}</Text>
+            <View style={styles.statsContainer}>
+                <View style={styles.statCard}>
+                    <Text style={styles.statLabel}>Moyenne Générale</Text>
+                    <View style={styles.valueContainer}>
+                        <Text style={[styles.statValue, { color: stats.moyenne >= 10 ? '#4CAF50' : '#F44336' }]}>
+                            {stats.moyenne.toFixed(2)}
+                        </Text>
+                        <Text style={styles.statSuffix}>/20</Text>
+                    </View>
+                </View>
+                <View style={styles.statCard}>
+                    <Text style={styles.statLabel}>Crédits ECTS</Text>
+                    <View style={styles.valueContainer}>
+                        <Text style={[styles.statValue, { color: '#2196F3' }]}>{stats.ects}</Text>
+                        <Text style={styles.statSuffix}> /30</Text>
+                    </View>
+                </View>
+            </View>
 
             <FlatList
                 data={donneesAffichables}
                 keyExtractor={(item, index) => item.ue || index.toString()}
                 renderItem={({ item }) => (
-                    <UeCard ueData={item} />
+                    <UeCard 
+                        ueData={item} 
+                        simulatedNotes={simulatedNotes}
+                        updateSimulation={updateSimulation}
+                    />
                 )}
-                contentContainerStyle={{ paddingBottom: 20 }}
+                contentContainerStyle={{ paddingBottom: 40 }}
             />
-            {/* --- BLOC STATISTIQUES (En haut de page) --- */}
-<View style={styles.statsContainer}>
-    
-    {/* Carte MOYENNE */}
-    <View style={styles.statCard}>
-        <Text style={styles.statLabel}>Moyenne Générale</Text>
-        <View style={styles.valueContainer}>
-            <Text style={[
-                styles.statValue, 
-                { color: moyenne >= 10 ? '#4CAF50' : '#F44336' } // Vert ou Rouge
-            ]}>
-                {moyenne.toFixed(2)}
-            </Text>
-            <Text style={styles.statSuffix}>/20</Text>
-        </View>
-    </View>
-
-    {/* Carte ECTS */}
-    <View style={styles.statCard}>
-        <Text style={styles.statLabel}>Crédits ECTS</Text>
-        <View style={styles.valueContainer}>
-            <Text style={[styles.statValue, { color: '#2196F3' }]}> {/* Bleu */}
-                {nbEctsTot}
-            </Text>
-            <Text style={styles.statSuffix}> /30</Text>
-        </View>
-    </View>
-
-</View>
         </SafeAreaView>
     );
 }
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F5F7FA',
-        paddingTop: 10,
-    },
-    center: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#1a1a1a',
-        marginBottom: 20,
-        textAlign: 'center',
-    },
-    // Styles pour les gros boutons de choix
-    buttonChoice: {
-        backgroundColor: '#2196F3', // Bleu
-        paddingVertical: 15,
-        paddingHorizontal: 40,
-        borderRadius: 10,
-        marginBottom: 15,
-        width: 200, // Largeur fixe pour être joli
-        alignItems: 'center',
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-    },
-    buttonText: {
-        color: 'white',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    // Style bouton retour
-    backButton: {
-        padding: 10,
-        marginLeft: 10,
-    },
-    backText: {
-        color: '#2196F3',
-        fontWeight: '600',
-    },
-    // --- STYLE DASHBOARD STATS ---
-    statsContainer: {
-        flexDirection: 'row',       // Met les cartes côte à côte
-        justifyContent: 'space-between', // Espace égal entre les deux
-        paddingHorizontal: 20,      // Marge sur les côtés de l'écran
-        marginBottom: 20,           // Espace avant la liste des cours
-        marginTop: 10,
-    },
-    statCard: {
-        backgroundColor: 'white',
-        width: '48%',               // Chaque carte prend un peu moins de la moitié
-        paddingVertical: 15,
-        paddingHorizontal: 10,
-        borderRadius: 16,
-        alignItems: 'center',       // Centre le texte
-        // Ombre douce pour l'effet "carte flottante"
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-    },
-    statLabel: {
-        fontSize: 12,
-        color: '#888',
-        fontWeight: '600',
-        textTransform: 'uppercase', // MAJUSCULES élégantes
-        marginBottom: 5,
-        letterSpacing: 0.5,
-    },
-    valueContainer: {
-        flexDirection: 'row',       // Pour aligner la note et le "/20"
-        alignItems: 'baseline',     // Aligne le bas des textes
-    },
-    statValue: {
-        fontSize: 28,               // Gros chiffre
-        fontWeight: 'bold',
-    },
-    statSuffix: {
-        fontSize: 14,
-        color: '#BBB',
-        fontWeight: '600',
-        marginLeft: 2,
-    },
+    container: { flex: 1, backgroundColor: '#F2F5F8' },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, backgroundColor: 'white', borderBottomWidth: 1, borderColor: '#E5E7EB' },
+    topTitle: { fontSize: 18, fontWeight: 'bold' },
+    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
+    buttonChoice: { backgroundColor: '#2563EB', padding: 16, borderRadius: 12, marginBottom: 12, width: 240, alignItems: 'center' },
+    buttonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+    backButton: { padding: 8, backgroundColor: '#F3F4F6', borderRadius: 8 },
+    backText: { color: '#374151', fontWeight: '600' },
+    statsContainer: { flexDirection: 'row', gap: 12, padding: 16 },
+    statCard: { flex: 1, backgroundColor: 'white', padding: 16, borderRadius: 16, alignItems: 'center', elevation: 2 },
+    statLabel: { fontSize: 11, color: '#6B7280', fontWeight: 'bold', textTransform: 'uppercase' },
+    valueContainer: { flexDirection: 'row', alignItems: 'baseline' },
+    statValue: { fontSize: 26, fontWeight: '800' },
+    statSuffix: { fontSize: 13, color: '#9CA3AF', fontWeight: '600' },
 });

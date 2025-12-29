@@ -1,44 +1,83 @@
 import { Evaluations } from "@/constants/data";
-import { Text, View, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import Slider from '@react-native-community/slider';
 
-export default function MatiereCard({ evaluationData }: { evaluationData: Evaluations[] }) {
+interface MatiereCardProps {
+    evaluationData: Evaluations[];
+    simulatedNotes: Record<string, number | null>;
+    updateSimulation: (id: string, val: number | null) => void;
+}
 
-    // Gestion des couleurs pour les notes
-    const getNoteColor = (note: number | undefined | null) => {
-        if (note === undefined || note === null) return "#BDBDBD"; // Gris
-        if (note >= 10) return "#4CAF50"; // Vert
-        if (note >= 8) return "#FF9800";  // Orange
-        return "#F44336";                 // Rouge
-    };
+const getNoteColor = (note: number | undefined | null) => {
+    if (note === undefined || note === null) return "#BDBDBD";
+    if (note >= 10) return "#4CAF50";
+    if (note >= 8) return "#FF9800";
+    return "#F44336";
+};
 
+export default function MatiereCard({ evaluationData, simulatedNotes, updateSimulation }: MatiereCardProps) {
     return (
         <View style={styles.container}>
             {evaluationData.map((item, index) => {
-                const hasNote = item.noteReelle !== undefined && item.noteReelle !== null;
-                // On affiche une ligne de séparation sauf pour le dernier élément
                 const isLast = index === evaluationData.length - 1;
+                
+                // IMPORTANT: On utilise l'ID généré dans main.tsx pour éviter que tout bouge en même temps
+                const id = item.uniqueId || item.code || `${item.name}_${index}`;
+                
+                const displayNote = item.noteReelle;
+                const isSimulated = simulatedNotes[id] !== undefined && simulatedNotes[id] !== null;
+                const sliderValue = displayNote !== null && displayNote !== undefined ? displayNote : 10;
+
+                // Condition d'affichage du slider : Si PAS de note API, ou si c'est déjà une simulation en cours
+                const showSlider = !item.hasApiNote;
 
                 return (
-                    <View 
-                        key={item.code || index} 
-                        style={[styles.row, !isLast && styles.separator]}
-                    >
-                        {/* GAUCHE : Nom et Code */}
-                        <View style={styles.leftInfo}>
-                            <Text style={styles.name}>{item.name}</Text>
-                            {item.code ? <Text style={styles.code}>{item.code}</Text> : null}
+                    <View key={id} style={[styles.row, !isLast && styles.separator]}>
+                        
+                        <View style={styles.rowTop}>
+                            <View style={styles.leftInfo}>
+                                <Text style={styles.name}>{item.name}</Text>
+                                <Text style={styles.code}>{item.code}</Text>
+                            </View>
+
+                            <TouchableOpacity 
+                                style={styles.rightInfo}
+                                disabled={!isSimulated} // On ne peut reset que les simulations
+                                onPress={() => updateSimulation(id, null)}
+                            >
+                                <View style={styles.noteWrapper}>
+                                    <Text style={[
+                                        styles.noteValue, 
+                                        { color: getNoteColor(displayNote) },
+                                        isSimulated && styles.simulatedText
+                                    ]}>
+                                        {displayNote !== null && displayNote !== undefined ? displayNote.toFixed(2) : "--"}
+                                    </Text>
+                                    <Text style={styles.noteTotal}>/20</Text>
+                                </View>
+                                <Text style={styles.coeff}>Coeff {item.coeff}</Text>
+                            </TouchableOpacity>
                         </View>
 
-                        {/* DROITE : Note et Coeff */}
-                        <View style={styles.rightInfo}>
-                            <View style={styles.noteContainer}>
-                                <Text style={[styles.noteValue, { color: getNoteColor(item.noteReelle) }]}>
-                                    {hasNote ? item.noteReelle : "--"}
-                                </Text>
-                                <Text style={styles.noteTotal}>/20</Text>
+                        {/* On affiche le slider UNIQUEMENT si pas de note API */}
+                        {showSlider && (
+                            <View style={styles.sliderWrapper}>
+                                <Slider
+                                    style={{ width: '100%', height: 30 }}
+                                    minimumValue={0}
+                                    maximumValue={20}
+                                    step={0.5}
+                                    value={sliderValue}
+                                    onValueChange={(val) => updateSimulation(id, val)}
+                                    minimumTrackTintColor={isSimulated ? "#2196F3" : "#E0E0E0"}
+                                    maximumTrackTintColor="#000000"
+                                    thumbTintColor={isSimulated ? "#2196F3" : "#999"}
+                                />
+                                {isSimulated && (
+                                    <Text style={styles.resetHint}>Appuie sur la note pour annuler</Text>
+                                )}
                             </View>
-                            <Text style={styles.coeff}>x{item.coeff}</Text>
-                        </View>
+                        )}
                     </View>
                 );
             })}
@@ -47,57 +86,19 @@ export default function MatiereCard({ evaluationData }: { evaluationData: Evalua
 }
 
 const styles = StyleSheet.create({
-    container: {
-        backgroundColor: '#F8F9FA', // Gris très léger
-        borderRadius: 10,
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 8,
-    },
-    separator: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#EAEAEA', // Trait de séparation très fin
-    },
-    leftInfo: {
-        flex: 1,
-        paddingRight: 10,
-    },
-    name: {
-        fontSize: 13,
-        color: '#333',
-        fontWeight: '500',
-    },
-    code: {
-        fontSize: 10,
-        color: '#999',
-        marginTop: 2,
-        fontFamily: 'monospace', // Pour donner un aspect "code"
-    },
-    rightInfo: {
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-    },
-    noteContainer: {
-        flexDirection: 'row',
-        alignItems: 'baseline', // Aligne le "20" sur la ligne de base du chiffre
-    },
-    noteValue: {
-        fontSize: 15,
-        fontWeight: '700',
-    },
-    noteTotal: {
-        fontSize: 10,
-        color: '#BBB',
-        marginLeft: 2,
-    },
-    coeff: {
-        fontSize: 11,
-        color: '#888',
-        marginTop: 2,
-    }
-}); 
+    container: { backgroundColor: '#FAFAFA', borderRadius: 8, paddingHorizontal: 8 },
+    row: { paddingVertical: 10 },
+    separator: { borderBottomWidth: 1, borderBottomColor: '#EEEEEE' },
+    rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 5 },
+    leftInfo: { flex: 1, paddingRight: 10 },
+    name: { fontSize: 14, color: '#333', fontWeight: '500' },
+    code: { fontSize: 10, color: '#AAA', fontFamily: 'monospace' },
+    rightInfo: { alignItems: 'flex-end' },
+    noteWrapper: { flexDirection: 'row', alignItems: 'baseline' },
+    noteValue: { fontSize: 16, fontWeight: '700' },
+    simulatedText: { color: '#2196F3', textDecorationLine: 'underline' },
+    noteTotal: { fontSize: 10, color: '#BBB', marginLeft: 2 },
+    coeff: { fontSize: 11, color: '#888' },
+    sliderWrapper: { paddingTop: 0 },
+    resetHint: { fontSize: 9, color: '#2196F3', textAlign: 'center', marginTop: -5 }
+});
