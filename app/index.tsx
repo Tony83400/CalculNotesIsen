@@ -8,7 +8,7 @@ import {
   SafeAreaView
 } from "react-native";
 import { login } from "../constants/api/route";
-import { setToken } from "@/constants/token";
+import { setId, setToken } from "@/constants/token";
 import { router } from "expo-router";
 
 export default function Index() {
@@ -23,7 +23,8 @@ export default function Index() {
         password: password
       });
       setToken(rep.token);
-      router.push("/main");
+      setId(email);
+      router.push("/chose");
     } catch (error) {
       console.log("Erreur", error);
       setErrorText("Nom d'utilisateur ou mot de passe invalide");
