@@ -12,9 +12,11 @@ export default function Chose() {
 
     // Redirection si pas connecté
     if (!userId) {
+        router.push("/");
         return (
             <View style={styles.center}>
                 <Text>Veuillez vous connecter</Text>
+                
             </View>
         );
     }
@@ -48,12 +50,14 @@ export default function Chose() {
     if (!url) {
         return (
             <View style={styles.container}>
-                <TouchableOpacity onPress={() => router.push("/chose")} style={styles.link}>
-                    <Text style={styles.linkText}>← Retour aux notes</Text>
+                <Text style={styles.title}>Que voulez-vous faire ?</Text>
+
+                <TouchableOpacity onPress={() => router.push("/main")} style={styles.button}>
+                    <Text style={styles.buttonText}>📝 Mes notes</Text>
                 </TouchableOpacity>
-                
+
                 <Text style={styles.label}>Collez l'URL publique de votre agenda :</Text>
-                
+
                 <TextInput
                     style={styles.input}
                     placeholder="https://calendar.google.com/..."
@@ -73,7 +77,7 @@ export default function Chose() {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Que voulez-vous faire ?</Text>
-            
+
             <TouchableOpacity onPress={() => router.push("/main")} style={styles.button}>
                 <Text style={styles.buttonText}>📝 Mes notes</Text>
             </TouchableOpacity>
@@ -81,11 +85,7 @@ export default function Chose() {
             <TouchableOpacity onPress={() => router.push("/agenda")} style={styles.button}>
                 <Text style={styles.buttonText}>📅 Mon agenda</Text>
             </TouchableOpacity>
-            
-            {/* Petit bouton pour modifier l'url si besoin */}
-            <TouchableOpacity onPress={() => setUrl("")} style={{marginTop: 20}}>
-                <Text style={{color: 'gray'}}>Modifier l'URL de l'agenda</Text>
-            </TouchableOpacity>
+
         </View>
     );
 }
@@ -93,12 +93,12 @@ export default function Chose() {
 const styles = StyleSheet.create({
     container: { flex: 1, padding: 20, justifyContent: 'center' },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    input: { 
-        borderWidth: 1, 
-        borderColor: '#ccc', 
-        padding: 15, 
-        marginBottom: 20, 
-        borderRadius: 8 
+    input: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        padding: 15,
+        marginBottom: 20,
+        borderRadius: 8
     },
     label: { marginBottom: 10, fontSize: 16 },
     title: { fontSize: 22, marginBottom: 30, textAlign: 'center' },
