@@ -2,7 +2,7 @@ import { UeData } from "./data";
 
 const getDonneesAvecNotes = (
   dataFiliere: UeData[],
-  notes: any[] ,
+  notes: any[],
   simulatedNotes: any
 ) => {
   const structureCopie: UeData[] = JSON.parse(JSON.stringify(dataFiliere));
@@ -32,7 +32,7 @@ const getDonneesAvecNotes = (
         evaluation.uniqueId = uniqueId;
 
         // 2. Recherche note API
-        const noteFromApi = notes.find((n) => n.code === evaluation.code);
+        const noteFromApi = notes.find((n) => evaluation.code.includes(n.code));
 
         // 3. Gestion Priorité : Simulation > API > Rien
         const simu = simulatedNotes[uniqueId];
