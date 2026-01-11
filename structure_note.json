@@ -421,10 +421,21 @@
                     },
                     {
                         "name": "Gestion de projet",
-                        "coeff_matiere": 2,
+                        "coeff_matiere": 1,
                         "evaluations": [
                             {
-                                "name": "Soutenance",
+                                "name": "Rendu",
+                                "code": "",
+                                "coeff": 1
+                            }
+                        ]
+                    },
+                     {
+                        "name": "Agilité",
+                        "coeff_matiere": 1,
+                        "evaluations": [
+                            {
+                                "name": "QCM",
                                 "code": "",
                                 "coeff": 1
                             }

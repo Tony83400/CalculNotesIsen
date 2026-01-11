@@ -10,16 +10,16 @@ export default function Chose() {
     const [url, setUrl] = useState<string>("");
     const [inputUrl, setInputUrl] = useState<string>(""); // Variable temporaire pour l'input
 
-    // Redirection si pas connecté
+    useEffect(() => {
     if (!userId) {
-        router.push("/");
-        return (
-            <View style={styles.center}>
-                <Text>Veuillez vous connecter</Text>
-                
-            </View>
-        );
+      router.push("/");
     }
+  }, [userId]); // Se déclenche si userId change
+
+  // Si on n'a pas de userId, on n'affiche rien en attendant la redirection
+  if (!userId) {
+     return null; 
+  }
 
     // Chargement initial
     useEffect(() => {

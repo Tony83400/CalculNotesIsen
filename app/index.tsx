@@ -10,6 +10,7 @@ import {
 import { login } from "../constants/api/route";
 import { setId, setToken } from "@/constants/token";
 import { router } from "expo-router";
+import { Button } from "@react-navigation/elements";
 
 export default function Index() {
   const [email, setEmail] = useState("");
@@ -27,9 +28,14 @@ export default function Index() {
       router.push("/chose");
     } catch (error) {
       console.log("Erreur", error);
-      setErrorText("Nom d'utilisateur ou mot de passe invalide");
+      setErrorText((error as Error).message);
     }
   };
+  const onPressContinueWithoutLogin = () => {
+    setId("");
+    router.push("/main");
+  };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -71,6 +77,14 @@ export default function Index() {
 
         {/* Message d'erreur */}
         {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
+                {errorText ? <TouchableOpacity
+          style={styles.button}
+          onPress={onPressContinueWithoutLogin}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonText}>Continuer sans se connecter</Text>
+        </TouchableOpacity> : null}
+
 
       </View>
     </SafeAreaView>
