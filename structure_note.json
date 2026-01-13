@@ -167,12 +167,12 @@
               {
                 "name": "Examen",
                 "code": "25_ISEN_MED_ISEN3_S5_DevMobile",
-                "coeff": 1
+                "coeff": 7
               },
               {
                 "name": "Projet ",
                 "code": "25_ISEN_MED_ISEN3_S5_DevMobile_Projet",
-                "coeff": 1
+                "coeff": 3
               }
             ]
           }
@@ -199,7 +199,7 @@
             "evaluations": [
               {
                 "name": "Rendu",
-                "code": "",
+                "code": "25_ISEN_MED_ISEN3_S5_SHES_GESTION_PROJET_Fondamentaux",
                 "coeff": 1
               }
             ]
@@ -250,7 +250,7 @@
               {
                 "name": "Examen",
                 "code": "",
-                "coeff": 4
+                "coeff": 3
               },
               {
                 "name": "Contrôle continu",
