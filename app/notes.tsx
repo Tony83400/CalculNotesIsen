@@ -37,13 +37,8 @@ export default function Main() {
         try {
             console.log("Recuperation des notes ...");
             const rep = await getNotes();
-            const formattedNotes: Note[] = rep.map((elt: any) => ({
-                code: elt.code,
-                name: elt.name,
-                note: Number(elt.note),
-                date: elt.date
-            }));
-            setNotes(formattedNotes);
+            setNotes(rep);
+            console.log(rep);
         } catch (error) {
             console.error("Erreur dans le composant :", error);
         }

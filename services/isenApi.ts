@@ -1,5 +1,6 @@
 import { API_URL } from "@/constants/Config";
 import { getToken } from "./storage";
+import { Note } from "@/types/note";
 
 export async function login(loginData: { username: string; password: string }) {
   try {
@@ -53,7 +54,14 @@ export async function getNotes() {
       const errorText = await res.text();
       throw new Error(errorText || "Erreur serveur");
     }
-    return await res.json();
+    const rep = await res.json();
+    const formattedNotes: Note[] = rep.map((elt: any) => ({
+      code: elt.code,
+      name: elt.name,
+      note: Number(elt.note),
+      date: elt.date,
+    }));
+    return formattedNotes;
   } catch (error) {
     console.error("Erreur dans getNotes :", error);
     throw error;
