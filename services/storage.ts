@@ -23,7 +23,7 @@ export function setId(value: string) {
 export const saveAgendaToCache = (parsedEvents: AgendaEvent[]) => {
   try {
     localStorage.setItem(agendaName, JSON.stringify(parsedEvents));
-    localStorage.setItem(agendaName, Date.now().toString()); // Optionnel : pour savoir quand on a mis en cache
+    localStorage.setItem(agendaName+"Date", Date.now().toString()); // Optionnel : pour savoir quand on a mis en cache
   } catch (e) {
     console.error("Quota localStorage dépassé", e);
   }
@@ -36,6 +36,7 @@ export const loadAgendaFromCache = (): AgendaEvent[] | null => {
 
   // On transforme le texte en objet JSON
   const rawEvents = JSON.parse(cachedString);
+  console.log("Events chargés depuis le cache :", rawEvents);
 
   // ⚠️ CRUCIAL : On réhydrate les dates (car JSON les a transformées en string)
   const fixedEvents = rawEvents.map((event: any) => ({
@@ -50,7 +51,7 @@ export const loadAgendaFromCache = (): AgendaEvent[] | null => {
 export const saveNotesToCache = (notes: Note[]) => {
   try {
     localStorage.setItem(notesName, JSON.stringify(notes));
-    localStorage.setItem(agendaName, Date.now().toString()); // Optionnel : pour savoir quand on a mis en cache
+    localStorage.setItem(notesName+"Date", Date.now().toString()); // Optionnel : pour savoir quand on a mis en cache
   } catch (e) {
     console.error("Quota localStorage dépassé", e);
   }
