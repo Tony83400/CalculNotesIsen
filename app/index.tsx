@@ -1,4 +1,4 @@
-import { useState } from "react";
+  import { useEffect, useState } from "react";
 import {
   Text,
   TextInput,
@@ -10,7 +10,6 @@ import {
 import { login } from "../constants/api/route";
 import { setId, setToken } from "@/constants/token";
 import { router } from "expo-router";
-import { Button } from "@react-navigation/elements";
 
 export default function Index() {
   const [email, setEmail] = useState("");
@@ -35,8 +34,7 @@ export default function Index() {
     setId("");
     router.push("/main");
   };
-
-
+ 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.contentContainer}>

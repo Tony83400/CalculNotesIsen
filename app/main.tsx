@@ -12,10 +12,13 @@ import {
 import configActuelle from '../structure_note.json';
 import UeCard from '../components/afficheUe'
 import getDonneesAvecNotes from "@/constants/notes";
-import { getId } from "@/constants/token";
+import { getId, setId } from "@/constants/token";
 import { router } from "expo-router";
+import { getAgendaIsen } from "@/constants/api/agendaIsen";
 
 export default function Main() {
+     
+    
     const [notes, setNotes] = useState<Note[]>();
     const [selectedFiliere, setSelectedFiliere] = useState<string | null>(null);
     const filieresDisponibles = Object.keys(configActuelle.filieres);

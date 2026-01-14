@@ -1,9 +1,8 @@
 import { Text, View, TouchableOpacity, TextInput, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { getId } from "@/constants/token";
-import { addUrl, getUrl } from "@/constants/api/agendaGoogle";
 import { useEffect, useState } from "react"; // On importe useState d'ici !
-import { Button } from "@react-navigation/elements";
+import { getAgendaIsen } from "@/constants/api/agendaIsen";
 
 export default function Chose() {
     const userId = getId();
@@ -20,60 +19,14 @@ export default function Chose() {
   if (!userId) {
      return null; 
   }
+  const loadData = async () =>{
+    await getAgendaIsen();
+  }
 
     // Chargement initial
     useEffect(() => {
-        const getAgendaUrl = async () => {
-            try {
-                const data = await getUrl(userId);
-                if (data?.lienAgenda) {
-                    setUrl(data.lienAgenda);
-                }
-            } catch (error) {
-                console.log("Erreur chargement", error);
-            }
-        };
-        getAgendaUrl();
+        
     }, []);
-
-    // Sauvegarde
-    const handleAddUrl = async () => {
-        try {
-            await addUrl(userId, inputUrl);
-            setUrl(inputUrl); // On met à jour l'état "officiel" pour changer l'affichage
-        } catch (error) {
-            console.log("Erreur ajout", error);
-        }
-    };
-
-    // --- CAS 1 : Pas d'URL enregistrée ---
-    if (!url) {
-        return (
-            <View style={styles.container}>
-                <Text style={styles.title}>Que voulez-vous faire ?</Text>
-
-                <TouchableOpacity onPress={() => router.push("/main")} style={styles.button}>
-                    <Text style={styles.buttonText}>📝 Mes notes</Text>
-                </TouchableOpacity>
-
-                <Text style={styles.label}>Collez l'URL publique de votre agenda :</Text>
-
-                <TextInput
-                    style={styles.input}
-                    placeholder="https://calendar.google.com/..."
-                    placeholderTextColor="#aaa"
-                    value={inputUrl}
-                    onChangeText={setInputUrl}
-                    autoCapitalize="none"
-                />
-                <Button onPress={handleAddUrl}>
-                    Enregistrer l'URL
-                </Button>
-            </View>
-        );
-    }
-
-    // --- CAS 2 : URL déjà là (Menu) ---
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Que voulez-vous faire ?</Text>
