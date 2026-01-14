@@ -1,6 +1,6 @@
-import { Evaluations } from "@/constants/data";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Evaluations } from "@/types/note";
 import Slider from '@react-native-community/slider';
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface MatiereCardProps {
     evaluationData: Evaluations[];

@@ -1,5 +1,5 @@
-import { API_URL } from "@/constants/api_route";
-import { getToken } from "../token";
+import { API_URL } from "@/constants/Config";
+import { getToken } from "./storage";
 
 export async function login(loginData: { username: string; password: string }) {
   try {

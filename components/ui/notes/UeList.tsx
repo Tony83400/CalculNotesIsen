@@ -1,14 +1,13 @@
-import { Text, View, StyleSheet } from "react-native";
-import MatiereCard from "./afficheMatiere";
-import { UeData } from "@/constants/data";
-
+import { Ue } from "@/types/note";
+import { StyleSheet, Text, View } from "react-native";
+import MatiereCard from "./MatiereCard";
 interface UeCardProps {
-    ueData: UeData;
+    Ue: Ue;
     simulatedNotes: Record<string, number | null>;
     updateSimulation: (id: string, val: number | null) => void;
 }
 
-export default function UeCard({ ueData, simulatedNotes, updateSimulation }: UeCardProps) {
+export default function UeCard({ Ue, simulatedNotes, updateSimulation }: UeCardProps) {
     
     const getUeColor = (moyenne: number | null | undefined, isValidated: boolean | undefined) => {
         if (moyenne === null || moyenne === undefined) return "#999";
@@ -28,23 +27,23 @@ export default function UeCard({ ueData, simulatedNotes, updateSimulation }: UeC
         <View style={styles.card}>
             <View style={styles.cardHeader}>
                 <View style={{ flex: 1 }}>
-                    <Text style={styles.ueTitle}>{ueData.ue}</Text>
-                    {ueData.moyenne !== null && ueData.moyenne !== undefined ? (
-                        <Text style={[styles.ueMoyenne, { color: getUeColor(ueData.moyenne, ueData.isValidated) }]}>
-                            Moyenne UE : {ueData.moyenne.toFixed(2)}/20
-                            {!ueData.isValidated && ueData.moyenne >= 10 ? " (Non Validé)" : ""}
+                    <Text style={styles.ueTitle}>{Ue.ue}</Text>
+                    {Ue.moyenne !== null && Ue.moyenne !== undefined ? (
+                        <Text style={[styles.ueMoyenne, { color: getUeColor(Ue.moyenne, Ue.isValidated) }]}>
+                            Moyenne UE : {Ue.moyenne.toFixed(2)}/20
+                            {!Ue.isValidated && Ue.moyenne >= 10 ? " (Non Validé)" : ""}
                         </Text>
                     ) : (
                         <Text style={styles.ueMoyenne}>--/20</Text>
                     )}
                 </View>
                 <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{ueData.ects} ECTS</Text>
+                    <Text style={styles.badgeText}>{Ue.ects} ECTS</Text>
                 </View>
             </View>
 
             <View style={styles.contentContainer}>
-                {ueData.matieres.map((matiere, index) => (
+                {Ue.matieres.map((matiere, index) => (
                     <View key={matiere.name + index} style={styles.matiereContainer}>
                         <View style={styles.matiereHeader}>
                             <Text style={styles.matiereName}>{matiere.name}</Text>

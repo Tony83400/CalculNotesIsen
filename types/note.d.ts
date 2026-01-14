@@ -23,7 +23,7 @@ export interface Matiere {
   moyenne?: number | null; 
 }
 
-export interface UeData {
+export interface Ue {
   ue: string;
   ects: number;
   matieres: Matiere[];

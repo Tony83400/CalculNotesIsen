@@ -1,20 +1,19 @@
-import { getNotes } from "@/constants/api/route";
-import { useEffect, useState, useCallback } from "react";
-import { Note, UeData } from "@/constants/data";
+import { getNotes } from "@/services/isenApi";
+import { getId } from "@/services/storage";
+import { Note } from "@/types/note";
+import getDonneesAvecNotes from "@/utils/notes";
+import { router } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
-    Text,
-    View,
-    StyleSheet,
     FlatList,
     SafeAreaView,
-    TouchableOpacity
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
+import UeCard from '../components/ui/notes/UeList';
 import configActuelle from '../structure_note.json';
-import UeCard from '../components/afficheUe'
-import getDonneesAvecNotes from "@/constants/notes";
-import { getId, setId } from "@/constants/token";
-import { router } from "expo-router";
-import { getAgendaIsen } from "@/constants/api/agendaIsen";
 
 export default function Main() {
      
@@ -77,9 +76,9 @@ export default function Main() {
                     />
                     <TouchableOpacity
                                 style={styles.buttonChoice}
-                                onPress={() => router.push("/")}
+                                onPress={() => router.push("/selection")}
                             >
-                                <Text style={styles.buttonText}>← Retour à l'accueil</Text>
+                                <Text style={styles.buttonText}>← Retour</Text>
                             </TouchableOpacity>
                 </View>
             </SafeAreaView>
@@ -156,7 +155,7 @@ export default function Main() {
                 keyExtractor={(item, index) => item.ue || index.toString()}
                 renderItem={({ item }) => (
                     <UeCard 
-                        ueData={item} 
+                        Ue={item} 
                         simulatedNotes={simulatedNotes}
                         updateSimulation={updateSimulation}
                     />

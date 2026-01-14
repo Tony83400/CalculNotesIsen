@@ -1,11 +1,11 @@
-import { UeData } from "./data";
+import { Ue } from "../types/note";
 
 const getDonneesAvecNotes = (
-  dataFiliere: UeData[],
+  dataFiliere: Ue[],
   notes: any[],
   simulatedNotes: any
 ) => {
-  const structureCopie: UeData[] = JSON.parse(JSON.stringify(dataFiliere));
+  const structureCopie: Ue[] = JSON.parse(JSON.stringify(dataFiliere));
 
   let ectsValides = 0;
   let totalPointsSemestre = 0;

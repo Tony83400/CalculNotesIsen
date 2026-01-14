@@ -1,15 +1,15 @@
-  import { useEffect, useState } from "react";
+  import { setId, setToken } from "@/services/storage";
+import { router } from "expo-router";
+import { useState } from "react";
 import {
+  SafeAreaView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  StyleSheet,
-  SafeAreaView
+  View
 } from "react-native";
-import { login } from "../constants/api/route";
-import { setId, setToken } from "@/constants/token";
-import { router } from "expo-router";
+import { login } from "../services/isenApi";
 
 export default function Index() {
   const [email, setEmail] = useState("");
@@ -24,7 +24,7 @@ export default function Index() {
       });
       setToken(rep.token);
       setId(email);
-      router.push("/chose");
+      router.push("/selection");
     } catch (error) {
       console.log("Erreur", error);
       setErrorText((error as Error).message);
@@ -32,7 +32,7 @@ export default function Index() {
   };
   const onPressContinueWithoutLogin = () => {
     setId("");
-    router.push("/main");
+    router.push("/notes");
   };
  
   return (

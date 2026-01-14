@@ -1,6 +1,7 @@
-import { AgendaEvent, getAgendaIsen } from "@/constants/api/agendaIsen";
+import { getAgendaIsen } from "@/services/agendaApi";
+import { AgendaEvent } from "@/types/agenda";
 import { useEffect, useState } from "react";
-import { FlatList, View,Text } from "react-native";
+import { FlatList, Text, View } from "react-native";
 
 interface AgendaProps {
     events: AgendaEvent[];

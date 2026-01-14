@@ -1,13 +1,11 @@
-import { Text, View, TouchableOpacity, TextInput, StyleSheet } from "react-native";
+import { getAgendaIsen } from "@/services/agendaApi";
+import { getId } from "@/services/storage";
 import { router } from "expo-router";
-import { getId } from "@/constants/token";
 import { useEffect, useState } from "react"; // On importe useState d'ici !
-import { getAgendaIsen } from "@/constants/api/agendaIsen";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function Chose() {
     const userId = getId();
-    const [url, setUrl] = useState<string>("");
-    const [inputUrl, setInputUrl] = useState<string>(""); // Variable temporaire pour l'input
 
     useEffect(() => {
     if (!userId) {
@@ -31,7 +29,7 @@ export default function Chose() {
         <View style={styles.container}>
             <Text style={styles.title}>Que voulez-vous faire ?</Text>
 
-            <TouchableOpacity onPress={() => router.push("/main")} style={styles.button}>
+            <TouchableOpacity onPress={() => router.push("/notes")} style={styles.button}>
                 <Text style={styles.buttonText}>📝 Mes notes</Text>
             </TouchableOpacity>
 
