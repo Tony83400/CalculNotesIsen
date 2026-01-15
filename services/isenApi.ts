@@ -36,6 +36,7 @@ export async function login(loginData: { username: string; password: string }) {
 }
 
 export async function getNotes() {
+  console.log("Récupération des notes...");
   const cachedData = loadNotesFromCache();
   if (cachedData) {
     return cachedData;

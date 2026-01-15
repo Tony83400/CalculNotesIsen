@@ -1,4 +1,5 @@
 import { getAgendaIsen } from "@/services/agendaApi";
+import { getNotes } from "@/services/isenApi";
 import { getId } from "@/services/storage";
 import { router } from "expo-router";
 import { useEffect, useState } from "react"; // On importe useState d'ici !
@@ -19,11 +20,12 @@ export default function Chose() {
   }
   const loadData = async () =>{
     await getAgendaIsen();
+    await getNotes();
   }
 
     // Chargement initial
     useEffect(() => {
-        
+        loadData();
     }, []);
     return (
         <View style={styles.container}>
@@ -35,6 +37,10 @@ export default function Chose() {
 
             <TouchableOpacity onPress={() => router.push("/agenda")} style={styles.button}>
                 <Text style={styles.buttonText}>📅 Mon agenda</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => router.push("/")} style={styles.button}>
+                <Text style={styles.buttonText}>🔙 Se déconnecter</Text>
             </TouchableOpacity>
 
         </View>

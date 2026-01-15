@@ -35,7 +35,6 @@ export default function Main() {
 
     const fetchNote = async () => {
         try {
-            console.log("Recuperation des notes ...");
             const rep = await getNotes();
             setNotes(rep);
             console.log(rep);

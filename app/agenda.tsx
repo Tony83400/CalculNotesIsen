@@ -1,7 +1,8 @@
 import { getAgendaIsen } from "@/services/agendaApi";
 import { AgendaEvent } from "@/types/agenda";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { FlatList, Text, View } from "react-native";
+import { FlatList, Text, Touchable, TouchableOpacity, View } from "react-native";
 
 interface AgendaProps {
     events: AgendaEvent[];
@@ -13,7 +14,7 @@ export default function Agenda(){
     const [courses,setCourses]= useState<AgendaProps[]>([]);
     const days = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
     const getAgenda = async () => {
-                    const rep = await getAgendaIsen();
+            const rep = await getAgendaIsen();
 
             const startweek = new Date();
             startweek.setDate(startweek.getDate() - startweek.getDay() + 1); // Lundi de la semaine
@@ -57,6 +58,11 @@ export default function Agenda(){
             </View>
         )}
     />
+    <TouchableOpacity 
+        onPress={()=>router.push("/selection")}
+        >
+            <Text>← Retour</Text>
+    </TouchableOpacity>
 
     </View>
     );
