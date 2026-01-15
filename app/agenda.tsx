@@ -13,6 +13,7 @@ import {
     Platform 
 } from "react-native";
 import { Ionicons } from '@expo/vector-icons'; // Icônes standard Expo
+import { Colors } from "@/constants/Colors";
 
 interface AgendaProps {
     events: AgendaEvent[];
@@ -124,7 +125,7 @@ export default function Agenda() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F7F9FC', // Fond très clair, moderne
+        backgroundColor: Colors.background, // Fond très clair, moderne
     },
     header: {
         flexDirection: 'row',
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     dayTitle: {
         fontSize: 20,
         fontWeight: '800',
-        color: '#2C3E50',
+        color: Colors.text.primary,
         marginRight: 10,
     },
     dayLine: {
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
     },
     accentBar: {
         width: 5,
-        backgroundColor: '#3182CE', // Bleu type "agenda"
+        backgroundColor: Colors.primary , // Bleu type "agenda"
     },
     cardContent: {
         flex: 1,

@@ -1,3 +1,4 @@
+import { Colors } from "@/constants/Colors";
 import { Evaluations } from "@/types/note";
 import Slider from '@react-native-community/slider';
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -9,10 +10,10 @@ interface MatiereCardProps {
 }
 
 const getNoteColor = (note: number | undefined | null) => {
-    if (note === undefined || note === null) return "#BDBDBD";
-    if (note >= 10) return "#4CAF50";
-    if (note >= 8) return "#FF9800";
-    return "#F44336";
+    if (note === undefined || note === null) return Colors.status.neutral; // Gris harmonisé
+    if (note >= 10) return Colors.status.success;
+    if (note >= 8) return Colors.status.warning;
+    return Colors.status.error;
 };
 
 export default function MatiereCard({ evaluationData, simulatedNotes, updateSimulation }: MatiereCardProps) {
@@ -21,7 +22,7 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
             {evaluationData.map((item, index) => {
                 const isLast = index === evaluationData.length - 1;
                 
-                // IMPORTANT: On utilise l'ID généré dans main.tsx pour éviter que tout bouge en même temps
+                // IMPORTANT: On tilise l'ID généré dans main.tsx pour éviter que tout bouge en même temps
                 const id = item.uniqueId || item.code || `${item.name}_${index}`;
                 
                 const displayNote = item.noteReelle;
@@ -86,18 +87,27 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
 }
 
 const styles = StyleSheet.create({
-    container: { backgroundColor: '#FAFAFA', borderRadius: 8, paddingHorizontal: 8 },
-    row: { paddingVertical: 10 },
-    separator: { borderBottomWidth: 1, borderBottomColor: '#EEEEEE' },
-    rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 5 },
+container: { 
+        backgroundColor: 'transparent', 
+     
+        paddingHorizontal: 0, 
+        borderRadius: 0 
+    },
+        row: { paddingVertical: 10 },
+separator: { 
+        borderBottomWidth: 1, 
+        borderBottomColor: Colors.border // Gris de bordure standardisé
+    },    rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 5 },
     leftInfo: { flex: 1, paddingRight: 10 },
     name: { fontSize: 14, color: '#333', fontWeight: '500' },
     code: { fontSize: 10, color: '#AAA', fontFamily: 'monospace' },
     rightInfo: { alignItems: 'flex-end' },
     noteWrapper: { flexDirection: 'row', alignItems: 'baseline' },
     noteValue: { fontSize: 16, fontWeight: '700' },
-    simulatedText: { color: '#2196F3', textDecorationLine: 'underline' },
-    noteTotal: { fontSize: 10, color: '#BBB', marginLeft: 2 },
+simulatedText: { 
+        color: Colors.status.info, // Bleu harmonisé
+        textDecorationLine: 'underline' 
+    },    noteTotal: { fontSize: 10, color: '#BBB', marginLeft: 2 },
     coeff: { fontSize: 11, color: '#888' },
     sliderWrapper: { paddingTop: 0 },
     resetHint: { fontSize: 9, color: '#2196F3', textAlign: 'center', marginTop: -5 }

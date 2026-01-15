@@ -10,6 +10,7 @@ import {
   View
 } from "react-native";
 import { login } from "../services/isenApi";
+import { Colors } from "@/constants/Colors";
 
 export default function Index() {
   const [email, setEmail] = useState("");
@@ -92,7 +93,7 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5", // Fond gris très clair
+    backgroundColor: Colors.background, // Uniformise le fond avec le reste de l'app
   },
   contentContainer: {
     flex: 1,
@@ -100,27 +101,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
   },
-  title: {
+ title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#333",
+    color: Colors.text.primary, // Noir standardisé
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
-    color: "#666",
+    color: Colors.text.secondary, // Gris standardisé
     marginBottom: 40,
   },
   input: {
     width: "100%",
     height: 50,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.surface,
     borderRadius: 8,
     paddingHorizontal: 15,
     marginBottom: 15,
     fontSize: 16,
-    borderColor: "#ddd",
+    borderColor: Colors.border,
     borderWidth: 1,
+    color: Colors.text.primary,
     // Ombre légère pour iOS
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -132,7 +134,7 @@ const styles = StyleSheet.create({
   button: {
     width: "100%",
     height: 50,
-    backgroundColor: "#007AFF", // Bleu standard iOS (ou ta couleur de marque)
+    backgroundColor: Colors.primary, // Bleu standard iOS (ou ta couleur de marque)
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
@@ -149,7 +151,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   errorText: {
-    color: "#ff3b30",
+    color: Colors.status.error, // Rouge harmonisé
     marginTop: 20,
     fontSize: 14,
     fontWeight: "600",
