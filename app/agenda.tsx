@@ -12,38 +12,51 @@ import {
     StatusBar,
     Platform 
 } from "react-native";
-import { Ionicons } from '@expo/vector-icons'; // Icônes standard Expo
+import { Ionicons } from '@expo/vector-icons'; 
 import { Colors } from "@/constants/Colors";
 
 interface AgendaProps {
     events: AgendaEvent[];
-    day: string;
+    day: string; // Contiendra maintenant "Lundi 12/02"
 }
 
 export default function Agenda() {
     const [courses, setCourses] = useState<AgendaProps[]>([]);
     const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-
-    const getAgenda = async () => {
-        const rep = await getAgendaIsen();
+    
+    // Initialisation au Lundi de la semaine courante
+    const [currentDay, setCurrentDay] = useState<Date>(() => {
         const startweek = new Date();
         startweek.setDate(startweek.getDate() - startweek.getDay() + 1);
         startweek.setHours(0, 0, 0, 0);
+        return startweek; 
+    });
 
+    // Calcul de la date de fin de semaine pour l'affichage (Lundi + 6 jours = Dimanche)
+    const endOfWeek = new Date(currentDay);
+    endOfWeek.setDate(currentDay.getDate() + 6);
+
+    const getAgenda = async () => {
+        const rep = await getAgendaIsen();
         const tempAgenda: AgendaProps[] = [];
+        
         for (let i = 0; i < days.length; i++) {
-            const startDay = new Date(startweek);
-            startDay.setDate(startDay.getDate() + i)
+            const startDay = new Date(currentDay);
+            startDay.setDate(startDay.getDate() + i);
             const endDay = new Date(startDay);
             endDay.setHours(23, 59, 59, 999);
             
-            // On trie les cours par heure de début pour être sûr
+            // Formatage de la date (ex: 12/02)
+            const dateFormatted = startDay.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+            const dayLabel = `${days[i]} ${dateFormatted}`;
+
+            // Filtrage et tri
             const filtered = rep.filter(event => {
                 return event.start >= startDay && event.end <= endDay;
             }).sort((a, b) => a.start.getTime() - b.start.getTime());
 
             const newDay: AgendaProps = {
-                day: days[i],
+                day: dayLabel,
                 events: filtered
             }
             tempAgenda.push(newDay);
@@ -51,16 +64,23 @@ export default function Agenda() {
         setCourses(tempAgenda);
     };
 
+    // Recharger l'agenda quand la semaine change (currentDay)
     useEffect(() => {
         getAgenda();
-    }, []);
+    }, [currentDay]);
 
-    // Composant pour afficher un cours unique
+    const changeWeek = (offset: number) => {
+        setCurrentDay(prev => {
+            const newDate = new Date(prev);
+            newDate.setDate(newDate.getDate() + offset);
+            return newDate;
+        });
+    };
+
+    // Composant Carte de cours
     const CourseCard = ({ event }: { event: AgendaEvent }) => (
         <View style={styles.card}>
-            {/* Barre de couleur à gauche */}
             <View style={styles.accentBar} />
-            
             <View style={styles.cardContent}>
                 <View style={styles.timeContainer}>
                     <Text style={styles.timeText}>
@@ -87,13 +107,33 @@ export default function Agenda() {
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" />
             
-            {/* Header Personnalisé */}
+            {/* Header Principal */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.push("/selection")} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#333" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Emploi du temps</Text>
-                <View style={{ width: 40 }} /> {/* Pour équilibrer le header */}
+                <View style={{ width: 40 }} /> 
+            </View>
+
+            {/* Barre de navigation Semaine */}
+            <View style={styles.weekNavContainer}>
+                <TouchableOpacity onPress={() => changeWeek(-7)} style={styles.navButton}>
+                    <Ionicons name="chevron-back" size={20} color={Colors.primary} />
+                </TouchableOpacity>
+                
+                <View style={styles.dateRangeContainer}>
+                    <Ionicons name="calendar-outline" size={16} color={Colors.text.secondary} style={{marginRight: 6}} />
+                    <Text style={styles.dateRangeText}>
+                        {currentDay.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
+                        {" - "}
+                        {endOfWeek.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
+                    </Text>
+                </View>
+
+                <TouchableOpacity onPress={() => changeWeek(7)} style={styles.navButton}>
+                    <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
+                </TouchableOpacity>
             </View>
 
             <FlatList
@@ -125,8 +165,9 @@ export default function Agenda() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background, // Fond très clair, moderne
+        backgroundColor: Colors.background,
     },
+    // Header
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -135,19 +176,57 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#EEE',
+        borderBottomColor: '#F0F0F0', // Plus léger
         marginTop: Platform.OS === 'android' ? 30 : 0,
     },
     backButton: {
         padding: 8,
         borderRadius: 50,
-        backgroundColor: '#F0F2F5',
+        backgroundColor: '#F5F5F5',
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#1A1A1A',
+        color: Colors.text.primary,
     },
+    
+    // Navigation Semaine (Nouveau Style)
+    weekNavContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        marginBottom: 10,
+        // Ombre légère pour séparer du contenu
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    navButton: {
+        padding: 8,
+        backgroundColor: Colors.primaryLight, // Fond léger basé sur la couleur primaire
+        borderRadius: 8,
+    },
+    dateRangeContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F8FAFC',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+    },
+    dateRangeText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: Colors.text.primary,
+        textTransform: 'capitalize', // Met la première lettre du mois en majuscule
+    },
+
+    // Liste et Jours
     listContent: {
         padding: 20,
         paddingBottom: 40,
@@ -161,7 +240,7 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     dayTitle: {
-        fontSize: 20,
+        fontSize: 18, // Légèrement réduit pour accomoder la date
         fontWeight: '800',
         color: Colors.text.primary,
         marginRight: 10,
@@ -177,23 +256,23 @@ const styles = StyleSheet.create({
         fontSize: 14,
         marginLeft: 10,
     },
-    // Styles de la Carte de Cours
+
+    // Carte de Cours
     card: {
         flexDirection: 'row',
         backgroundColor: '#fff',
         borderRadius: 12,
         marginBottom: 12,
         overflow: 'hidden',
-        // Ombres douces (Shadows)
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 5,
-        elevation: 3, // Pour Android
+        elevation: 3,
     },
     accentBar: {
         width: 5,
-        backgroundColor: Colors.primary , // Bleu type "agenda"
+        backgroundColor: Colors.primary,
     },
     cardContent: {
         flex: 1,

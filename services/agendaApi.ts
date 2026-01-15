@@ -2,7 +2,6 @@ import { getId, loadAgendaFromCache, saveAgendaToCache } from "./storage";
 import { parseAgenda } from "@/utils/agenda";
 
 export async function getAgendaIsen() {
-  console.log("Récupération de l'agenda...");
   const cachedData = loadAgendaFromCache();
   if (cachedData) {
     return cachedData;
