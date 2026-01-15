@@ -61,6 +61,7 @@ export default function Agenda() {
             }
             tempAgenda.push(newDay);
         }
+        console.log(tempAgenda);
         setCourses(tempAgenda);
     };
 
@@ -77,32 +78,58 @@ export default function Agenda() {
         });
     };
 
-    // Composant Carte de cours
-    const CourseCard = ({ event }: { event: AgendaEvent }) => (
-        <View style={styles.card}>
-            <View style={styles.accentBar} />
-            <View style={styles.cardContent}>
-                <View style={styles.timeContainer}>
-                    <Text style={styles.timeText}>
-                        {event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                    <Text style={styles.timeSeparator}>|</Text>
-                    <Text style={styles.endTimeText}>
-                        {event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                </View>
+    // Composant pour afficher un cours unique
+    const CourseCard = ({ event }: { event: AgendaEvent }) => {
+        // On vérifie si c'est un examen
+        const isExam = event.isExam; 
+
+        return (
+            <View style={[styles.card, isExam && styles.cardExamShadow]}>
+                {/* Barre de couleur : Rouge si examen, Bleu (primaire) sinon */}
+                <View style={[
+                    styles.accentBar, 
+                    { backgroundColor: isExam ? Colors.status.error : Colors.primary }
+                ]} />
                 
-                <View style={styles.infoContainer}>
-                    <Text style={styles.courseTitle} numberOfLines={2}>{event.title}</Text>
-                    <View style={styles.locationContainer}>
-                        <Ionicons name="location-sharp" size={14} color="#666" />
-                        <Text style={styles.locationText}>{event.location || "Salle non définie"}</Text>
+                <View style={styles.cardContent}>
+                    <View style={styles.timeContainer}>
+                        <Text style={[styles.timeText, isExam && styles.examTimeText]}>
+                            {event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                        <Text style={styles.timeSeparator}>|</Text>
+                        <Text style={styles.endTimeText}>
+                            {event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                    </View>
+                    
+                    <View style={styles.infoContainer}>
+                        {/* Conteneur Titre + Badge */}
+                        <View style={styles.titleRow}>
+                            <Text style={styles.courseTitle} numberOfLines={2}>
+                                {event.title}
+                            </Text>
+                            {isExam && (
+                                <View style={styles.examBadge}>
+                                    <Text style={styles.examBadgeText}>EXAMEN</Text>
+                                </View>
+                            )}
+                        </View>
+
+                        <View style={styles.locationContainer}>
+                            <Ionicons 
+                                name="location-sharp" 
+                                size={14} 
+                                color={isExam ? Colors.status.error : "#666"} 
+                            />
+                            <Text style={[styles.locationText, isExam && { color: Colors.status.error }]}>
+                                {event.location || "Salle non définie"}
+                            </Text>
+                        </View>
                     </View>
                 </View>
             </View>
-        </View>
-    );
-
+        );
+    };
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" />
@@ -319,5 +346,34 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: '#718096',
         marginLeft: 4,
+    },
+    cardExamShadow: {
+        shadowColor: Colors.status.error, // Ombre rouge pour ressortir
+        shadowOpacity: 0.15,
+        elevation: 4,
+        backgroundColor: '#FFF5F5', // Fond très légèrement rouge (optionnel, sinon laisser blanc)
+    },
+    examTimeText: {
+        color: Colors.status.error,
+        fontWeight: '800',
+    },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flexWrap: 'wrap', // Pour que le badge passe à la ligne si le titre est trop long
+        marginBottom: 4,
+        gap: 8, // Espace entre le titre et le badge
+    },
+    examBadge: {
+        backgroundColor: Colors.status.error, // Fond rouge
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 4,
+    },
+    examBadgeText: {
+        color: '#FFFFFF',
+        fontSize: 10,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
     },
 });

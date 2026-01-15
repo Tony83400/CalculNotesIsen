@@ -48,7 +48,6 @@ export const parseAgenda = (icsRawData: string): AgendaEvent[] => {
         start: event.startDate.toJSDate(),
         end: event.endDate.toJSDate(),
         isExam:
-          cleanSummary.toUpperCase().includes("CONTROLE") ||
           cleanSummary.toUpperCase().includes("EXAM"),
       };
     });

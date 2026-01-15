@@ -65,3 +65,17 @@ export const loadNotesFromCache = (): Note[] | null => {
   const rawNotes = JSON.parse(cachedString);
   return rawNotes;
 };
+
+
+export const clearAgendaFromStorage = () => {
+  localStorage.removeItem(agendaName);
+  localStorage.removeItem(agendaName+"Date");
+};
+
+export const clearNotesFromStorage = () => {
+  localStorage.removeItem(notesName);
+  localStorage.removeItem(notesName+"Date");
+};
+export const clearAllStorage = () => {
+  localStorage.clear();
+}
