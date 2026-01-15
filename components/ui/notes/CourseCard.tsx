@@ -49,7 +49,12 @@ import { View , StyleSheet, Text } from "react-native";
                             <Text style={[styles.locationText, isExam && { color: Colors.status.error }]}>
                                 {event.location || "Salle non définie"}
                             </Text>
+                            
+                            
                         </View>
+                        <Text style={[styles.locationText, isExam && { color: Colors.status.error }]}>
+                                {event.professors}
+                            </Text>
                     </View>
                 </View>
             </View>
