@@ -50,6 +50,7 @@ export const loadAgendaFromCache = (): AgendaEvent[] | null => {
 
 export const saveNotesToCache = (notes: Note[]) => {
   try {
+    console.log("Sauvegarde des notes dans le cache :", notes);
     localStorage.setItem(notesName, JSON.stringify(notes));
     localStorage.setItem(notesName+"Date", Date.now().toString()); // Optionnel : pour savoir quand on a mis en cache
   } catch (e) {
@@ -64,5 +65,6 @@ export const loadNotesFromCache = (): Note[] | null => {
 
   // On transforme le texte en objet JSON
   const rawNotes = JSON.parse(cachedString);
+  console.log("Notes chargées depuis le cache :", rawNotes);
   return rawNotes;
 };

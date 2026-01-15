@@ -1,5 +1,5 @@
 import { API_URL } from "@/constants/Config";
-import { getToken } from "./storage";
+import { getToken, loadNotesFromCache, saveNotesToCache } from "./storage";
 import { Note } from "@/types/note";
 
 export async function login(loginData: { username: string; password: string }) {
@@ -36,6 +36,11 @@ export async function login(loginData: { username: string; password: string }) {
 }
 
 export async function getNotes() {
+  const cachedData = loadNotesFromCache();
+  if (cachedData) {
+    return cachedData;
+  }
+
   try {
     const token = getToken();
     if (!token) {
@@ -61,6 +66,7 @@ export async function getNotes() {
       note: Number(elt.note),
       date: elt.date,
     }));
+    saveNotesToCache(formattedNotes);
     return formattedNotes;
   } catch (error) {
     console.error("Erreur dans getNotes :", error);
