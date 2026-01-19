@@ -1,6 +1,6 @@
-import { setId, setToken } from "@/services/storage";
+import { getId, getPasswordStorage, setId, setPasswordStorage, setToken } from "@/services/storage";
 import { router } from "expo-router";
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import {
   SafeAreaView,
   StyleSheet,
@@ -11,20 +11,42 @@ import {
 } from "react-native";
 import { login } from "../services/isenApi";
 import { Colors } from "@/constants/Colors";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Index() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorText, setErrorText] = useState("");
-  const onPressLogin = async () => {
+  const [keepLogin, setKeepLogin] = useState(false);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const Fetchemail = await getId();
+      if (Fetchemail) {
+        setEmail(Fetchemail);
+      }
+      const Fetchpassword = await getPasswordStorage();
+      if (Fetchpassword) {
+        setPassword(Fetchpassword);
+      }
+      if (Fetchemail && Fetchpassword) {
+        await onPressLogin(Fetchemail, Fetchpassword);
+      }
+    }
+    fetchUser();
+
+  }, []);
+  const onPressLogin = async (emailLogin: string, passwordLogin: string) => {
     setErrorText("");
     try {
       const rep = await login({
-        username: email,
-        password: password
+        username: emailLogin,
+        password: passwordLogin
       });
       await setToken(rep.token);
       await setId(email);
+      if (keepLogin) {
+        await setPasswordStorage(password);
+      }
       router.push("/selection");
     } catch (error) {
       console.log("Erreur", error);
@@ -68,10 +90,19 @@ export default function Index() {
         {/* Bouton */}
         <TouchableOpacity
           style={styles.button}
-          onPress={onPressLogin}
+          onPress={()=>onPressLogin(email,password)}
           activeOpacity={0.8}
         >
           <Text style={styles.buttonText}>Se connecter</Text>
+        </TouchableOpacity>
+        {/* Rester connecte */}
+        <TouchableOpacity
+          style={styles.checkboxContainer}
+          onPress={() => setKeepLogin(!keepLogin)}
+          activeOpacity={0.6}
+        >
+          <Ionicons name={keepLogin ? "checkbox" : "square-outline"} size={24} color={Colors.primary} />
+          <Text style={styles.checkboxLabel}>Rester connecté</Text>
         </TouchableOpacity>
 
         {/* Message d'erreur */}
@@ -149,6 +180,17 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 15,
+    alignSelf: "flex-start",
+  },
+  checkboxLabel: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: Colors.text.primary,
   },
   errorText: {
     color: Colors.status.error, // Rouge harmonisé

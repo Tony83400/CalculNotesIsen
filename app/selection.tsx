@@ -1,7 +1,7 @@
-import { Colors } from "@/constants/Colors"; // Ton fichier de couleurs
+import { Colors } from "@/constants/Colors";
 import { getAgendaIsen } from "@/services/agendaApi";
 import { getNotes } from "@/services/isenApi";
-import { clearAgendaFromStorage, clearNotesFromStorage, getId } from "@/services/storage";
+import { clearAllStorage, clearAppCache, getId } from "@/services/storage";
 import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -27,14 +27,14 @@ export default function Selection() {
         fetchId();
     }, []);
 
-   
+
     useEffect(() => {
         // Si pas d'ID, on ne fait rien (on sort)
         if (!userId) return;
         getAgendaIsen();
         getNotes();
-        
-    }, [userId]); 
+
+    }, [userId]);
 
     const loadData = async () => {
         // On empêche de rafraîchir si on n'a pas d'user (sécurité)
@@ -42,9 +42,8 @@ export default function Selection() {
 
         setRefreshing(true);
         try {
-            await clearAgendaFromStorage();
-            await clearNotesFromStorage();
-            
+            await clearAppCache();
+
             // Promise.all est top ici pour paralléliser les deux requêtes
             await Promise.all([getAgendaIsen(), getNotes()]);
         } catch (error) {
@@ -123,7 +122,7 @@ export default function Selection() {
 
                 {/* Bouton Déconnexion */}
                 <TouchableOpacity
-                    onPress={() => router.replace("/")}
+                    onPress={() => { clearAllStorage(); router.replace("/") }}
                     style={styles.logoutButton}
                 >
                     <Ionicons name="log-out-outline" size={20} color={Colors.status.error} />
