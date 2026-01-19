@@ -16,33 +16,44 @@ import {
 } from "react-native";
 
 export default function Selection() {
-    const userId = getId();
+    const [userId, setUserId] = useState<string | null>(null);
     const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
-        if (!userId) {
-            router.replace("/"); // Utilise replace pour qu'on ne puisse pas revenir en arrière
-        }
-    }, [userId]);
-
-    const loadData = async () => {
-        setRefreshing(true);
-        // On vide d'abord pour forcer la mise à jour propre
-        clearAgendaFromStorage();
-        clearNotesFromStorage();
-        
-        // On recharge
-        await Promise.all([getAgendaIsen(), getNotes()]);
-        setRefreshing(false);
-    };
-
-    // Chargement initial silencieux
-    useEffect(() => {
-        getAgendaIsen();
-        getNotes();
+        const fetchId = async () => {
+            const id = await getId();
+            setUserId(id);
+        };
+        fetchId();
     }, []);
 
-    if (!userId) return null;
+   
+    useEffect(() => {
+        // Si pas d'ID, on ne fait rien (on sort)
+        if (!userId) return;
+        getAgendaIsen();
+        getNotes();
+        
+    }, [userId]); 
+
+    const loadData = async () => {
+        // On empêche de rafraîchir si on n'a pas d'user (sécurité)
+        if (!userId) return;
+
+        setRefreshing(true);
+        try {
+            await clearAgendaFromStorage();
+            await clearNotesFromStorage();
+            
+            // Promise.all est top ici pour paralléliser les deux requêtes
+            await Promise.all([getAgendaIsen(), getNotes()]);
+        } catch (error) {
+            console.error("Erreur lors du refresh", error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
 
     return (
         <SafeAreaView style={styles.container}>
@@ -56,10 +67,10 @@ export default function Selection() {
 
             {/* CORPS : Les fonctionnalités principales */}
             <View style={styles.mainContent}>
-                
+
                 {/* Carte NOTES */}
-                <TouchableOpacity 
-                    style={styles.card} 
+                <TouchableOpacity
+                    style={styles.card}
                     onPress={() => router.push("/notes")}
                     activeOpacity={0.7}
                 >
@@ -74,8 +85,8 @@ export default function Selection() {
                 </TouchableOpacity>
 
                 {/* Carte AGENDA */}
-                <TouchableOpacity 
-                    style={styles.card} 
+                <TouchableOpacity
+                    style={styles.card}
                     onPress={() => router.push("/agenda")}
                     activeOpacity={0.7}
                 >
@@ -93,10 +104,10 @@ export default function Selection() {
 
             {/* FOOTER : Actions secondaires */}
             <View style={styles.footer}>
-                
+
                 {/* Bouton Actualiser */}
-                <TouchableOpacity 
-                    onPress={loadData} 
+                <TouchableOpacity
+                    onPress={loadData}
                     style={styles.secondaryButton}
                     disabled={refreshing}
                 >
@@ -111,14 +122,14 @@ export default function Selection() {
                 </TouchableOpacity>
 
                 {/* Bouton Déconnexion */}
-                <TouchableOpacity 
-                    onPress={() => router.replace("/")} 
+                <TouchableOpacity
+                    onPress={() => router.replace("/")}
                     style={styles.logoutButton}
                 >
                     <Ionicons name="log-out-outline" size={20} color={Colors.status.error} />
                     <Text style={styles.logoutText}>Se déconnecter</Text>
                 </TouchableOpacity>
-                
+
                 <Text style={styles.versionText}>v1.0.0 - ISEN Engineering</Text>
             </View>
         </SafeAreaView>
@@ -147,7 +158,7 @@ const styles = StyleSheet.create({
         color: Colors.text.primary,
         marginTop: 4,
     },
-    
+
     // Main Content (Cards)
     mainContent: {
         paddingHorizontal: 20,

@@ -18,7 +18,7 @@ import CourseCard from "@/components/ui/notes/CourseCard";
 
 interface AgendaProps {
     events: AgendaEvent[];
-    day: string; // Contiendra maintenant "Lundi 12/02"
+    day: string; 
 }
 
 export default function Agenda() {
@@ -79,7 +79,11 @@ export default function Agenda() {
         });
     };
 
-    
+    if (!courses) {
+        return(<View>
+            <Text>Chargement ....</Text>
+        </View>);
+    }
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" />

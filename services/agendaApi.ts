@@ -2,7 +2,7 @@ import { getId, loadAgendaFromCache, saveAgendaToCache } from "./storage";
 import { parseAgenda } from "@/utils/agenda";
 
 export async function getAgendaIsen() {
-  const cachedData = loadAgendaFromCache();
+  const cachedData = await loadAgendaFromCache();
   if (cachedData) {
     return cachedData;
   }
@@ -33,7 +33,7 @@ export async function getAgendaIsen() {
     const icsString = await res.text();
 
     const data = parseAgenda(icsString);
-    saveAgendaToCache(data);
+    await saveAgendaToCache(data);
     return data;
   } catch (error) {
     console.error("Erreur dans getAgendaIsen :", error);

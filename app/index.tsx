@@ -1,4 +1,4 @@
-  import { setId, setToken } from "@/services/storage";
+import { setId, setToken } from "@/services/storage";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -24,18 +24,18 @@ export default function Index() {
         password: password
       });
       await setToken(rep.token);
-      setId(email);
+      await setId(email);
       router.push("/selection");
     } catch (error) {
       console.log("Erreur", error);
       setErrorText((error as Error).message);
     }
   };
-  const onPressContinueWithoutLogin = () => {
-    setId("");
+  const onPressContinueWithoutLogin = async () => {
+    await setId("");
     router.push("/notes");
   };
- 
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.contentContainer}>
@@ -76,7 +76,7 @@ export default function Index() {
 
         {/* Message d'erreur */}
         {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
-                {errorText ? <TouchableOpacity
+        {errorText ? <TouchableOpacity
           style={styles.button}
           onPress={onPressContinueWithoutLogin}
           activeOpacity={0.8}
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
   },
- title: {
+  title: {
     fontSize: 28,
     fontWeight: "bold",
     color: Colors.text.primary, // Noir standardisé
