@@ -36,13 +36,13 @@ export async function login(loginData: { username: string; password: string }) {
 }
 
 export async function getNotes() {
-  const cachedData = loadNotesFromCache();
+  const cachedData = await loadNotesFromCache();
   if (cachedData) {
     return cachedData;
   }
 
   try {
-    const token = getToken();
+    const token = await getToken();
     if (!token) {
       throw new Error("Utilisateur non connecté (Token manquant)");
     }
@@ -66,7 +66,7 @@ export async function getNotes() {
       note: Number(elt.note),
       date: elt.date,
     }));
-    saveNotesToCache(formattedNotes);
+    await saveNotesToCache(formattedNotes);
     return formattedNotes;
   } catch (error) {
     console.error("Erreur dans getNotes :", error);

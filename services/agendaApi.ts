@@ -2,13 +2,13 @@ import { getId, loadAgendaFromCache, saveAgendaToCache } from "./storage";
 import { parseAgenda } from "@/utils/agenda";
 
 export async function getAgendaIsen() {
-  const cachedData = loadAgendaFromCache();
+  const cachedData = await loadAgendaFromCache();
   if (cachedData) {
     return cachedData;
   }
 
   try {
-    const id = getId();
+    const id =await getId();
     if (!id) {
       throw new Error("Utilisateur non connecté (Token manquant)");
     }
@@ -33,7 +33,7 @@ export async function getAgendaIsen() {
     const icsString = await res.text();
 
     const data = parseAgenda(icsString);
-    saveAgendaToCache(data);
+    await saveAgendaToCache(data);
     return data;
   } catch (error) {
     console.error("Erreur dans getAgendaIsen :", error);
