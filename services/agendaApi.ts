@@ -8,7 +8,7 @@ export async function getAgendaIsen() {
   }
 
   try {
-    const id = getId();
+    const id =await getId();
     if (!id) {
       throw new Error("Utilisateur non connecté (Token manquant)");
     }

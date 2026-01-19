@@ -23,7 +23,7 @@ export default function Index() {
         username: email,
         password: password
       });
-      setToken(rep.token);
+      await setToken(rep.token);
       setId(email);
       router.push("/selection");
     } catch (error) {

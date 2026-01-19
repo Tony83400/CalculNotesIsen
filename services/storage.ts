@@ -6,30 +6,30 @@ const userName = "User";
 const agendaName = "Agenda";
 const notesName = "Notes";
 
-export function getToken() {
+export async function getToken (): Promise<string | null> {
   return localStorage.getItem(tokenName);
 }
-export function setToken(value: string) {
+export async function setToken(value: string) {
   return localStorage.setItem(tokenName, value);
 }
 
-export function getId() {
+export async function getId() : Promise<string | null>{
   return localStorage.getItem(userName);
 }
-export function setId(value: string) {
+export async function setId(value: string) {
   return localStorage.setItem(userName, value);
 }
 
-export const saveAgendaToCache = (parsedEvents: AgendaEvent[]) => {
+export async function  saveAgendaToCache (parsedEvents: AgendaEvent[]){
   try {
     localStorage.setItem(agendaName, JSON.stringify(parsedEvents));
-    localStorage.setItem(agendaName+"Date", Date.now().toString()); // Optionnel : pour savoir quand on a mis en cache
+    localStorage.setItem(agendaName+"Date", Date.now().toString()); 
   } catch (e) {
     console.error("Quota localStorage dépassé", e);
   }
 };
 
-export const loadAgendaFromCache = (): AgendaEvent[] | null => {
+export async function loadAgendaFromCache (): Promise<AgendaEvent[] | null> {
   const cachedString = localStorage.getItem(agendaName);
 
   if (!cachedString) return null;
@@ -47,16 +47,16 @@ export const loadAgendaFromCache = (): AgendaEvent[] | null => {
   return fixedEvents;
 };
 
-export const saveNotesToCache = (notes: Note[]) => {
+export async function saveNotesToCache  (notes: Note[]) {
   try {
     localStorage.setItem(notesName, JSON.stringify(notes));
-    localStorage.setItem(notesName+"Date", Date.now().toString()); // Optionnel : pour savoir quand on a mis en cache
+    localStorage.setItem(notesName+"Date", Date.now().toString()); 
   } catch (e) {
     console.error("Quota localStorage dépassé", e);
   }
 };
 
-export const loadNotesFromCache = (): Note[] | null => {
+export async function loadNotesFromCache (): Promise<Note[] | null> {
   const cachedString = localStorage.getItem(notesName);
 
   if (!cachedString) return null;
@@ -67,15 +67,15 @@ export const loadNotesFromCache = (): Note[] | null => {
 };
 
 
-export const clearAgendaFromStorage = () => {
+export async function clearAgendaFromStorage () {
   localStorage.removeItem(agendaName);
   localStorage.removeItem(agendaName+"Date");
 };
 
-export const clearNotesFromStorage = () => {
+export async function clearNotesFromStorage () {
   localStorage.removeItem(notesName);
   localStorage.removeItem(notesName+"Date");
 };
-export const clearAllStorage = () => {
+export async function clearAllStorage () {
   localStorage.clear();
 }

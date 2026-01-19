@@ -42,7 +42,7 @@ export async function getNotes() {
   }
 
   try {
-    const token = getToken();
+    const token = await getToken();
     if (!token) {
       throw new Error("Utilisateur non connecté (Token manquant)");
     }
