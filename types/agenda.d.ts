@@ -5,5 +5,5 @@ export interface AgendaEvent {
   location: string;
   start: Date;
   end: Date;
-  isExam?: boolean; // Optionnel : utile si on détecte "CONTROLE"
+  isExam?: boolean; 
 }

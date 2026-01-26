@@ -1,22 +1,23 @@
+import CourseCard from "@/components/ui/notes/CourseCard";
+import { Colors } from "@/constants/Colors";
 import { getAgendaIsen } from "@/services/agendaApi";
 import { AgendaEvent } from "@/types/agenda";
+import programmerNotifications from "@/utils/notifiations";
+import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { 
-    FlatList, 
-    Text, 
-    TouchableOpacity, 
-    View, 
-    StyleSheet, 
-    SafeAreaView, 
+import {
+    FlatList,
+    Platform,
+    SafeAreaView,
     StatusBar,
-    Platform 
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
-import { Ionicons } from '@expo/vector-icons'; 
-import { Colors } from "@/constants/Colors";
-import CourseCard from "@/components/ui/notes/CourseCard";
 
-interface AgendaProps {
+export interface AgendaProps {
     events: AgendaEvent[];
     day: string; 
 }
@@ -64,6 +65,8 @@ export default function Agenda() {
         }
         console.log(tempAgenda);
         setCourses(tempAgenda);
+        // On programme les notifications après avoir récupéré les cours
+        programmerNotifications(tempAgenda);
     };
 
     // Recharger l'agenda quand la semaine change (currentDay)
