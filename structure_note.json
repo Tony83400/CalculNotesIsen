@@ -511,6 +511,262 @@
           }
         ]
       }
+    ],
+    "BIOST": [
+      {
+        "ue": "UE1 Electronique Analogique",
+        "ects": 6,
+        "matieres": [
+          {
+            "name": "Electronique Analog",
+            "coeff_matiere": 2,
+            "evaluations": [
+              {
+                "name": "Examen mi parcours",
+                "code": "25_ISEN_MED_ISEN3_S5_ELEC_ANALOG_EX_mi-parcours",
+                "coeff": 2
+              },
+              {
+                "name": "QCM educ",
+                "code": "25_ISEN_MED_ISEN3_S5_ELEC_ANALOG_QCM_interm",
+                "coeff": 1
+              },
+              {
+                "name": "Partiel",
+                "code": "25_ISEN_MED_ISEN3_S5_ELEC_ANALOG_EX_FINAL",
+                "coeff": 4
+              }
+            ]
+          },
+          {
+            "name": "TP Elec analog",
+            "coeff_matiere": 1,
+            "evaluations": [
+              {
+                "name": "TP Note",
+                "code": "25_ISEN_MED_ISEN3_S5_ELEC_ANALOG_TP_note",
+                "coeff": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ue": "UE2 Systèmes Elémentaires",
+        "ects": 3,
+        "matieres": [
+          {
+            "name": "Logique",
+            "coeff_matiere": 2,
+            "evaluations": [
+              {
+                "name": "Examen",
+                "code": "",
+                "coeff": 1
+              }
+            ]
+          },
+          {
+            "name": "Architecture des ordis",
+            "coeff_matiere": 1,
+            "evaluations": [
+              {
+                "name": "Examen",
+                "code": "25_ISEN_MED_ISEN3_S5_ARCHITECTURE_ORDIS",
+                "coeff": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ue": "UE3 Informatique",
+        "ects": 5,
+        "matieres": [
+          {
+            "name": "Webdev",
+            "coeff_matiere": 1,
+            "evaluations": [
+              {
+                "name": "Projet",
+                "code": "25_ISEN_MED_ISEN3_S5_WEBDEV_Soutenance",
+                "coeff": 1
+              }
+            ]
+          },
+          {
+            "name": "Réseaux level 1",
+            "coeff_matiere": 2,
+            "evaluations": [
+              {
+                "name": "TP",
+                "code": "25_ISEN_MED_ISEN3_S5_RESEAUX_CPGE_UE_BIOST",
+                "coeff": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ue": "UE4 Gestion de Données",
+        "ects": 4,
+        "matieres": [
+          {
+            "name": "BDD",
+            "coeff_matiere": 2,
+            "evaluations": [
+              {
+                "name": "Partiel BDD",
+                "code": "",
+                "coeff": 2
+              },
+              {
+                "name": "Contrôle continu",
+                "code": "",
+                "coeff": 1
+              }
+            ]
+          },
+          {
+            "name": "Maths Proba/Stats",
+            "coeff_matiere": 2,
+            "evaluations": [
+              {
+                "name": "DS Maths",
+                "code": "",
+                "coeff": 4
+              },
+              {
+                "name": "QCM educ",
+                "code": "25_ISEN_MED_ISEN3_S5_MATHS_PROBA_STAT_CC_final",
+                "coeff": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ue": "UE5 Ingénierie Systemes",
+        "ects": 5,
+        "matieres": [
+          {
+            "name": "Algorithmie Avancée",
+            "coeff_matiere": 2,
+            "evaluations": [
+              {
+                "name": "Examen Algo",
+                "code": "",
+                "coeff": 1
+              }
+            ]
+          },
+          {
+            "name": "Automatique",
+            "coeff_matiere": 1,
+            "evaluations": [
+              {
+                "name": "Examen Auto",
+                "code": "25_ISEN_MED_ISEN3_S5_AUTOMATIQUE",
+                "coeff": 1
+              }
+            ]
+          },
+          {
+            "name": "Biomécanique",
+            "coeff_matiere": 1,
+            "evaluations": [
+              {
+                "name": "Examen",
+                "code": "",
+                "coeff": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ue": "UE6 Dév. Personnel (SHES et LV2)",
+        "ects": 5,
+        "matieres": [
+          {
+            "name": "Créativité 4.0",
+            "coeff_matiere": 1,
+            "evaluations": [
+              {
+                "name": "Créativité 4.0",
+                "code": "25_ISEN_MED_ISEN3_S5_SHES_CREATIVITE",
+                "coeff": 1
+              }
+            ]
+          },
+          {
+            "name": "Gestion de projet",
+            "coeff_matiere": 1,
+            "evaluations": [
+              {
+                "name": "Rendu",
+                "code": "25_ISEN_MED_ISEN3_S5_SHES_GESTION_PROJET_Fondamentaux",
+                "coeff": 1
+              }
+            ]
+          },
+          {
+            "name": "Agilité",
+            "coeff_matiere": 1,
+            "evaluations": [
+              {
+                "name": "QCM",
+                "code": "25_ISEN_MED_ISEN3_S5_SHES_GESTION_PROJET_Agilite",
+                "coeff": 1
+              }
+            ]
+          },
+          {
+            "name": "Communication de l'ingénieur",
+            "coeff_matiere": 1,
+            "evaluations": [
+              {
+                "name": "Communication de l'ingénieur",
+                "code": "25_ISEN_MED_ISEN3_S5_SHES_COMMUNICATION_ING",
+                "coeff": 1
+              }
+            ]
+          },
+          {
+            "name": "LV2 + anglais renforcé",
+            "coeff_matiere": 1,
+            "evaluations": [
+              {
+                "name": "Contrôle continu",
+                "code": "25_ISEN_MED_ISEN3_S5_LV2",
+                "coeff": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ue": "UE7 Anglais",
+        "ects": 2,
+        "matieres": [
+          {
+            "name": "Anglais",
+            "coeff_matiere": 1,
+            "evaluations": [
+              {
+                "name": "Examen",
+                "code": "",
+                "coeff": 3
+              },
+              {
+                "name": "Contrôle continu",
+                "code": "",
+                "coeff": 1
+              }
+            ]
+          }
+        ]
+      }
     ]
   }
   
