@@ -88,9 +88,14 @@
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "TP Rasberry",
+                "name": "Examen Raspberry",
                 "code": "25_ISEN_MED_ISEN3_S5_RESEAUX_RASB",
-                "coeff": 1
+                "coeff": 2
+              },
+              {
+                "name":"Contrôle continue reseau",
+                "code":"25_ISEN_MED_ISEN3_S5_RESEAUX_RASB_CC",
+                "coeff":1
               }
             ]
           }
@@ -676,7 +681,7 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Examen",
+                "name": "Oral + Tp",
                 "code": "",
                 "coeff": 1
               }
