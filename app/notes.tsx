@@ -1,5 +1,5 @@
 import { getNotes } from "@/services/isenApi";
-import { getId } from "@/services/storage";
+import { getId, loadLastUpdateNotes } from "@/services/storage";
 import { Note } from "@/types/note";
 import getDonneesAvecNotes from "@/utils/notes";
 import { router } from "expo-router";
@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import UeCard from '../components/ui/notes/UeList';
 import configActuelle from '../structure_note.json';
+import RefreshButton from "@/components/ui/notes/RefreshButton";
 
 export default function Main() {
 
@@ -22,6 +23,8 @@ export default function Main() {
     const [selectedFiliere, setSelectedFiliere] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>("");
     const filieresDisponibles = Object.keys(configActuelle.filieres);
+    const[lastUpdate, setLastUpdate] = useState(new Date());
+
 
     // State pour les simulations. Clé = uniqueId, Valeur = note
     const [simulatedNotes, setSimulatedNotes] = useState<Record<string, number | null>>({});
@@ -53,6 +56,11 @@ export default function Main() {
                 const rep = await getNotes();
                 if (rep) {
                     setNotes(rep);
+                    const date = await loadLastUpdateNotes();
+                    if (date != new Date(0)) {
+                        setLastUpdate(date);
+                    }   
+
                 }
             } catch (error) {
                 console.error("Erreur notes:", error);
@@ -127,6 +135,10 @@ export default function Main() {
                     <Text style={styles.topTitle} numberOfLines={1}>
                         {selectedFiliere}
                     </Text>
+                      <Text style={styles.headerSubtitle}>
+                        Dernière mise à jour: {lastUpdate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                  <RefreshButton/>
                 </View>
 
                 {/* Zone Droite : Bouton Déconnexion */}
@@ -206,7 +218,11 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'flex-end',
     },
-
+headerSubtitle: {
+        fontSize: 11,
+        color: '#6B7280',
+        marginTop: 2,
+   },
     topTitle: {
         fontSize: 18,
         fontWeight: 'bold',

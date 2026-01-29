@@ -1,3 +1,4 @@
+import RefreshButton from "@/components/ui/notes/RefreshButton";
 import { Colors } from "@/constants/Colors";
 import { getAgendaIsen } from "@/services/agendaApi";
 import { getNotes } from "@/services/isenApi";
@@ -6,7 +7,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
     SafeAreaView,
     StatusBar,
     StyleSheet,
@@ -17,8 +17,6 @@ import {
 
 export default function Selection() {
     const [userId, setUserId] = useState<string | null>(null);
-    const [refreshing, setRefreshing] = useState(false);
-
     useEffect(() => {
         const fetchId = async () => {
             const id = await getId();
@@ -36,22 +34,6 @@ export default function Selection() {
 
     }, [userId]);
 
-    const loadData = async () => {
-        // On empêche de rafraîchir si on n'a pas d'user (sécurité)
-        if (!userId) return;
-
-        setRefreshing(true);
-        try {
-            await clearAppCache();
-
-            // Promise.all est top ici pour paralléliser les deux requêtes
-            await Promise.all([getAgendaIsen(), getNotes()]);
-        } catch (error) {
-            console.error("Erreur lors du refresh", error);
-        } finally {
-            setRefreshing(false);
-        }
-    };
 
 
     return (
@@ -105,20 +87,7 @@ export default function Selection() {
             <View style={styles.footer}>
 
                 {/* Bouton Actualiser */}
-                <TouchableOpacity
-                    onPress={loadData}
-                    style={styles.secondaryButton}
-                    disabled={refreshing}
-                >
-                    {refreshing ? (
-                        <ActivityIndicator color={Colors.primary} size="small" />
-                    ) : (
-                        <Ionicons name="refresh" size={20} color={Colors.primary} />
-                    )}
-                    <Text style={styles.secondaryButtonText}>
-                        {refreshing ? "Actualisation..." : "Actualiser les données"}
-                    </Text>
-                </TouchableOpacity>
+                <RefreshButton/>
 
                 {/* Bouton Déconnexion */}
                 <TouchableOpacity
@@ -129,7 +98,8 @@ export default function Selection() {
                     <Text style={styles.logoutText}>Se déconnecter</Text>
                 </TouchableOpacity>
 
-                <Text style={styles.versionText}>v1.0.0 - ISEN Engineering</Text>
+                <Text style={styles.versionText}>v1.0.0 </Text>
+                <Text style={styles.creditsText}>Réalisé par : Anthony Coulais</Text>
             </View>
         </SafeAreaView>
     );
@@ -216,11 +186,6 @@ const styles = StyleSheet.create({
         borderColor: Colors.border,
         gap: 8,
     },
-    secondaryButtonText: {
-        color: Colors.primary,
-        fontWeight: '600',
-        fontSize: 14,
-    },
     logoutButton: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -233,8 +198,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     versionText: {
-        color: '#CBD5E1',
+        color: '#98a5b4',
         fontSize: 11,
         marginTop: 10,
+    },
+    creditsText: {
+        color: '#98a5b4',
+        fontSize: 10,
+        marginTop: 2,
+        fontStyle: 'italic',
     },
 });

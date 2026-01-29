@@ -12,6 +12,7 @@ import {
 import { login } from "../services/isenApi";
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
+import { Analytics } from "@vercel/analytics/react"
 
 export default function Index() {
   const [email, setEmail] = useState("");
@@ -115,7 +116,7 @@ export default function Index() {
           <Text style={styles.buttonText}>Continuer sans se connecter</Text>
         </TouchableOpacity> : null}
 
-
+          <Analytics/>
       </View>
     </SafeAreaView>
   );

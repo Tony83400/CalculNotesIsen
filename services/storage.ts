@@ -92,8 +92,17 @@ export async function loadNotesFromCache(): Promise<Note[] | null> {
   // On transforme le texte en objet JSON
   const rawNotes = JSON.parse(cachedString);
   return rawNotes;
-
 };
+export async function loadLastUpdateNotes() : Promise<Date>{
+  const date = await getStorageItem(notesName + "Date");
+  if (!date) return new Date(0);
+  return new Date(parseInt(date));
+}
+export async function loadLastUpdateAgenda() : Promise<Date>{
+  const date = await getStorageItem(agendaName + "Date");
+  if (!date) return new Date(0);
+  return new Date(parseInt(date));
+}
 
 // Remove
 async function removeStorageItem(key: string) {
