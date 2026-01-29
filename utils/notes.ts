@@ -34,7 +34,8 @@ const getDonneesAvecNotes = (
         // 2. Recherche note API
 
         const noteFromApi = evaluation.code
-          ? notes.find((n) => n.code.startsWith(evaluation.code))
+          ? notes.find((n) => n.code === evaluation.code) ||
+            notes.find((n) => n.code.startsWith(evaluation.code))
           : null; // Si pas de code, on renvoie null direct
         // 3. Gestion Priorité : Simulation > API > Rien
         const simu = simulatedNotes[uniqueId];
