@@ -4,7 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from "react-native";
 const isWeb = Platform.OS === 'web';
+import configDefault from '../structure_note.json';
 
+const structureName = "StructureConfig";
 const tokenName = "Token";
 const userName = "User";
 const passwordName = "Password";
@@ -145,4 +147,29 @@ export async function clearAllStorage() {
     SecureStore.deleteItemAsync(tokenName),
     SecureStore.deleteItemAsync(userName)
   ]);
+}
+
+export async function saveStructureToCache(structure: any) {
+  try {
+    await setStorageItem(structureName, JSON.stringify(structure));
+    await setStorageItem(structureName + "Date", Date.now().toString());
+  } catch (e) {
+    console.error("Erreur sauvegarde structure", e);
+  }
+}
+
+export async function loadStructureFromCache(): Promise<typeof configDefault> {
+  if (isWeb) return configDefault;
+ 
+  const cachedString = await getStorageItem(structureName);
+
+  if (cachedString) {
+    try {
+      return JSON.parse(cachedString);
+    } catch (e) {
+      console.error("Erreur parsing structure, retour au défaut", e);
+    }
+  }
+  
+  return configDefault; 
 }

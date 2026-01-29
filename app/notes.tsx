@@ -1,5 +1,5 @@
 import { getNotes } from "@/services/isenApi";
-import { getId, loadLastUpdateNotes } from "@/services/storage";
+import { getId, loadLastUpdateNotes, loadStructureFromCache } from "@/services/storage";
 import { Note } from "@/types/note";
 import getDonneesAvecNotes from "@/utils/notes";
 import { router } from "expo-router";
@@ -13,7 +13,7 @@ import {
     View
 } from "react-native";
 import UeCard from '../components/ui/notes/UeList';
-import configActuelle from '../structure_note.json';
+import configDefault from '../structure_note.json'; // Garde-le comme valeur initiale
 import RefreshButton from "@/components/ui/notes/RefreshButton";
 
 export default function Main() {
@@ -21,6 +21,7 @@ export default function Main() {
 
     const [notes, setNotes] = useState<Note[]>();
     const [selectedFiliere, setSelectedFiliere] = useState<string | null>(null);
+    const [configActuelle, setConfigActuelle] = useState(configDefault);
     const [userId, setUserId] = useState<string | null>("");
     const filieresDisponibles = Object.keys(configActuelle.filieres);
     const[lastUpdate, setLastUpdate] = useState(new Date());
@@ -68,6 +69,16 @@ export default function Main() {
         }
         fetchNote();
     }, [userId]);
+    useEffect(() => {
+        const loadConfig = async () => {
+            // On essaie de récupérer la config sauvegardée dans le téléphone
+            const cachedConfig = await loadStructureFromCache();
+            if (cachedConfig) {
+                setConfigActuelle(cachedConfig);
+            }
+        };
+        loadConfig();
+    }, [lastUpdate]);
 
 
     if (!selectedFiliere) {
@@ -138,7 +149,7 @@ export default function Main() {
                       <Text style={styles.headerSubtitle}>
                         Dernière mise à jour: {lastUpdate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                   </Text>
-                  <RefreshButton/>
+                  {/* <RefreshButton/> */}
                 </View>
 
                 {/* Zone Droite : Bouton Déconnexion */}

@@ -1,5 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import { getAgendaIsen } from "@/services/agendaApi";
+import { updateStructureConfig } from "@/services/configApi";
 import { getNotes } from "@/services/isenApi";
 import { clearAppCache } from "@/services/storage";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,7 +18,7 @@ export default function RefreshButton() {
                 await clearAppCache();
     
                 // Promise.all est top ici pour paralléliser les deux requêtes
-                await Promise.all([getAgendaIsen(), getNotes()]);
+                await Promise.all([getAgendaIsen(), getNotes(),updateStructureConfig()]);
             } catch (error) {
                 console.error("Erreur lors du refresh", error);
             } finally {
