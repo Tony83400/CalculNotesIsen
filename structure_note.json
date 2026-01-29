@@ -49,7 +49,7 @@
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Examen",
+                "name": "Partiel",
                 "code": "",
                 "coeff": 1
               }
@@ -60,7 +60,7 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Examen",
+                "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_ARCHITECTURE_ORDIS",
                 "coeff": 1
               }
@@ -88,7 +88,7 @@
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Examen Raspberry",
+                "name": "Partiel Reseau",
                 "code": "25_ISEN_MED_ISEN3_S5_RESEAUX_RASB",
                 "coeff": 2
               },
@@ -111,7 +111,7 @@
             "evaluations": [
               {
                 "name": "Partiel BDD",
-                "code": "",
+                "code": "25_ISEN_MED_ISEN3_S5_BDD",
                 "coeff": 2
               },
               {
@@ -126,8 +126,8 @@
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "DS Maths",
-                "code": "",
+                "name": "Partiel Proba/Stats",
+                "code": "25_ISEN_MED_ISEN3_S5_MATHS_PROBA_STAT",
                 "coeff": 4
               },
               {
@@ -148,8 +148,8 @@
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Examen Algo",
-                "code": "",
+                "name": "Partiel Algo",
+                "code": "25_ISEN_MED_ISEN3_S5_ALGO_AVANCE",
                 "coeff": 1
               }
             ]
@@ -159,7 +159,7 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Examen Auto",
+                "name": "Partiel Auto",
                 "code": "25_ISEN_MED_ISEN3_S5_AUTOMATIQUE",
                 "coeff": 1
               }
@@ -170,7 +170,7 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Examen",
+                "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_DevMobile",
                 "coeff": 7
               },
@@ -253,7 +253,7 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Examen",
+                "name": "Partiel",
                 "code": "",
                 "coeff": 3
               },
@@ -315,7 +315,7 @@
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Examen",
+                "name": "Partiel",
                 "code": "",
                 "coeff": 1
               }
@@ -326,7 +326,7 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Examen",
+                "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_ARCHITECTURE_ORDIS",
                 "coeff": 1
               }
@@ -372,7 +372,7 @@
             "evaluations": [
               {
                 "name": "Partiel BDD",
-                "code": "",
+                "code": "25_ISEN_MED_ISEN3_S5_BDD",
                 "coeff": 2
               },
               {
@@ -387,8 +387,8 @@
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "DS Maths",
-                "code": "",
+                "name": "Partiel Proba/Stats",
+                "code": "25_ISEN_MED_ISEN3_S5_MATHS_PROBA_STAT",
                 "coeff": 4
               },
               {
@@ -414,7 +414,7 @@
                 "coeff": 1
               },
                {
-                "name": "Examen Aglo",
+                "name": "Partiel Aglo",
                 "code": "",
                 "coeff": 2
               }
@@ -503,7 +503,7 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Examen",
+                "name": "Partiel",
                 "code": "",
                 "coeff": 3
               },
@@ -565,7 +565,7 @@
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Examen",
+                "name": "Partiel",
                 "code": "",
                 "coeff": 1
               }
@@ -576,7 +576,7 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Examen",
+                "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_ARCHITECTURE_ORDIS",
                 "coeff": 1
               }
@@ -622,7 +622,7 @@
             "evaluations": [
               {
                 "name": "Partiel BDD",
-                "code": "",
+                "code": "25_ISEN_MED_ISEN3_S5_BDD",
                 "coeff": 2
               },
               {
@@ -637,8 +637,8 @@
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "DS Maths",
-                "code": "",
+                "name": "Partiel",
+                "code": "25_ISEN_MED_ISEN3_S5_MATHS_PROBA_STAT",
                 "coeff": 4
               },
               {
@@ -659,8 +659,8 @@
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Examen Algo",
-                "code": "",
+                "name": "Partiel Algo",
+                "code": "25_ISEN_MED_ISEN3_S5_ALGO_AVANCE",
                 "coeff": 1
               }
             ]
@@ -670,7 +670,7 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Examen Auto",
+                "name": "Partiel Auto",
                 "code": "25_ISEN_MED_ISEN3_S5_AUTOMATIQUE",
                 "coeff": 1
               }
@@ -759,7 +759,7 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Examen",
+                "name": "Partiel",
                 "code": "",
                 "coeff": 3
               },

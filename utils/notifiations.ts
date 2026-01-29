@@ -38,19 +38,24 @@ const programmerNotifications = async (agenda: AgendaProps[]) => {
   const maintenant = new Date();
   const rappelMinutes = 15; // On notifie 15 minutes avant le début du cours
 
+  const formatHeure = (date: Date) => `${date.getHours()}h${date.getMinutes().toString().padStart(2, '0')}`;
+
   // 3. Parcourir chaque cours de l'agenda
   for (const jour of agenda) {
     for (const cours of jour.events) {
       const dateRappel = new Date(cours.start.getTime() - rappelMinutes * 60 * 1000);
-
+      
       const seconds = Math.floor((dateRappel.getTime() - maintenant.getTime()) / 1000);
 
       // 4. S'assurer que la date de la notification est dans le futur
       if (seconds > 0) {
+        const horaire = `${formatHeure(cours.start)} - ${formatHeure(cours.end)}`;
+
         await Notifications.scheduleNotificationAsync({
+          
           content: {
-            title: `Début du cours : ${cours.title}`,
-            body: `Le cours commence dans ${rappelMinutes} minutes en ${cours.location}.`,
+            title: `${cours.title}`,
+            body: `${horaire}\n${cours.location}\n${cours.professors}`, 
             sound: 'default',
           },
           trigger: {
