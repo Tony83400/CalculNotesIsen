@@ -128,7 +128,7 @@
               {
                 "name": "Partiel Proba/Stats",
                 "code": "25_ISEN_MED_ISEN3_S5_MATHS_PROBA_STAT",
-                "coeff": 4
+                "coeff": 9
               },
               {
                 "name": "QCM educ",
@@ -389,7 +389,7 @@
               {
                 "name": "Partiel Proba/Stats",
                 "code": "25_ISEN_MED_ISEN3_S5_MATHS_PROBA_STAT",
-                "coeff": 4
+                "coeff": 9
               },
               {
                 "name": "QCM educ",
@@ -639,7 +639,7 @@
               {
                 "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_MATHS_PROBA_STAT",
-                "coeff": 4
+                "coeff": 9
               },
               {
                 "name": "QCM educ",
