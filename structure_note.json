@@ -110,13 +110,12 @@
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Partiel BDD",
-                "code": "25_ISEN_MED_ISEN3_S5_BDD",
-                "coeff": 2
-              },
+            "name": "Base De Données",
+            "coeff_matiere": 2,
+            "evaluations": [
               {
-                "name": "Contrôle continu",
-                "code": "",
+                "name": "Note Base De Données",
+                "code": "25_ISEN_MED_ISEN3_S5_BDD",
                 "coeff": 1
               }
             ]
@@ -253,15 +252,11 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Partiel",
-                "code": "",
-                "coeff": 3
-              },
-              {
-                "name": "Contrôle continu",
-                "code": "",
+                "name": "Partiel + Contrôle continue",
+                "code": "25_ISEN_MED_ISEN3_S5_ANGLAIS	",
                 "coeff": 1
               }
+              
             ]
           }
         ]
@@ -367,17 +362,12 @@
         "ects": 4,
         "matieres": [
           {
-            "name": "BDD",
+            "name": "Base De Données",
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Partiel BDD",
+                "name": "Note Base De Données",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD",
-                "coeff": 2
-              },
-              {
-                "name": "Contrôle continu",
-                "code": "",
                 "coeff": 1
               }
             ]
@@ -503,15 +493,11 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Partiel",
-                "code": "",
-                "coeff": 3
-              },
-              {
-                "name": "Contrôle continu",
-                "code": "",
+                "name": "Partiel + Contrôle continue",
+                "code": "25_ISEN_MED_ISEN3_S5_ANGLAIS	",
                 "coeff": 1
               }
+              
             ]
           }
         ]
@@ -617,17 +603,12 @@
         "ects": 4,
         "matieres": [
           {
-            "name": "BDD",
+            "name": "Base De Données",
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Partiel BDD",
+                "name": "Note Base De Données",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD",
-                "coeff": 2
-              },
-              {
-                "name": "Contrôle continu",
-                "code": "",
                 "coeff": 1
               }
             ]
@@ -759,15 +740,11 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Partiel",
-                "code": "",
-                "coeff": 3
-              },
-              {
-                "name": "Contrôle continu",
-                "code": "",
+                "name": "Partiel + Contrôle continue",
+                "code": "25_ISEN_MED_ISEN3_S5_ANGLAIS	",
                 "coeff": 1
               }
+              
             ]
           }
         ]
