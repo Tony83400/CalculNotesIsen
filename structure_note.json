@@ -93,7 +93,7 @@
                 "coeff": 2
               },
               {
-                "name":"Contrôle continue reseau",
+                "name":"Contrôle continu reseau",
                 "code":"25_ISEN_MED_ISEN3_S5_RESEAUX_RASB_CC",
                 "coeff":1
               }
@@ -106,10 +106,6 @@
         "ects": 4,
         "matieres": [
           {
-            "name": "BDD",
-            "coeff_matiere": 2,
-            "evaluations": [
-              {
             "name": "Base De Données",
             "coeff_matiere": 2,
             "evaluations": [
@@ -174,7 +170,7 @@
                 "coeff": 7
               },
               {
-                "name": "Projet ",
+                "name": "Projet",
                 "code": "25_ISEN_MED_ISEN3_S5_DevMobile_Projet",
                 "coeff": 3
               }
@@ -252,8 +248,8 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Partiel + Contrôle continue",
-                "code": "25_ISEN_MED_ISEN3_S5_ANGLAIS	",
+                "name": "Partiel + Contrôle continu",
+                "code": "25_ISEN_MED_ISEN3_S5_ANGLAIS",
                 "coeff": 1
               }
               
@@ -404,7 +400,7 @@
                 "coeff": 1
               },
                {
-                "name": "Partiel Aglo",
+                "name": "Partiel Algo",
                 "code": "",
                 "coeff": 2
               }
@@ -493,8 +489,8 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Partiel + Contrôle continue",
-                "code": "25_ISEN_MED_ISEN3_S5_ANGLAIS	",
+                "name": "Partiel + Contrôle continu",
+                "code": "25_ISEN_MED_ISEN3_S5_ANGLAIS",
                 "coeff": 1
               }
               
@@ -740,8 +736,8 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Partiel + Contrôle continue",
-                "code": "25_ISEN_MED_ISEN3_S5_ANGLAIS	",
+                "name": "Partiel + Contrôle continu",
+                "code": "25_ISEN_MED_ISEN3_S5_ANGLAIS",
                 "coeff": 1
               }
               
