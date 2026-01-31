@@ -1,3 +1,6 @@
+import NotesHeader from "@/components/ui/notes/NotesHeader";
+import UeCard from "@/components/ui/notes/UeList";
+import { Colors } from "@/constants/Colors";
 import { getNotes } from "@/services/isenApi";
 import { getId, loadLastUpdateNotes, loadStructureFromCache } from "@/services/storage";
 import { Note } from "@/types/note";
@@ -10,76 +13,67 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
+    ActivityIndicator
 } from "react-native";
-import UeCard from '../components/ui/notes/UeList';
-import configDefault from '../structure_note.json'; // Garde-le comme valeur initiale
-import RefreshButton from "@/components/ui/notes/RefreshButton";
+import configDefault from '../structure_note.json';
 
 export default function Main() {
-
-
     const [notes, setNotes] = useState<Note[]>();
     const [selectedFiliere, setSelectedFiliere] = useState<string | null>(null);
     const [configActuelle, setConfigActuelle] = useState(configDefault);
     const [userId, setUserId] = useState<string | null>("");
     const filieresDisponibles = Object.keys(configActuelle.filieres);
-    const[lastUpdate, setLastUpdate] = useState(new Date());
+    const [lastUpdate, setLastUpdate] = useState(new Date(0));
+    const [isLoading, setIsLoading] = useState(true);
 
-
-    // State pour les simulations. Clé = uniqueId, Valeur = note
     const [simulatedNotes, setSimulatedNotes] = useState<Record<string, number | null>>({});
 
-    // Mise à jour d'une simulation
     const updateSimulation = useCallback((id: string, val: number | null) => {
-        setSimulatedNotes(prev => ({
-            ...prev,
-            [id]: val
-        }));
+        setSimulatedNotes(prev => ({ ...prev, [id]: val }));
     }, []);
 
     useEffect(() => {
-        const fetchUser = async () => {
+        const bootstrap = async () => {
+            setIsLoading(true);
             try {
                 const id = await getId();
                 setUserId(id);
-            } catch (error) {
-                console.error("Erreur Id:", error);
-            }
-        };
-        fetchUser();
-    }, []);
 
-    useEffect(() => {
-        if (!userId) return;
-        const fetchNote = async () => {
-            try {
-                const rep = await getNotes();
-                if (rep) {
-                    setNotes(rep);
+                if (id) {
+                    const cachedConfig = await loadStructureFromCache();
+                    if (cachedConfig) {
+                        setConfigActuelle(cachedConfig);
+                    }
+
+                    const rep = await getNotes();
+                    if (rep) {
+                        setNotes(rep);
+                    }
+                    
                     const date = await loadLastUpdateNotes();
-                    if (date != new Date(0)) {
+                    if (date) {
                         setLastUpdate(date);
-                    }   
-
+                    }
                 }
             } catch (error) {
-                console.error("Erreur notes:", error);
-            }
-        }
-        fetchNote();
-    }, [userId]);
-    useEffect(() => {
-        const loadConfig = async () => {
-            // On essaie de récupérer la config sauvegardée dans le téléphone
-            const cachedConfig = await loadStructureFromCache();
-            if (cachedConfig) {
-                setConfigActuelle(cachedConfig);
+                console.error("Erreur au démarrage:", error);
+            } finally {
+                setIsLoading(false);
             }
         };
-        loadConfig();
-    }, [lastUpdate]);
 
+        bootstrap();
+    }, []);
+
+    if (isLoading && !notes) {
+        return (
+            <View style={styles.center}>
+                <ActivityIndicator size="large" color={Colors.primary} />
+                <Text style={styles.loadingText}>Chargement des notes...</Text>
+            </View>
+        );
+    }
 
     if (!selectedFiliere) {
         return (
@@ -96,85 +90,57 @@ export default function Main() {
                             >
                                 <Text style={styles.buttonText}>{item}</Text>
                             </TouchableOpacity>
-
                         )}
                         contentContainerStyle={{ padding: 20 }}
                     />
                     <TouchableOpacity
-                        style={styles.buttonChoice}
+                        style={[styles.buttonChoice, styles.buttonBack]}
                         onPress={() => router.push("/selection")}
                     >
-                        <Text style={styles.buttonText}>← Retour</Text>
+                        <Text style={[styles.buttonText, styles.buttonBackText]}>← Retour</Text>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
         );
     }
 
-    if (!notes && userId != "") {
-        return (
-            <View style={styles.center}>
-                <Text>Chargement...</Text>
-            </View>
-        )
-    }
-
     const dataFiliere = configActuelle.filieres[selectedFiliere as keyof typeof configActuelle.filieres];
-    let resultats;
-    if (notes) {
-        resultats = getDonneesAvecNotes(dataFiliere, notes, simulatedNotes);
-    }
-    else {
-        resultats = getDonneesAvecNotes(dataFiliere, [], simulatedNotes);
-    }
+    const { structure: donneesAffichables, stats } = getDonneesAvecNotes(dataFiliere, notes || [], simulatedNotes);
 
-    const donneesAffichables = resultats.structure;
-    const stats = resultats.stats;
+    const isGradeGood = stats.moyenne >= 10;
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.topBar}>
-                {/* Zone Gauche : Bouton Retour */}
-                <View style={styles.headerLeft}>
-                    <TouchableOpacity onPress={() => setSelectedFiliere(null)} style={styles.backButton}>
-                        <Text style={styles.backText}>← Retour</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Zone Centre : Titre */}
-                <View style={styles.headerCenter}>
-                    <Text style={styles.topTitle} numberOfLines={1}>
-                        {selectedFiliere}
-                    </Text>
-                      <Text style={styles.headerSubtitle}>
-                        Dernière mise à jour: {lastUpdate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                  </Text>
-                  {/* <RefreshButton/> */}
-                </View>
-
-                {/* Zone Droite : Bouton Déconnexion */}
-                <View style={styles.headerRight}>
-                    <TouchableOpacity onPress={() => router.push("/")} style={styles.backButton}>
-                        {/* J'ai raccourci le texte pour que ça rentre, sinon utilisez une icône */}
-                        <Text style={styles.backText}>Accueil ⌂</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+            <NotesHeader
+                filiere={selectedFiliere}
+                lastUpdate={lastUpdate}
+                onBack={() => setSelectedFiliere(null)}
+                onHome={() => router.push("/")}
+            />
 
             <View style={styles.statsContainer}>
                 <View style={styles.statCard}>
                     <Text style={styles.statLabel}>Moyenne Générale</Text>
-                    <View style={styles.valueContainer}>
-                        <Text style={[styles.statValue, { color: stats.moyenne >= 10 ? '#4CAF50' : '#F44336' }]}>
+                    <View style={[
+                        styles.gradeBadge,
+                        { backgroundColor: isGradeGood ? Colors.status.successLight : Colors.status.errorLight }
+                    ]}>
+                        <Text style={[
+                            styles.statValue,
+                            { color: isGradeGood ? Colors.status.success : Colors.status.error }
+                        ]}>
                             {stats.moyenne.toFixed(2)}
                         </Text>
-                        <Text style={styles.statSuffix}>/20</Text>
+                        <Text style={[
+                            styles.statSuffix,
+                            { color: isGradeGood ? Colors.status.success : Colors.status.error }
+                        ]}>/20</Text>
                     </View>
                 </View>
                 <View style={styles.statCard}>
                     <Text style={styles.statLabel}>Crédits ECTS</Text>
                     <View style={styles.valueContainer}>
-                        <Text style={[styles.statValue, { color: '#2196F3' }]}>{stats.ects}</Text>
+                        <Text style={[styles.statValue, { color: Colors.primary }]}>{stats.ects}</Text>
                         <Text style={styles.statSuffix}> /30</Text>
                     </View>
                 </View>
@@ -192,79 +158,105 @@ export default function Main() {
                 )}
                 contentContainerStyle={{ paddingBottom: 40 }}
             />
-
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    topBar: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingBottom: 16,
-        // Ajout important pour éviter que le header ne soit sous la barre de statut (batterie/heure)
-        paddingTop: 50, // Ajustez selon si vous utilisez SafeAreaView ou non
-        backgroundColor: 'white',
-        borderBottomWidth: 1,
-        borderColor: '#E5E7EB'
-    },
-
-    // 1. Zone Gauche : Prend 20% de place, aligné à gauche
-    headerLeft: {
+    container: {
         flex: 1,
-        alignItems: 'flex-start',
+        backgroundColor: Colors.background
     },
-
-    // 2. Zone Centre : Prend 60% de place, parfaitement centré
-    headerCenter: {
-        flex: 3,
-        alignItems: 'center',
+    center: {
+        flex: 1,
         justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: Colors.text.secondary,
     },
 
-    // 3. Zone Droite : Prend 20% de place, aligné à droite
-    headerRight: {
-        flex: 1,
-        alignItems: 'flex-end',
-    },
-headerSubtitle: {
-        fontSize: 11,
-        color: '#6B7280',
-        marginTop: 2,
-   },
-    topTitle: {
-        fontSize: 18,
+    // Filiere Selection
+    title: {
+        fontSize: 24,
         fontWeight: 'bold',
+        marginBottom: 24,
         textAlign: 'center',
+        color: Colors.text.primary,
+    },
+    buttonChoice: {
+        backgroundColor: Colors.primary,
+        paddingVertical: 16,
+        paddingHorizontal: 24,
+        borderRadius: 12,
+        marginBottom: 12,
+        width: 280,
+        alignItems: 'center',
+    },
+    buttonText: {
+        color: Colors.text.inverse,
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    buttonBack: {
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+    buttonBackText: {
+        color: Colors.text.primary,
     },
 
-    backButton: {
-        padding: 8,
-        backgroundColor: '#F3F4F6',
-        borderRadius: 8
+    // Stats
+    statsContainer: {
+        flexDirection: 'row',
+        gap: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
     },
-
-    backText: {
-        color: '#374151',
+    statCard: {
+        flex: 1,
+        backgroundColor: Colors.surface,
+        padding: 16,
+        borderRadius: 16,
+        alignItems: 'center',
+        // iOS Shadow
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.07,
+        shadowRadius: 10,
+        elevation: 5,
+    },
+    statLabel: {
+        fontSize: 12,
+        color: Colors.text.secondary,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        marginBottom: 8,
+    },
+    valueContainer: {
+        flexDirection: 'row',
+        alignItems: 'baseline',
+    },
+    statValue: {
+        fontSize: 28,
+        fontWeight: '800',
+    },
+    statSuffix: {
+        fontSize: 14,
+        color: Colors.text.tertiary,
         fontWeight: '600',
-        fontSize: 12
+        marginLeft: 2,
     },
-    container: { flex: 1, backgroundColor: '#F2F5F8' },
-    center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-
-    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-    buttonChoice: { backgroundColor: '#2563EB', padding: 16, borderRadius: 12, marginBottom: 12, width: 240, alignItems: 'center' },
-    buttonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
-
-
-    statsContainer: { flexDirection: 'row', gap: 12, padding: 16 },
-    statCard: { flex: 1, backgroundColor: 'white', padding: 16, borderRadius: 16, alignItems: 'center', elevation: 2 },
-    statLabel: { fontSize: 11, color: '#6B7280', fontWeight: 'bold', textTransform: 'uppercase' },
-    valueContainer: { flexDirection: 'row', alignItems: 'baseline' },
-    statValue: { fontSize: 26, fontWeight: '800' },
-    statSuffix: { fontSize: 13, color: '#9CA3AF', fontWeight: '600' },
+    // New Grade Badge Style
+    gradeBadge: {
+        flexDirection: 'row',
+        alignItems: 'baseline',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 20, // Pill shape
+    },
 });
-
-

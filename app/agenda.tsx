@@ -1,147 +1,169 @@
-import CourseCard from "@/components/ui/notes/CourseCard";
+import CompactCourseCard from "@/components/ui/agenda/CompactCourseCard";
 import { Colors } from "@/constants/Colors";
 import { getAgendaIsen } from "@/services/agendaApi";
 import { AgendaEvent } from "@/types/agenda";
-import programmerNotifications from "@/utils/notifiations";
 import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
-    FlatList,
-    Platform,
+    ActivityIndicator,
     SafeAreaView,
-    StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
+    ScrollView
 } from "react-native";
 
-export interface AgendaProps {
-    events: AgendaEvent[];
-    day: string; 
+interface DayColumnData {
+    title: string;
+    data: AgendaEvent[];
 }
 
+// --- Grid Constants ---
+const HOUR_HEIGHT = 60; // Height of one hour slot in pixels
+const START_HOUR = 8;   // Day starts at 8:00
+const END_HOUR = 20;    // Day ends at 20:00
+
 export default function Agenda() {
-    const [courses, setCourses] = useState<AgendaProps[]>([]);
-    const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+    const [allEvents, setAllEvents] = useState<AgendaEvent[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     
-    // Initialisation au Lundi de la semaine courante
-    const [currentDay, setCurrentDay] = useState<Date>(() => {
-        const startweek = new Date();
-        startweek.setDate(startweek.getDate() - startweek.getDay() + 1);
-        startweek.setHours(0, 0, 0, 0);
-        return startweek; 
+    const [weekToShow, setWeekToShow] = useState<Date>(() => {
+        const today = new Date();
+        const day = today.getDay();
+        const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+        const startOfWeek = new Date(today.setDate(diff));
+        startOfWeek.setHours(0, 0, 0, 0);
+        return startOfWeek;
     });
 
-    // Calcul de la date de fin de semaine pour l'affichage (Lundi + 6 jours = Dimanche)
-    const endOfWeek = new Date(currentDay);
-    endOfWeek.setDate(currentDay.getDate() + 6);
-
-    const getAgenda = async () => {
-        const rep = await getAgendaIsen();
-        const tempAgenda: AgendaProps[] = [];
-        
-        for (let i = 0; i < days.length; i++) {
-            const startDay = new Date(currentDay);
-            startDay.setDate(startDay.getDate() + i);
-            const endDay = new Date(startDay);
-            endDay.setHours(23, 59, 59, 999);
-            
-            // Formatage de la date (ex: 12/02)
-            const dateFormatted = startDay.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-            const dayLabel = `${days[i]} ${dateFormatted}`;
-
-            // Filtrage et tri
-            const filtered = rep.filter(event => {
-                return event.start >= startDay && event.end <= endDay;
-            }).sort((a, b) => a.start.getTime() - b.start.getTime());
-
-            const newDay: AgendaProps = {
-                day: dayLabel,
-                events: filtered
-            }
-            tempAgenda.push(newDay);
+    const fetchAgendaForWeek = async (startDate: Date) => {
+        setIsLoading(true);
+        try {
+            const events = await getAgendaIsen(startDate);
+            setAllEvents(events);
+        } catch (error) {
+            console.error("Failed to fetch agenda:", error);
+            setAllEvents([]);
+        } finally {
+            setIsLoading(false);
         }
-        console.log(tempAgenda);
-        setCourses(tempAgenda);
-        // On programme les notifications après avoir récupéré les cours
-        programmerNotifications(tempAgenda);
     };
 
-    // Recharger l'agenda quand la semaine change (currentDay)
     useEffect(() => {
-        getAgenda();
-    }, [currentDay]);
+        fetchAgendaForWeek(weekToShow);
+    }, [weekToShow]);
 
-    const changeWeek = (offset: number) => {
-        setCurrentDay(prev => {
+    const weeklyAgendaData = useMemo((): DayColumnData[] => {
+        const weekData: DayColumnData[] = [];
+        const dayNames = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+
+        for (let i = 0; i < 6; i++) {
+            const currentDay = new Date(weekToShow);
+            currentDay.setDate(weekToShow.getDate() + i);
+            
+            const dayEvents = allEvents
+                .filter(event => {
+                    const eventDate = event.start;
+                    return eventDate.getDate() === currentDay.getDate() &&
+                           eventDate.getMonth() === currentDay.getMonth() &&
+                           eventDate.getFullYear() === currentDay.getFullYear();
+                })
+                .sort((a, b) => a.start.getTime() - b.start.getTime());
+
+            weekData.push({
+                title: `${dayNames[i]} ${currentDay.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}`,
+                data: dayEvents,
+            });
+        }
+        return weekData;
+    }, [allEvents, weekToShow]);
+
+    const changeWeek = (weekOffset: number) => {
+        setWeekToShow(prev => {
             const newDate = new Date(prev);
-            newDate.setDate(newDate.getDate() + offset);
+            newDate.setDate(newDate.getDate() + (weekOffset * 7));
             return newDate;
         });
     };
 
-    if (!courses) {
-        return(<View>
-            <Text>Chargement ....</Text>
-        </View>);
-    }
+    const getEventStyle = (event: AgendaEvent) => {
+        const start = event.start.getHours() + event.start.getMinutes() / 60;
+        const end = event.end.getHours() + event.end.getMinutes() / 60;
+        
+        const top = (start - START_HOUR) * HOUR_HEIGHT;
+        const height = (end - start) * HOUR_HEIGHT;
+
+        return { top, height };
+    };
+
+    const HourGrid = () => {
+        const hours = [];
+        for (let i = START_HOUR; i < END_HOUR; i++) {
+            hours.push(i);
+        }
+        return (
+            <View style={StyleSheet.absoluteFill}>
+                {hours.map(hour => (
+                    <View key={hour} style={[styles.hourSlot, { height: HOUR_HEIGHT }]}>
+                        <Text style={styles.hourText}>{`${hour}:00`}</Text>
+                    </View>
+                ))}
+            </View>
+        );
+    };
+
     return (
         <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" />
-            
-            {/* Header Principal */}
+            {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.push("/selection")} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#333" />
+                <TouchableOpacity onPress={() => router.back()} style={styles.headerButton}>
+                    <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Emploi du temps</Text>
-                <View style={{ width: 40 }} /> 
+                <View style={{ width: 44 }} />
             </View>
-
-            {/* Barre de navigation Semaine */}
-            <View style={styles.weekNavContainer}>
-                <TouchableOpacity onPress={() => changeWeek(-7)} style={styles.navButton}>
-                    <Ionicons name="chevron-back" size={20} color={Colors.primary} />
+            
+            {/* Week Navigation */}
+            <View style={styles.weekNav}>
+                <TouchableOpacity onPress={() => changeWeek(-1)} style={styles.navButton}>
+                    <Ionicons name="chevron-back" size={22} color={Colors.primary} />
                 </TouchableOpacity>
-                
-                <View style={styles.dateRangeContainer}>
-                    <Ionicons name="calendar-outline" size={16} color={Colors.text.secondary} style={{marginRight: 6}} />
-                    <Text style={styles.dateRangeText}>
-                        {currentDay.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
-                        {" - "}
-                        {endOfWeek.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
-                    </Text>
-                </View>
-
-                <TouchableOpacity onPress={() => changeWeek(7)} style={styles.navButton}>
-                    <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
+                <Text style={styles.weekText}>
+                    {`Semaine du ${weekToShow.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' })}`}
+                </Text>
+                <TouchableOpacity onPress={() => changeWeek(1)} style={styles.navButton}>
+                    <Ionicons name="chevron-forward" size={22} color={Colors.primary} />
                 </TouchableOpacity>
             </View>
 
-            <FlatList
-                data={courses}
-                keyExtractor={(item) => item.day}
-                contentContainerStyle={styles.listContent}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                    <View style={styles.daySection}>
-                        <View style={styles.dayHeader}>
-                            <Text style={styles.dayTitle}>{item.day}</Text>
-                            <View style={styles.dayLine} />
-                        </View>
-
-                        {item.events.length > 0 ? (
-                            item.events.map((event, index) => (
-                                <CourseCard key={index} event={event} />
-                            ))
-                        ) : (
-                            <Text style={styles.noClassText}>Aucun cours</Text>
-                        )}
+            {isLoading ? (
+                <ActivityIndicator style={{ flex: 1 }} size="large" color={Colors.primary} />
+            ) : (
+                <>
+                    <View style={styles.dayHeaderRow}>
+                        <View style={styles.hourColumn} />
+                        {weeklyAgendaData.map(day => (
+                            <Text key={day.title} style={styles.dayHeaderText}>{day.title}</Text>
+                        ))}
                     </View>
-                )}
-            />
+                    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+                        <View style={styles.gridContainer}>
+                            <View style={styles.hourColumn}><HourGrid /></View>
+                            {weeklyAgendaData.map(day => (
+                                <View key={day.title} style={styles.dayColumn}>
+                                    {day.data.map(event => (
+                                        <View key={event.id || event.start.toISOString()} style={[styles.eventContainer, getEventStyle(event)]}>
+                                            <CompactCourseCard event={event} />
+                                        </View>
+                                    ))}
+                                </View>
+                            ))}
+                        </View>
+                    </ScrollView>
+                </>
+            )}
         </SafeAreaView>
     );
 }
@@ -149,96 +171,93 @@ export default function Agenda() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: Colors.surface,
     },
     // Header
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        backgroundColor: '#fff',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0', // Plus léger
-        marginTop: Platform.OS === 'android' ? 30 : 0,
+        borderColor: Colors.border,
     },
-    backButton: {
-        padding: 8,
-        borderRadius: 50,
-        backgroundColor: '#F5F5F5',
+    headerButton: {
+        width: 44,
+        height: 44,
+        justifyContent: 'center',
+        alignItems: 'flex-start',
     },
     headerTitle: {
-        fontSize: 18,
-        fontWeight: '700',
+        fontSize: 17,
+        fontWeight: '600',
         color: Colors.text.primary,
     },
-    
-    // Navigation Semaine (Nouveau Style)
-    weekNavContainer: {
+    // Week Nav
+    weekNav: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#fff',
-        paddingVertical: 10,
         paddingHorizontal: 20,
-        marginBottom: 10,
-        // Ombre légère pour séparer du contenu
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-        elevation: 2,
+        paddingVertical: 10,
+        backgroundColor: Colors.surface,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border,
     },
     navButton: {
         padding: 8,
-        backgroundColor: Colors.primaryLight, // Fond léger basé sur la couleur primaire
-        borderRadius: 8,
+        minHeight: 44,
+        justifyContent: 'center',
     },
-    dateRangeContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F8FAFC',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
-    },
-    dateRangeText: {
-        fontSize: 14,
+    weekText: {
+        fontSize: 15,
         fontWeight: '600',
-        color: Colors.text.primary,
-        textTransform: 'capitalize', // Met la première lettre du mois en majuscule
+        color: Colors.text.secondary,
     },
-
-    // Liste et Jours
-    listContent: {
-        padding: 20,
-        paddingBottom: 40,
-    },
-    daySection: {
-        marginBottom: 25,
-    },
-    dayHeader: {
+    // Grid Layout
+    dayHeaderRow: {
         flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 15,
+        backgroundColor: Colors.surface,
+        borderBottomWidth: 1,
+        borderColor: Colors.border,
     },
-    dayTitle: {
-        fontSize: 18, // Légèrement réduit pour accomoder la date
-        fontWeight: '800',
-        color: Colors.text.primary,
-        marginRight: 10,
-    },
-    dayLine: {
+    dayHeaderText: {
         flex: 1,
-        height: 1,
-        backgroundColor: '#E0E0E0',
-    },
-    noClassText: {
-        fontStyle: 'italic',
-        color: '#A0AEC0',
         fontSize: 14,
-        marginLeft: 10,
+        fontWeight: 'bold',
+        color: Colors.text.primary,
+        textAlign: 'center',
+        paddingVertical: 8,
     },
-
+    gridContainer: {
+        flex: 1,
+        flexDirection: 'row',
+    },
+    hourColumn: {
+        width: 50,
+        borderRightWidth: 1,
+        borderColor: Colors.border,
+    },
+    hourSlot: {
+        borderBottomWidth: 1,
+        borderColor: Colors.border,
+        paddingLeft: 4,
+    },
+    hourText: {
+        fontSize: 10,
+        color: Colors.text.tertiary,
+        marginTop: -6, // Position text on the line
+    },
+    dayColumn: {
+        flex: 1,
+        borderRightWidth: 1,
+        borderColor: Colors.border,
+        position: 'relative', // Needed for absolute positioning of events
+    },
+    eventContainer: {
+        position: 'absolute',
+        left: 2,
+        right: 2,
+    },
 });

@@ -10,7 +10,7 @@ interface MatiereCardProps {
 }
 
 const getNoteColor = (note: number | undefined | null) => {
-    if (note === undefined || note === null) return Colors.status.neutral; // Gris harmonisé
+    if (note === undefined || note === null) return Colors.text.tertiary;
     if (note >= 10) return Colors.status.success;
     if (note >= 8) return Colors.status.warning;
     return Colors.status.error;
@@ -21,15 +21,10 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
         <View style={styles.container}>
             {evaluationData.map((item, index) => {
                 const isLast = index === evaluationData.length - 1;
-                
-                // IMPORTANT: On tilise l'ID généré dans main.tsx pour éviter que tout bouge en même temps
                 const id = item.uniqueId || item.code || `${item.name}_${index}`;
-                
                 const displayNote = item.noteReelle;
                 const isSimulated = simulatedNotes[id] !== undefined && simulatedNotes[id] !== null;
                 const sliderValue = displayNote !== null && displayNote !== undefined ? displayNote : 10;
-
-                // Condition d'affichage du slider : Si PAS de note API, ou si c'est déjà une simulation en cours
                 const showSlider = !item.hasApiNote;
 
                 return (
@@ -38,29 +33,26 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
                         <View style={styles.rowTop}>
                             <View style={styles.leftInfo}>
                                 <Text style={styles.name}>{item.name}</Text>
-                                <Text style={styles.code}>{item.code}</Text>
+                                {item.coeff > 0 && <Text style={styles.coeff}>Coeff {item.coeff}</Text>}
                             </View>
 
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={styles.rightInfo}
-                                disabled={!isSimulated} // On ne peut reset que les simulations
+                                disabled={!isSimulated}
                                 onPress={() => updateSimulation(id, null)}
                             >
                                 <View style={styles.noteWrapper}>
                                     <Text style={[
-                                        styles.noteValue, 
-                                        { color: getNoteColor(displayNote) },
-                                        isSimulated && styles.simulatedText
+                                        styles.noteValue,
+                                        { color: isSimulated ? Colors.status.info : getNoteColor(displayNote) }
                                     ]}>
                                         {displayNote !== null && displayNote !== undefined ? displayNote.toFixed(2) : "--"}
                                     </Text>
-                                    <Text style={styles.noteTotal}>/20</Text>
+                                    <Text style={[styles.noteTotal, {color: isSimulated ? Colors.status.info : Colors.text.tertiary}]}>/20</Text>
                                 </View>
-                                <Text style={styles.coeff}>Coeff {item.coeff}</Text>
                             </TouchableOpacity>
                         </View>
 
-                        {/* On affiche le slider UNIQUEMENT si pas de note API */}
                         {showSlider && (
                             <View style={styles.sliderWrapper}>
                                 <Slider
@@ -70,12 +62,12 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
                                     step={0.5}
                                     value={sliderValue}
                                     onValueChange={(val) => updateSimulation(id, val)}
-                                    minimumTrackTintColor={isSimulated ? "#2196F3" : "#E0E0E0"}
-                                    maximumTrackTintColor="#000000"
-                                    thumbTintColor={isSimulated ? "#2196F3" : "#999"}
+                                    minimumTrackTintColor={isSimulated ? Colors.status.info : Colors.border}
+                                    maximumTrackTintColor={Colors.border}
+                                    thumbTintColor={isSimulated ? Colors.status.info : Colors.text.secondary}
                                 />
                                 {isSimulated && (
-                                    <Text style={styles.resetHint}>Appuie sur la note pour annuler</Text>
+                                    <Text style={styles.resetHint}>Appuyez sur la note pour annuler</Text>
                                 )}
                             </View>
                         )}
@@ -87,28 +79,63 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
 }
 
 const styles = StyleSheet.create({
-container: { 
-        backgroundColor: 'transparent', 
-     
-        paddingHorizontal: 0, 
-        borderRadius: 0 
+    container: {
+        backgroundColor: 'transparent',
     },
-        row: { paddingVertical: 10 },
-separator: { 
-        borderBottomWidth: 1, 
-        borderBottomColor: Colors.border // Gris de bordure standardisé
-    },    rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 5 },
-    leftInfo: { flex: 1, paddingRight: 10 },
-    name: { fontSize: 14, color: '#333', fontWeight: '500' },
-    code: { fontSize: 10, color: '#AAA', fontFamily: 'monospace' },
-    rightInfo: { alignItems: 'flex-end' },
-    noteWrapper: { flexDirection: 'row', alignItems: 'baseline' },
-    noteValue: { fontSize: 16, fontWeight: '700' },
-simulatedText: { 
-        color: Colors.status.info, // Bleu harmonisé
-        textDecorationLine: 'underline' 
-    },    noteTotal: { fontSize: 10, color: '#BBB', marginLeft: 2 },
-    coeff: { fontSize: 11, color: '#888' },
-    sliderWrapper: { paddingTop: 0 },
-    resetHint: { fontSize: 9, color: '#2196F3', textAlign: 'center', marginTop: -5 }
+    row: {
+        paddingVertical: 12,
+    },
+    separator: {
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border,
+    },
+    rowTop: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center', // Vertically align items
+        marginBottom: 4,
+        minHeight: 44, // Ensure minimum touch target size
+    },
+    leftInfo: {
+        flex: 1,
+        paddingRight: 8,
+    },
+    name: {
+        fontSize: 16, // Main text size
+        color: Colors.text.primary,
+        fontWeight: '500',
+    },
+    coeff: {
+        fontSize: 12,
+        color: Colors.text.secondary,
+        fontStyle: 'italic',
+        marginTop: 2,
+    },
+    rightInfo: {
+        alignItems: 'flex-end',
+    },
+    noteWrapper: {
+        flexDirection: 'row',
+        alignItems: 'baseline',
+    },
+    noteValue: {
+        fontSize: 16, // Main text size
+        fontWeight: '700',
+        fontFamily: 'monospace', // Gives a tabular feel
+    },
+    noteTotal: {
+        fontSize: 12,
+        fontWeight: '500',
+        fontFamily: 'monospace',
+        marginLeft: 2,
+    },
+    sliderWrapper: {
+        paddingTop: 4,
+    },
+    resetHint: {
+        fontSize: 11,
+        color: Colors.status.info,
+        textAlign: 'center',
+        marginTop: 2,
+    }
 });

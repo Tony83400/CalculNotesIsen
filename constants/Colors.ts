@@ -1,6 +1,6 @@
 export const Colors = {
   // Une seule couleur primaire pour toute l'app (au lieu de mélanger #007AFF, #2563EB, #3182CE)
-  primary: '#2563EB', 
+  primary: '#2563EB',
   primaryLight: '#EFF6FF', // Pour les badges ou fonds légers
 
   // Fonds harmonisés
@@ -17,11 +17,13 @@ export const Colors = {
 
   // Status (Notes, Validation)
   status: {
-    success: '#10B981', // Vert moderne (plus doux que #4CAF50)
-    warning: '#F59E0B', // Orange
-    error: '#EF4444',   // Rouge
-    info: '#3B82F6',    // Bleu info
-    neutral: '#E5E7EB', // Gris neutre (notes manquantes)
+    success: '#10B981',      // Vert moderne
+    successLight: '#D1FAE5', // Vert pastel pour fond
+    warning: '#F59E0B',      // Orange
+    error: '#EF4444',        // Rouge
+    errorLight: '#FEE2E2',   // Rouge pastel pour fond
+    info: '#3B82F6',         // Bleu info
+    neutral: '#E5E7EB',      // Gris neutre (notes manquantes)
   },
 
   // Bordures et séparateurs

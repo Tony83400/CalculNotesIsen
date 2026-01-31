@@ -1,7 +1,7 @@
 import { Ue } from "@/types/note";
 import { StyleSheet, Text, View } from "react-native";
 import MatiereCard from "./MatiereCard";
-import { Colors } from "@/constants/Colors"; // Assure-toi d'avoir créé ce fichier
+import { Colors } from "@/constants/Colors";
 
 interface UeCardProps {
     Ue: Ue;
@@ -10,16 +10,16 @@ interface UeCardProps {
 }
 
 export default function UeCard({ Ue, simulatedNotes, updateSimulation }: UeCardProps) {
-    
+
     const getUeColor = (moyenne: number | null | undefined, isValidated: boolean | undefined) => {
-        if (moyenne === null || moyenne === undefined) return Colors.status.neutral;
-        if (isValidated) return Colors.status.success; 
-        if (moyenne >= 10) return Colors.status.warning; 
+        if (moyenne === null || moyenne === undefined) return Colors.text.tertiary;
+        if (isValidated) return Colors.status.success;
+        if (moyenne >= 10) return Colors.status.warning;
         return Colors.status.error;
     };
 
     const getMatiereColor = (moyenne: number | null | undefined) => {
-        if (moyenne === null || moyenne === undefined) return Colors.status.neutral;
+        if (moyenne === null || moyenne === undefined) return Colors.text.tertiary;
         if (moyenne <= 6) return Colors.status.error;
         if (moyenne < 10) return Colors.status.warning;
         return Colors.status.success;
@@ -27,7 +27,7 @@ export default function UeCard({ Ue, simulatedNotes, updateSimulation }: UeCardP
 
     return (
         <View style={styles.card}>
-            {/* Header de l'UE (inchangé) */}
+            {/* Header de l'UE */}
             <View style={styles.cardHeader}>
                 <View style={{ flex: 1 }}>
                     <Text style={styles.ueTitle}>{Ue.ue}</Text>
@@ -48,9 +48,8 @@ export default function UeCard({ Ue, simulatedNotes, updateSimulation }: UeCardP
             {/* Conteneur des matières */}
             <View style={styles.contentContainer}>
                 {Ue.matieres.map((matiere, index) => (
-                    // ICI : On applique un style "bloc" pour séparer chaque matière
                     <View key={matiere.name + index} style={styles.matiereBlock}>
-                        
+
                         <View style={styles.matiereHeader}>
                             <Text style={styles.matiereName}>{matiere.name}</Text>
                             <View style={styles.matiereInfos}>
@@ -60,9 +59,8 @@ export default function UeCard({ Ue, simulatedNotes, updateSimulation }: UeCardP
                                 <Text style={styles.matiereCoeff}> (Coeff {matiere.coeff_matiere})</Text>
                             </View>
                         </View>
-                        
-                        {/* On passe une prop pour dire à la card de se fondre dans le bloc */}
-                        <MatiereCard 
+
+                        <MatiereCard
                             evaluationData={matiere.evaluations}
                             simulatedNotes={simulatedNotes}
                             updateSimulation={updateSimulation}
@@ -75,90 +73,92 @@ export default function UeCard({ Ue, simulatedNotes, updateSimulation }: UeCardP
 }
 
 const styles = StyleSheet.create({
-    card: { 
-        backgroundColor: Colors.surface, 
-        marginHorizontal: 16, 
-        marginBottom: 16, 
-        borderRadius: 16, 
-        padding: 16, 
-        // Ombres douces uniformisées
+    card: {
+        backgroundColor: Colors.surface,
+        marginHorizontal: 16,
+        marginBottom: 16,
+        borderRadius: 16,
+        padding: 16,
+        // Unified iOS-like shadow
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 5,
     },
-    cardHeader: { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        marginBottom: 16, 
-        paddingBottom: 12, 
-        borderBottomWidth: 1, 
-        borderColor: Colors.border 
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 16,
+        paddingBottom: 12,
+        borderBottomWidth: 1,
+        borderColor: Colors.border
     },
-    ueTitle: { 
-        fontSize: 17, 
-        fontWeight: '700', 
-        color: Colors.text.primary, 
-        marginRight: 10 
+    ueTitle: {
+        fontSize: 17,
+        fontWeight: '700',
+        color: Colors.text.primary,
+        marginRight: 8, // Consistent spacing
     },
-    ueMoyenne: { 
-        fontSize: 14, 
+    ueMoyenne: {
+        fontSize: 14,
         fontWeight: '600',
-        marginTop: 2
+        marginTop: 4,
     },
-    badge: { 
-        backgroundColor: Colors.primaryLight, 
-        paddingHorizontal: 8, 
-        paddingVertical: 4, 
-        borderRadius: 6,
+    badge: {
+        backgroundColor: Colors.primaryLight,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 8,
         alignSelf: 'flex-start'
     },
-    badgeText: { 
-        color: Colors.primary, 
-        fontWeight: '700', 
-        fontSize: 11 
+    badgeText: {
+        color: Colors.primary,
+        fontWeight: '700',
+        fontSize: 11
     },
-    contentContainer: { 
-        gap: 12 // Espace entre les blocs de matières
+    contentContainer: {
+        gap: 12
     },
-    
-    // NOUVEAU STYLE : Le bloc qui contient toute la matière
+
+    // --- Matiere Block ---
     matiereBlock: {
-        backgroundColor: Colors.background, // Gris très clair (#F2F5F8)
+        backgroundColor: Colors.background, // Light gray background
         borderRadius: 12,
         padding: 12,
         borderWidth: 1,
-        borderColor: Colors.border, // Bordure subtile
+        borderColor: Colors.border,
     },
-    
-    matiereHeader: { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: 10,
+
+    matiereHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
         paddingBottom: 8,
-        borderBottomWidth: 1, // Séparation titre matière / notes
-        borderBottomColor: '#E0E0E0', // Légèrement plus foncé que le border global
-        borderStyle: 'dashed' // Optionnel : style pointillé pour différencier du header UE
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border, // Use consistent border color
+        borderStyle: 'dashed'
     },
-    matiereName: { 
-        fontSize: 15, 
-        fontWeight: '700', // Un peu plus gras pour ressortir
-        color: Colors.text.primary, 
-        flex: 1 
+    matiereName: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: Colors.text.primary,
+        flex: 1,
+        marginRight: 8,
     },
-    matiereInfos: { 
-        flexDirection: 'row', 
-        alignItems: 'center' 
+    matiereInfos: {
+        flexDirection: 'row',
+        alignItems: 'center'
     },
-    matiereMoy: { 
-        fontWeight: 'bold', 
-        fontSize: 15 
+    matiereMoy: {
+        fontWeight: 'bold',
+        fontSize: 15
     },
-    matiereCoeff: { 
-        fontSize: 12, 
-        color: Colors.text.tertiary, 
-        fontStyle: 'italic' 
+    matiereCoeff: {
+        fontSize: 12,
+        color: Colors.text.tertiary,
+        fontStyle: 'italic'
     }
 });
