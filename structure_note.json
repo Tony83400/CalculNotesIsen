@@ -50,7 +50,7 @@
             "evaluations": [
               {
                 "name": "Partiel",
-                "code": "",
+                "code": "25_ISEN_MED_ISEN3_S5_LOGIQUE",
                 "coeff": 1
               }
             ]
@@ -110,10 +110,15 @@
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Note Base De Données",
+                "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD",
-                "coeff": 1
-              }
+                "coeff": 7
+              },
+              {
+                "name": "Contrôle Continu",
+                "code": "25_ISEN_MED_ISEN3_S5_BDD_CC",
+                "coeff": 3
+              },
             ]
           },
           {
@@ -307,7 +312,7 @@
             "evaluations": [
               {
                 "name": "Partiel",
-                "code": "",
+                "code": "25_ISEN_MED_ISEN3_S5_LOGIQUE",
                 "coeff": 1
               }
             ]
@@ -357,15 +362,20 @@
         "ue": "UE4 Gestion de Données",
         "ects": 4,
         "matieres": [
-          {
+           {
             "name": "Base De Données",
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Note Base De Données",
+                "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD",
-                "coeff": 1
-              }
+                "coeff": 7
+              },
+              {
+                "name": "Contrôle Continu",
+                "code": "25_ISEN_MED_ISEN3_S5_BDD_CC",
+                "coeff": 3
+              },
             ]
           },
           {
@@ -548,7 +558,7 @@
             "evaluations": [
               {
                 "name": "Partiel",
-                "code": "",
+                "code": "25_ISEN_MED_ISEN3_S5_LOGIQUE",
                 "coeff": 1
               }
             ]
@@ -598,15 +608,20 @@
         "ue": "UE4 Gestion de Données",
         "ects": 4,
         "matieres": [
-          {
+           {
             "name": "Base De Données",
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Note Base De Données",
+                "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD",
-                "coeff": 1
-              }
+                "coeff": 7
+              },
+              {
+                "name": "Contrôle Continu",
+                "code": "25_ISEN_MED_ISEN3_S5_BDD_CC",
+                "coeff": 3
+              },
             ]
           },
           {
