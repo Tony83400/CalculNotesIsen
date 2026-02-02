@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "filieres": {
-    "CIN/UI S5": [
+    "CIN UI S5": [
       {
         "ue": "UE1 Electronique Analogique",
         "ects": 6,
@@ -263,7 +263,7 @@
         ]
       }
     ],
-    "CPGE/UE S5": [
+    "CPGE UE S5": [
       {
         "ue": "UE1 Electronique Analogique",
         "ects": 6,
@@ -761,7 +761,7 @@
         ]
       }
     ],
-    "CIN_UI_S6": [
+    "CIN UI S6": [
       {
         "ue": "UE1 Electronique Analogique",
         "ects": 5,
@@ -832,7 +832,7 @@
         ]
       }
     ],
-    "BIOST_CPGE_UE_S6": [
+    "BIOST CPGE UE S6": [
       {
         "ue": "UE1 Electronique Analogique",
         "ects": 5,
