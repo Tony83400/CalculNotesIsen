@@ -112,12 +112,12 @@
               {
                 "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD",
-                "coeff": 7
+                "coeff": 4
               },
               {
                 "name": "Contrôle Continu",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD_CC",
-                "coeff": 3
+                "coeff": 1
               },
             ]
           },
@@ -369,12 +369,12 @@
               {
                 "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD",
-                "coeff": 7
+                "coeff": 4
               },
               {
                 "name": "Contrôle Continu",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD_CC",
-                "coeff": 3
+                "coeff": 1
               },
             ]
           },
@@ -615,12 +615,12 @@
               {
                 "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD",
-                "coeff": 7
+                "coeff": 4
               },
               {
                 "name": "Contrôle Continu",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD_CC",
-                "coeff": 3
+                "coeff": 1
               },
             ]
           },
