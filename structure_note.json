@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "filieres": {
-    "CIN": [
+    "CIN/UI S5": [
       {
         "ue": "UE1 Electronique Analogique",
         "ects": 6,
@@ -263,7 +263,7 @@
         ]
       }
     ],
-    "CPGE": [
+    "CPGE/UE S5": [
       {
         "ue": "UE1 Electronique Analogique",
         "ects": 6,
@@ -509,7 +509,7 @@
         ]
       }
     ],
-    "BIOST": [
+    "BIOST S5": [
       {
         "ue": "UE1 Electronique Analogique",
         "ects": 6,
@@ -758,6 +758,148 @@
               
             ]
           }
+        ]
+      }
+    ],
+    "CIN_UI_S6": [
+      {
+        "ue": "UE1 Electronique Analogique",
+        "ects": 5,
+        "matieres": [
+          { "name": "Projet Elec Analog", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "STM32", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "VHDL + VHDL Projet", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE2 Informatique",
+        "ects": 3,
+        "matieres": [
+          { "name": "Systèmes d'exploitation", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Erlang", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE3 Physique Appliquée",
+        "ects": 5,
+        "matieres": [
+          { "name": "Physique quantique", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "THS", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Modulation", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE4 Garage Week",
+        "ects": 2,
+        "matieres": [
+          { "name": "GarageWeek", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE5 IA",
+        "ects": 3,
+        "matieres": [
+          { "name": "Projet IA JAVA THS", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "IA Toolbox", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Introduction IA RNA", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE6 Developpement",
+        "ects": 5,
+        "matieres": [
+          { "name": "Réseaux 2", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Linux", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE7 Dev. Personnel (SHES et LV2)",
+        "ects": 5,
+        "matieres": [
+          { "name": "Design UX et Innovation Entrepreneuriale", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "IA et recherches", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "L'ingénieur face à l'Anthropocène", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "DD-RSE", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Start up challenge : Serious Game", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "LV2 * + anglais renforcé", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE8 Anglais",
+        "ects": 2,
+        "matieres": [
+          { "name": "Anglais", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      }
+    ],
+    "BIOST_CPGE_UE_S6": [
+      {
+        "ue": "UE1 Electronique Analogique",
+        "ects": 5,
+        "matieres": [
+          { "name": "Projet Elec Analog", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "STM32", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "VHDL + VHDL Projet", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE2 Informatique",
+        "ects": 3,
+        "matieres": [
+          { "name": "Systèmes d'exploitation", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "JAVA Programmation", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE3 Physique Appliquée",
+        "ects": 5,
+        "matieres": [
+          { "name": "Physique quantique", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "THS", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Modulation", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE4 Garage Week",
+        "ects": 2,
+        "matieres": [
+          { "name": "GarageWeek", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE5 IA",
+        "ects": 3,
+        "matieres": [
+          { "name": "Projet IA JAVA THS", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "IA Toolbox", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Introduction IA RNA", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE6 Developpement",
+        "ects": 5,
+        "matieres": [
+          { "name": "Réseaux 2", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Linux", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE7 Dev. Personnel (SHES et LV2)",
+        "ects": 5,
+        "matieres": [
+          { "name": "Design UX et Innovation Entrepreneuriale", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "IA et recherches", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "L'ingénieur face à l'Anthropocène", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "DD-RSE", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Start up challenge : Serious Game", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "LV2 * + anglais renforcé", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE8 Anglais",
+        "ects": 2,
+        "matieres": [
+          { "name": "Anglais", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
         ]
       }
     ]
