@@ -5,16 +5,17 @@ import { getNotes } from "@/services/isenApi";
 import { getId, loadLastUpdateNotes, loadStructureFromCache } from "@/services/storage";
 import { Note } from "@/types/note";
 import getDonneesAvecNotes from "@/utils/notes";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
+    ActivityIndicator,
     FlatList,
     SafeAreaView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
-    ActivityIndicator
+    View
 } from "react-native";
 import configDefault from '../structure_note.json';
 
@@ -78,8 +79,9 @@ export default function Main() {
     if (!selectedFiliere) {
         return (
             <SafeAreaView style={styles.container}>
-                <View style={styles.center}>
-                    <Text style={styles.title}>Choisissez votre filière</Text>
+                <View style={styles.selectionContainer}>
+                    <Text style={styles.title}>Sélection de la Filière</Text>
+                    <Text style={styles.subtitle}>Choisissez la filière pour laquelle vous souhaitez consulter les notes.</Text>
                     <FlatList
                         data={filieresDisponibles}
                         keyExtractor={(item) => item}
@@ -89,15 +91,17 @@ export default function Main() {
                                 onPress={() => setSelectedFiliere(item)}
                             >
                                 <Text style={styles.buttonText}>{item}</Text>
+                                <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
                             </TouchableOpacity>
                         )}
-                        contentContainerStyle={{ padding: 20 }}
+                        contentContainerStyle={styles.listContent}
                     />
                     <TouchableOpacity
-                        style={[styles.buttonChoice, styles.buttonBack]}
+                        style={styles.buttonBack}
                         onPress={() => router.push("/selection")}
                     >
-                        <Text style={[styles.buttonText, styles.buttonBackText]}>← Retour</Text>
+                        <Ionicons name="arrow-back" size={16} color={Colors.text.secondary} />
+                        <Text style={styles.buttonBackText}>Retour à l'accueil</Text>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
@@ -180,83 +184,103 @@ const styles = StyleSheet.create({
     },
 
     // Filiere Selection
+    selectionContainer: {
+        flex: 1,
+        padding: 20,
+        paddingTop: 50,
+    },
     title: {
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: 'bold',
-        marginBottom: 24,
-        textAlign: 'center',
+        marginBottom: 8,
         color: Colors.text.primary,
+    },
+    subtitle: {
+        fontSize: 16,
+        color: Colors.text.secondary,
+        marginBottom: 32,
+    },
+    listContent: {
+        paddingBottom: 20,
     },
     buttonChoice: {
-        backgroundColor: Colors.primary,
-        paddingVertical: 16,
-        paddingHorizontal: 24,
-        borderRadius: 12,
-        marginBottom: 12,
-        width: 280,
+        backgroundColor: Colors.surface,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
+        padding: 20,
+        borderRadius: 16,
+        marginBottom: 12,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.06,
+        shadowRadius: 12,
+        elevation: 4,
     },
     buttonText: {
-        color: Colors.text.inverse,
+        color: Colors.text.primary,
         fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: '600',
     },
     buttonBack: {
-        backgroundColor: 'transparent',
-        borderWidth: 1,
-        borderColor: Colors.border,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 16,
+        gap: 8,
     },
     buttonBackText: {
-        color: Colors.text.primary,
+        color: Colors.text.secondary,
+        fontSize: 14,
+        fontWeight: '600',
     },
 
     // Stats
     statsContainer: {
         flexDirection: 'row',
-        gap: 16,
+        gap: 12,
         paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingVertical: 10,
     },
     statCard: {
         flex: 1,
         backgroundColor: Colors.surface,
-        padding: 16,
-        borderRadius: 16,
+        padding: 12,
+        borderRadius: 12,
         alignItems: 'center',
-        // iOS Shadow
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.07,
-        shadowRadius: 10,
-        elevation: 5,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 3,
     },
     statLabel: {
-        fontSize: 12,
+        fontSize: 10,
         color: Colors.text.secondary,
         fontWeight: 'bold',
         textTransform: 'uppercase',
-        marginBottom: 8,
+        marginBottom: 4,
     },
     valueContainer: {
         flexDirection: 'row',
         alignItems: 'baseline',
     },
     statValue: {
-        fontSize: 28,
+        fontSize: 22,
         fontWeight: '800',
     },
     statSuffix: {
-        fontSize: 14,
+        fontSize: 12,
         color: Colors.text.tertiary,
         fontWeight: '600',
         marginLeft: 2,
     },
-    // New Grade Badge Style
     gradeBadge: {
         flexDirection: 'row',
         alignItems: 'baseline',
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 20, // Pill shape
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+        borderRadius: 16,
     },
 });
+

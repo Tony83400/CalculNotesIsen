@@ -1,7 +1,7 @@
 {
   "version": "1.1",
   "filieres": {
-    "CIN": [
+    "CIN UI S5": [
       {
         "ue": "UE1 Electronique Analogique",
         "ects": 6,
@@ -50,7 +50,7 @@
             "evaluations": [
               {
                 "name": "Partiel",
-                "code": "",
+                "code": "25_ISEN_MED_ISEN3_S5_LOGIQUE",
                 "coeff": 1
               }
             ]
@@ -93,7 +93,7 @@
                 "coeff": 2
               },
               {
-                "name":"Contrôle continue reseau",
+                "name":"Contrôle continu reseau",
                 "code":"25_ISEN_MED_ISEN3_S5_RESEAUX_RASB_CC",
                 "coeff":1
               }
@@ -106,18 +106,18 @@
         "ects": 4,
         "matieres": [
           {
-            "name": "BDD",
+            "name": "Base De Données",
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Partiel BDD",
+                "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD",
-                "coeff": 2
+                "coeff": 7
               },
               {
-                "name": "Contrôle continu",
-                "code": "",
-                "coeff": 1
+                "name": "Contrôle Continu",
+                "code": "25_ISEN_MED_ISEN3_S5_BDD_CC",
+                "coeff": 3
               }
             ]
           },
@@ -128,7 +128,7 @@
               {
                 "name": "Partiel Proba/Stats",
                 "code": "25_ISEN_MED_ISEN3_S5_MATHS_PROBA_STAT",
-                "coeff": 4
+                "coeff": 9
               },
               {
                 "name": "QCM educ",
@@ -175,7 +175,7 @@
                 "coeff": 7
               },
               {
-                "name": "Projet ",
+                "name": "Projet",
                 "code": "25_ISEN_MED_ISEN3_S5_DevMobile_Projet",
                 "coeff": 3
               }
@@ -253,21 +253,17 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Partiel",
-                "code": "",
-                "coeff": 3
-              },
-              {
-                "name": "Contrôle continu",
-                "code": "",
+                "name": "Partiel + Contrôle continu",
+                "code": "25_ISEN_MED_ISEN3_S5_ANGLAIS",
                 "coeff": 1
               }
+              
             ]
           }
         ]
       }
     ],
-    "CPGE": [
+    "CPGE UE S5": [
       {
         "ue": "UE1 Electronique Analogique",
         "ects": 6,
@@ -316,7 +312,7 @@
             "evaluations": [
               {
                 "name": "Partiel",
-                "code": "",
+                "code": "25_ISEN_MED_ISEN3_S5_LOGIQUE",
                 "coeff": 1
               }
             ]
@@ -366,19 +362,19 @@
         "ue": "UE4 Gestion de Données",
         "ects": 4,
         "matieres": [
-          {
-            "name": "BDD",
+           {
+            "name": "Base De Données",
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Partiel BDD",
+                "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD",
-                "coeff": 2
+                "coeff": 7
               },
               {
-                "name": "Contrôle continu",
-                "code": "",
-                "coeff": 1
+                "name": "Contrôle Continu",
+                "code": "25_ISEN_MED_ISEN3_S5_BDD_CC",
+                "coeff": 3
               }
             ]
           },
@@ -389,7 +385,7 @@
               {
                 "name": "Partiel Proba/Stats",
                 "code": "25_ISEN_MED_ISEN3_S5_MATHS_PROBA_STAT",
-                "coeff": 4
+                "coeff": 9
               },
               {
                 "name": "QCM educ",
@@ -414,7 +410,7 @@
                 "coeff": 1
               },
                {
-                "name": "Partiel Aglo",
+                "name": "Partiel Algo",
                 "code": "",
                 "coeff": 2
               }
@@ -503,21 +499,17 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Partiel",
-                "code": "",
-                "coeff": 3
-              },
-              {
-                "name": "Contrôle continu",
-                "code": "",
+                "name": "Partiel + Contrôle continu",
+                "code": "25_ISEN_MED_ISEN3_S5_ANGLAIS",
                 "coeff": 1
               }
+              
             ]
           }
         ]
       }
     ],
-    "BIOST": [
+    "BIOST S5": [
       {
         "ue": "UE1 Electronique Analogique",
         "ects": 6,
@@ -566,7 +558,7 @@
             "evaluations": [
               {
                 "name": "Partiel",
-                "code": "",
+                "code": "25_ISEN_MED_ISEN3_S5_LOGIQUE",
                 "coeff": 1
               }
             ]
@@ -616,19 +608,19 @@
         "ue": "UE4 Gestion de Données",
         "ects": 4,
         "matieres": [
-          {
-            "name": "BDD",
+           {
+            "name": "Base De Données",
             "coeff_matiere": 2,
             "evaluations": [
               {
-                "name": "Partiel BDD",
+                "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD",
-                "coeff": 2
+                "coeff": 7
               },
               {
-                "name": "Contrôle continu",
-                "code": "",
-                "coeff": 1
+                "name": "Contrôle Continu",
+                "code": "25_ISEN_MED_ISEN3_S5_BDD_CC",
+                "coeff": 3
               }
             ]
           },
@@ -639,7 +631,7 @@
               {
                 "name": "Partiel",
                 "code": "25_ISEN_MED_ISEN3_S5_MATHS_PROBA_STAT",
-                "coeff": 4
+                "coeff": 9
               },
               {
                 "name": "QCM educ",
@@ -682,7 +674,7 @@
             "evaluations": [
               {
                 "name": "Oral + Tp",
-                "code": "",
+                "code": "25_ISEN_MED_ISEN3_S5_BIOMECANIQUE_PROJET",
                 "coeff": 1
               }
             ]
@@ -759,17 +751,155 @@
             "coeff_matiere": 1,
             "evaluations": [
               {
-                "name": "Partiel",
-                "code": "",
-                "coeff": 3
-              },
-              {
-                "name": "Contrôle continu",
-                "code": "",
+                "name": "Partiel + Contrôle continu",
+                "code": "25_ISEN_MED_ISEN3_S5_ANGLAIS",
                 "coeff": 1
               }
+              
             ]
           }
+        ]
+      }
+    ],
+    "CIN UI S6": [
+      {
+        "ue": "UE1 Electronique Analogique",
+        "ects": 5,
+        "matieres": [
+          { "name": "Projet Elec Analog", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "STM32", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "VHDL + VHDL Projet", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE2 Informatique",
+        "ects": 3,
+        "matieres": [
+          { "name": "Systèmes d'exploitation", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Erlang", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE3 Physique Appliquée",
+        "ects": 5,
+        "matieres": [
+          { "name": "Physique quantique", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "THS", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Modulation", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE4 Garage Week",
+        "ects": 2,
+        "matieres": [
+          { "name": "GarageWeek", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE5 IA",
+        "ects": 3,
+        "matieres": [
+          { "name": "Projet IA JAVA THS", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "IA Toolbox", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Introduction IA RNA", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE6 Developpement",
+        "ects": 5,
+        "matieres": [
+          { "name": "Réseaux 2", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Linux", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE7 Dev. Personnel (SHES et LV2)",
+        "ects": 5,
+        "matieres": [
+          { "name": "Design UX et Innovation Entrepreneuriale", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "IA et recherches", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "L'ingénieur face à l'Anthropocène", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "DD-RSE", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Start up challenge : Serious Game", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "LV2 * + anglais renforcé", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE8 Anglais",
+        "ects": 2,
+        "matieres": [
+          { "name": "Anglais", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      }
+    ],
+    "BIOST CPGE UE S6": [
+      {
+        "ue": "UE1 Electronique Analogique",
+        "ects": 5,
+        "matieres": [
+          { "name": "Projet Elec Analog", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "STM32", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "VHDL + VHDL Projet", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE2 Informatique",
+        "ects": 3,
+        "matieres": [
+          { "name": "Systèmes d'exploitation", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "JAVA Programmation", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE3 Physique Appliquée",
+        "ects": 5,
+        "matieres": [
+          { "name": "Physique quantique", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "THS", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Modulation", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE4 Garage Week",
+        "ects": 2,
+        "matieres": [
+          { "name": "GarageWeek", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE5 IA",
+        "ects": 3,
+        "matieres": [
+          { "name": "Projet IA JAVA THS", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "IA Toolbox", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Introduction IA RNA", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE6 Developpement",
+        "ects": 5,
+        "matieres": [
+          { "name": "Réseaux 2", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Linux", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE7 Dev. Personnel (SHES et LV2)",
+        "ects": 5,
+        "matieres": [
+          { "name": "Design UX et Innovation Entrepreneuriale", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "IA et recherches", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "L'ingénieur face à l'Anthropocène", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "DD-RSE", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Start up challenge : Serious Game", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "LV2 * + anglais renforcé", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+        ]
+      },
+      {
+        "ue": "UE8 Anglais",
+        "ects": 2,
+        "matieres": [
+          { "name": "Anglais", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
         ]
       }
     ]
