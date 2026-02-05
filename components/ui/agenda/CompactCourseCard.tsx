@@ -55,7 +55,7 @@ export default function CompactCourseCard({ event }: CompactCourseCardProps) {
                     <View style={styles.infoRow}>
                         <Ionicons name="location-outline" size={12} color={Colors.text.primary} style={styles.icon} />
                         <Text style={styles.infoText}>{event.location}</Text>
-                    </V>
+                    </View>
                     <View style={styles.infoRow}>
                         <Ionicons name="person-outline" size={12} color={Colors.text.primary} style={styles.icon} />
                         <Text style={styles.infoText}>{event.professors}</Text>

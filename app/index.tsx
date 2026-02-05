@@ -1,29 +1,46 @@
 import { getId, getPasswordStorage, setId, setPasswordStorage, setToken } from "@/services/storage";
 import { router } from "expo-router";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
 } from "react-native";
 import { login } from "../services/isenApi";
 import { Colors } from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 export default function Index() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorText, setErrorText] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
   const [keepLogin, setKeepLogin] = useState(false);
+
+  // Animation value
+  const opacity = useSharedValue(0);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+    };
+  });
+
   useEffect(() => {
     const fetchUser = async () => {
       const Fetchemail = await getId();
       if (Fetchemail) {
         setEmail(Fetchemail);
+        setKeepLogin(true); // If there's a stored email, we assume they wanted to stay logged in
       }
       const Fetchpassword = await getPasswordStorage();
       if (Fetchpassword) {
@@ -31,93 +48,131 @@ export default function Index() {
       }
       if (Fetchemail && Fetchpassword) {
         await onPressLogin(Fetchemail, Fetchpassword);
+      } else {
+        setIsLoading(false);
+        opacity.value = withTiming(1, { duration: 500 }); // Fade in animation
       }
-    }
+    };
     fetchUser();
-
   }, []);
+
   const onPressLogin = async (emailLogin: string, passwordLogin: string) => {
     setErrorText("");
+    setIsLoginLoading(true);
     try {
       const rep = await login({
         username: emailLogin,
-        password: passwordLogin
+        password: passwordLogin,
       });
       await setToken(rep.token);
       await setId(email);
       if (keepLogin) {
         await setPasswordStorage(password);
+      } else {
+        await setPasswordStorage(""); // Clear password if not kept
       }
       router.push("/selection");
     } catch (error) {
       console.log("Erreur", error);
       setErrorText((error as Error).message);
+    } finally {
+      setIsLoginLoading(false);
+      setIsLoading(false); // Ensure main loader is off
+      opacity.value = withTiming(1, { duration: 500 }); // Fade in on error too
     }
   };
+
   const onPressContinueWithoutLogin = async () => {
     await setId("");
     router.push("/notes");
   };
 
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.contentContainer}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+      >
+        <Animated.View style={[styles.contentContainer, animatedStyle]}>
+          <View style={styles.header}>
+            <Ionicons name="school-outline" size={48} color={Colors.primary} />
+            <Text style={styles.title}>CalculNotes</Text>
+            <Text style={styles.subtitle}>Connectez-vous à votre compte ISEN.</Text>
+          </View>
 
-        {/* Titre */}
-        <Text style={styles.title}>Connexion</Text>
-        <Text style={styles.subtitle}>Veuillez vous identifier pour continuer</Text>
+          <View style={styles.inputContainer}>
+            <Ionicons name="person-outline" size={22} color={Colors.text.tertiary} style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Nom d'utilisateur (prenom.nom)"
+              placeholderTextColor={Colors.text.tertiary}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              returnKeyType="next"
+            />
+          </View>
 
-        {/* Champ Email */}
-        <TextInput
-          style={styles.input}
-          placeholder="Nom d'utilisateur (prenom.nom)"
-          placeholderTextColor="#aaa"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none" // Important pour les emails/user
-          keyboardType="email-address"
-        />
+          <View style={styles.inputContainer}>
+            <Ionicons name="lock-closed-outline" size={22} color={Colors.text.tertiary} style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Mot de passe"
+              placeholderTextColor={Colors.text.tertiary}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={true}
+              returnKeyType="done"
+            />
+          </View>
 
-        {/* Champ Mot de passe */}
-        <TextInput
-          style={styles.input}
-          placeholder="Mot de passe"
-          placeholderTextColor="#aaa"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={true} // Masque le mot de passe
-        />
+          <TouchableOpacity
+            style={styles.checkboxContainer}
+            onPress={() => setKeepLogin(!keepLogin)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name={keepLogin ? "checkbox" : "square-outline"} size={24} color={Colors.primary} />
+            <Text style={styles.checkboxLabel}>Rester connecté</Text>
+          </TouchableOpacity>
 
-        {/* Bouton */}
-        <TouchableOpacity
-          style={styles.button}
-          onPress={()=>onPressLogin(email,password)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.buttonText}>Se connecter</Text>
-        </TouchableOpacity>
-        {/* Rester connecte */}
-        <TouchableOpacity
-          style={styles.checkboxContainer}
-          onPress={() => setKeepLogin(!keepLogin)}
-          activeOpacity={0.6}
-        >
-          <Ionicons name={keepLogin ? "checkbox" : "square-outline"} size={24} color={Colors.primary} />
-          <Text style={styles.checkboxLabel}>Rester connecté</Text>
-        </TouchableOpacity>
+          {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
 
-        {/* Message d'erreur */}
-        {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
-        {errorText ? <TouchableOpacity
-          style={styles.button}
-          onPress={onPressContinueWithoutLogin}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.buttonText}>Continuer sans se connecter</Text>
-        </TouchableOpacity> : null}
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => onPressLogin(email, password)}
+            activeOpacity={0.8}
+            disabled={isLoginLoading}
+          >
+            {isLoginLoading ? (
+              <ActivityIndicator color={Colors.text.inverse} />
+            ) : (
+              <>
+                <Text style={styles.buttonText}>Se connecter</Text>
+                <Ionicons name="arrow-forward" size={20} color={Colors.text.inverse} style={{ marginLeft: 8 }}/>
+              </>
+            )}
+          </TouchableOpacity>
 
-          <Analytics/>
-      </View>
+          <TouchableOpacity
+            onPress={onPressContinueWithoutLogin}
+            activeOpacity={0.7}
+            style={styles.guestButton}
+          >
+            <Text style={styles.guestButtonText}>Continuer sans se connecter</Text>
+          </TouchableOpacity>
+
+          <Analytics />
+        </Animated.View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -125,78 +180,98 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background, // Uniformise le fond avec le reste de l'app
+    backgroundColor: Colors.background,
+    justifyContent: "center",
   },
   contentContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
     paddingHorizontal: 20,
+    justifyContent: 'center',
+  },
+  header: {
+    alignItems: "center",
+    marginBottom: 40,
   },
   title: {
-    fontSize: 28,
+    fontSize: 34,
     fontWeight: "bold",
-    color: Colors.text.primary, // Noir standardisé
-    marginBottom: 10,
+    color: Colors.text.primary,
+    marginTop: 12,
   },
   subtitle: {
     fontSize: 16,
-    color: Colors.text.secondary, // Gris standardisé
-    marginBottom: 40,
+    color: Colors.text.secondary,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    marginBottom: 16,
+    // Ombre "flottante"
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  inputIcon: {
+    paddingLeft: 15,
   },
   input: {
-    width: "100%",
-    height: 50,
-    backgroundColor: Colors.surface,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 15,
+    flex: 1,
+    height: 55,
+    paddingHorizontal: 10,
     fontSize: 16,
-    borderColor: Colors.border,
-    borderWidth: 1,
     color: Colors.text.primary,
-    // Ombre légère pour iOS
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    // Ombre pour Android
-    elevation: 2,
   },
   button: {
-    width: "100%",
-    height: 50,
-    backgroundColor: Colors.primary, // Bleu standard iOS (ou ta couleur de marque)
-    borderRadius: 8,
+    flexDirection: 'row',
+    height: 55,
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 10,
-    shadowColor: "#007AFF",
+    marginTop: 20,
+    // Ombre "flottante"
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
+    shadowRadius: 8,
+    elevation: 6,
   },
   buttonText: {
-    color: "#fff",
+    color: Colors.text.inverse,
     fontSize: 18,
     fontWeight: "bold",
   },
   checkboxContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 15,
     alignSelf: "flex-start",
+    marginBottom: 20,
+    paddingVertical: 5,
   },
   checkboxLabel: {
-    marginLeft: 8,
+    marginLeft: 10,
     fontSize: 16,
-    color: Colors.text.primary,
+    color: Colors.text.secondary,
   },
   errorText: {
-    color: Colors.status.error, // Rouge harmonisé
-    marginTop: 20,
+    color: Colors.status.error,
+    marginBottom: 15,
     fontSize: 14,
     fontWeight: "600",
+    textAlign: 'center',
   },
+  guestButton: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  guestButtonText: {
+    color: Colors.text.secondary,
+    fontSize: 15,
+    fontWeight: '500',
+  }
 });
