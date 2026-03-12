@@ -118,7 +118,7 @@
                 "name": "Contrôle Continu",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD_CC",
                 "coeff": 3
-              },
+              }
             ]
           },
           {
@@ -375,7 +375,7 @@
                 "name": "Contrôle Continu",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD_CC",
                 "coeff": 3
-              },
+              }
             ]
           },
           {
@@ -621,7 +621,7 @@
                 "name": "Contrôle Continu",
                 "code": "25_ISEN_MED_ISEN3_S5_BDD_CC",
                 "coeff": 3
-              },
+              }
             ]
           },
           {
@@ -776,7 +776,12 @@
         "ects": 3,
         "matieres": [
           { "name": "Systèmes d'exploitation", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
-          { "name": "Erlang", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+          { "name": "Erlang", "coeff_matiere": 2, "evaluations": [
+            { "name": "Cotrole continu", "code": "", "coeff": 0.25 },
+            { "name": "Projet", "code": "", "coeff": 0.3 },
+                        { "name": "Examen", "code": "", "coeff": 0.45 }
+
+            ] }
         ]
       },
       {
@@ -819,7 +824,7 @@
           { "name": "Design UX et Innovation Entrepreneuriale", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
           { "name": "IA et recherches", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
           { "name": "L'ingénieur face à l'Anthropocène", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
-          { "name": "DD-RSE", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "DD-RSE", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "25_ISEN_MED_ISEN3_S6_SHES_DD_RSE_NP", "coeff": 1 }] },
           { "name": "Start up challenge : Serious Game", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
           { "name": "LV2 * + anglais renforcé", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
         ]
@@ -890,7 +895,7 @@
           { "name": "Design UX et Innovation Entrepreneuriale", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
           { "name": "IA et recherches", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
           { "name": "L'ingénieur face à l'Anthropocène", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
-          { "name": "DD-RSE", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "DD-RSE", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "25_ISEN_MED_ISEN3_S6_SHES_DD_RSE_NP", "coeff": 1 }] },
           { "name": "Start up challenge : Serious Game", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
           { "name": "LV2 * + anglais renforcé", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
         ]
