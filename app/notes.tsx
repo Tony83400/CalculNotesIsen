@@ -146,10 +146,13 @@ export default function Main() {
                     <Text style={styles.topTitle} numberOfLines={1}>
                         {selectedFiliere}
                     </Text>
-                      <Text style={styles.headerSubtitle}>
+                    <Text style={styles.headerSubtitle}>
                         Dernière mise à jour: {lastUpdate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                  </Text>
-                  {/* <RefreshButton/> */}
+                    </Text>
+                    <Text style={styles.discreetHintHeader}>
+                        💡 Cliquer sur une note pour la modifier
+                    </Text>
+                    {/* <RefreshButton/> */}
                 </View>
 
                 {/* Zone Droite : Bouton Déconnexion */}
@@ -265,6 +268,12 @@ headerSubtitle: {
     valueContainer: { flexDirection: 'row', alignItems: 'baseline' },
     statValue: { fontSize: 26, fontWeight: '800' },
     statSuffix: { fontSize: 13, color: '#9CA3AF', fontWeight: '600' },
+    discreetHintHeader: {
+        fontSize: 10,
+        color: '#9CA3AF',
+        fontStyle: 'italic',
+        marginTop: 2,
+    },
 });
 
 
