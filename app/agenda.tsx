@@ -1,75 +1,87 @@
-import CourseCard from "@/components/ui/notes/CourseCard";
-import { Colors } from "@/constants/Colors";
-import { getAgendaIsen } from "@/services/agendaApi";
-import { AgendaEvent } from "@/types/agenda";
-import programmerNotifications from "@/utils/notifiations";
-import { Ionicons } from '@expo/vector-icons';
-import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
     FlatList,
-    Platform,
     SafeAreaView,
     StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
+    ActivityIndicator
 } from "react-native";
+import { router } from "expo-router";
+import { 
+    ChevronLeft, 
+    ChevronRight, 
+    Calendar, 
+    ArrowLeft,
+    Clock,
+    LayoutDashboard,
+    Loader2
+} from "lucide-react-native";
+
+import CourseCard from "@/components/ui/notes/CourseCard";
+import { Colors } from "@/constants/Colors";
+import { getAgendaIsen } from "@/services/agendaApi";
+import { AgendaEvent } from "@/types/agenda";
+import programmerNotifications from "@/utils/notifiations";
 
 export interface AgendaProps {
     events: AgendaEvent[];
     day: string; 
 }
 
-export default function Agenda() {
+export default function AgendaScreen() {
     const [courses, setCourses] = useState<AgendaProps[]>([]);
+    const [loading, setLoading] = useState(true);
     const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
     
     // Initialisation au Lundi de la semaine courante
     const [currentDay, setCurrentDay] = useState<Date>(() => {
         const startweek = new Date();
-        startweek.setDate(startweek.getDate() - startweek.getDay() + 1);
+        const day = startweek.getDay();
+        const diff = startweek.getDate() - day + (day === 0 ? -6 : 1); // Ajuste pour obtenir le lundi
+        startweek.setDate(diff);
         startweek.setHours(0, 0, 0, 0);
         return startweek; 
     });
 
-    // Calcul de la date de fin de semaine pour l'affichage (Lundi + 6 jours = Dimanche)
     const endOfWeek = new Date(currentDay);
-    endOfWeek.setDate(currentDay.getDate() + 6);
+    endOfWeek.setDate(currentDay.getDate() + 5); // Samedi inclus
 
     const getAgenda = async () => {
-        const rep = await getAgendaIsen();
-        const tempAgenda: AgendaProps[] = [];
-        
-        for (let i = 0; i < days.length; i++) {
-            const startDay = new Date(currentDay);
-            startDay.setDate(startDay.getDate() + i);
-            const endDay = new Date(startDay);
-            endDay.setHours(23, 59, 59, 999);
+        setLoading(true);
+        try {
+            const rep = await getAgendaIsen();
+            const tempAgenda: AgendaProps[] = [];
             
-            // Formatage de la date (ex: 12/02)
-            const dateFormatted = startDay.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-            const dayLabel = `${days[i]} ${dateFormatted}`;
+            for (let i = 0; i < days.length; i++) {
+                const startDay = new Date(currentDay);
+                startDay.setDate(startDay.getDate() + i);
+                const endDay = new Date(startDay);
+                endDay.setHours(23, 59, 59, 999);
+                
+                const dateFormatted = startDay.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+                const dayLabel = `${days[i]} ${dateFormatted}`;
 
-            // Filtrage et tri
-            const filtered = rep.filter(event => {
-                return event.start >= startDay && event.end <= endDay;
-            }).sort((a, b) => a.start.getTime() - b.start.getTime());
+                const filtered = rep.filter(event => {
+                    return event.start >= startDay && event.end <= endDay;
+                }).sort((a, b) => a.start.getTime() - b.start.getTime());
 
-            const newDay: AgendaProps = {
-                day: dayLabel,
-                events: filtered
+                tempAgenda.push({
+                    day: dayLabel,
+                    events: filtered
+                });
             }
-            tempAgenda.push(newDay);
+            setCourses(tempAgenda);
+            programmerNotifications(tempAgenda);
+        } catch (error) {
+            console.error("Erreur Agenda:", error);
+        } finally {
+            setLoading(false);
         }
-        console.log(tempAgenda);
-        setCourses(tempAgenda);
-        // On programme les notifications après avoir récupéré les cours
-        programmerNotifications(tempAgenda);
     };
 
-    // Recharger l'agenda quand la semaine change (currentDay)
     useEffect(() => {
         getAgenda();
     }, [currentDay]);
@@ -82,66 +94,92 @@ export default function Agenda() {
         });
     };
 
-    if (!courses) {
-        return(<View>
-            <Text>Chargement ....</Text>
-        </View>);
-    }
+    const isToday = (dayStr: string) => {
+        const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+        return dayStr.includes(today);
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" />
             
-            {/* Header Principal */}
+            {/* Header Moderne */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.push("/selection")} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#333" />
+                <TouchableOpacity onPress={() => router.push("/selection")} style={styles.iconBtn}>
+                    <ArrowLeft size={22} color={Colors.text.primary} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Emploi du temps</Text>
-                <View style={{ width: 40 }} /> 
+                <View style={styles.headerTitleContainer}>
+                    <Text style={styles.headerTitle}>Emploi du temps</Text>
+                    <View style={styles.weekBadge}>
+                        <Calendar size={12} color={Colors.primary} />
+                        <Text style={styles.weekBadgeText}>Semaine ISEN</Text>
+                    </View>
+                </View>
+                <TouchableOpacity onPress={() => router.push("/notes")} style={styles.iconBtn}>
+                    <LayoutDashboard size={20} color={Colors.text.primary} />
+                </TouchableOpacity>
             </View>
 
-            {/* Barre de navigation Semaine */}
-            <View style={styles.weekNavContainer}>
-                <TouchableOpacity onPress={() => changeWeek(-7)} style={styles.navButton}>
-                    <Ionicons name="chevron-back" size={20} color={Colors.primary} />
+            {/* Navigation Semaine : Style Sélecteur épuré */}
+            <View style={styles.weekNav}>
+                <TouchableOpacity onPress={() => changeWeek(-7)} style={styles.navArrow}>
+                    <ChevronLeft size={20} color={Colors.text.secondary} />
                 </TouchableOpacity>
                 
-                <View style={styles.dateRangeContainer}>
-                    <Ionicons name="calendar-outline" size={16} color={Colors.text.secondary} style={{marginRight: 6}} />
+                <View style={styles.dateDisplay}>
                     <Text style={styles.dateRangeText}>
-                        {currentDay.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
-                        {" - "}
-                        {endOfWeek.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
+                        {currentDay.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                        {" — "}
+                        {endOfWeek.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                     </Text>
                 </View>
 
-                <TouchableOpacity onPress={() => changeWeek(7)} style={styles.navButton}>
-                    <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
+                <TouchableOpacity onPress={() => changeWeek(7)} style={styles.navArrow}>
+                    <ChevronRight size={20} color={Colors.text.secondary} />
                 </TouchableOpacity>
             </View>
 
-            <FlatList
-                data={courses}
-                keyExtractor={(item) => item.day}
-                contentContainerStyle={styles.listContent}
-                showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                    <View style={styles.daySection}>
-                        <View style={styles.dayHeader}>
-                            <Text style={styles.dayTitle}>{item.day}</Text>
-                            <View style={styles.dayLine} />
-                        </View>
+            {loading ? (
+                <View style={styles.loaderContainer}>
+                    <Loader2 size={40} color={Colors.primary} style={styles.spinner} />
+                    <Text style={styles.loaderText}>Chargement de votre planning...</Text>
+                </View>
+            ) : (
+                <FlatList
+                    data={courses}
+                    keyExtractor={(item) => item.day}
+                    contentContainerStyle={styles.listContent}
+                    showsVerticalScrollIndicator={false}
+                    renderItem={({ item }) => (
+                        <View style={styles.daySection}>
+                            <View style={styles.dayHeader}>
+                                <Text style={[styles.dayTitle, isToday(item.day) && styles.todayTitle]}>
+                                    {item.day}
+                                </Text>
+                                {isToday(item.day) && (
+                                    <View style={styles.todayBadge}>
+                                        <Text style={styles.todayBadgeText}>AUJOURD'HUI</Text>
+                                    </View>
+                                )}
+                                <View style={styles.dayLine} />
+                            </View>
 
-                        {item.events.length > 0 ? (
-                            item.events.map((event, index) => (
-                                <CourseCard key={index} event={event} />
-                            ))
-                        ) : (
-                            <Text style={styles.noClassText}>Aucun cours</Text>
-                        )}
-                    </View>
-                )}
-            />
+                            {item.events.length > 0 ? (
+                                <View style={styles.eventsContainer}>
+                                    {item.events.map((event, index) => (
+                                        <CourseCard key={index} event={event} />
+                                    ))}
+                                </View>
+                            ) : (
+                                <View style={styles.emptyContainer}>
+                                    <Clock size={16} color={Colors.text.tertiary} />
+                                    <Text style={styles.noClassText}>Aucun cours prévu</Text>
+                                </View>
+                            )}
+                        </View>
+                    )}
+                />
+            )}
         </SafeAreaView>
     );
 }
@@ -151,94 +189,149 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.background,
     },
-    // Header
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        backgroundColor: '#fff',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: Colors.surface,
         borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0', // Plus léger
-        marginTop: Platform.OS === 'android' ? 30 : 0,
+        borderBottomColor: Colors.border,
     },
-    backButton: {
-        padding: 8,
-        borderRadius: 50,
-        backgroundColor: '#F5F5F5',
+    iconBtn: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: Colors.background,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    headerTitleContainer: {
+        alignItems: 'center',
     },
     headerTitle: {
-        fontSize: 18,
+        fontSize: 17,
         fontWeight: '700',
         color: Colors.text.primary,
+        letterSpacing: -0.5,
     },
-    
-    // Navigation Semaine (Nouveau Style)
-    weekNavContainer: {
+    weekBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.primaryLight,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 20,
+        marginTop: 4,
+        gap: 4,
+    },
+    weekBadgeText: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: Colors.primary,
+        textTransform: 'uppercase',
+    },
+    weekNav: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#fff',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        marginBottom: 10,
-        // Ombre légère pour séparer du contenu
+        backgroundColor: Colors.surface,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border,
+        // Petite ombre portée
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 4,
         elevation: 2,
     },
-    navButton: {
+    navArrow: {
         padding: 8,
-        backgroundColor: Colors.primaryLight, // Fond léger basé sur la couleur primaire
-        borderRadius: 8,
+        borderRadius: 10,
+        backgroundColor: Colors.background,
     },
-    dateRangeContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F8FAFC',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
+    dateDisplay: {
+        backgroundColor: Colors.background,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: Colors.border,
     },
     dateRangeText: {
         fontSize: 14,
         fontWeight: '600',
         color: Colors.text.primary,
-        textTransform: 'capitalize', // Met la première lettre du mois en majuscule
+        textTransform: 'capitalize',
     },
-
-    // Liste et Jours
     listContent: {
-        padding: 20,
+        padding: 16,
         paddingBottom: 40,
     },
     daySection: {
-        marginBottom: 25,
+        marginBottom: 24,
     },
     dayHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 15,
+        marginBottom: 12,
+        gap: 8,
     },
     dayTitle: {
-        fontSize: 18, // Légèrement réduit pour accomoder la date
+        fontSize: 15,
+        fontWeight: '700',
+        color: Colors.text.secondary,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    todayTitle: {
+        color: Colors.primary,
+    },
+    todayBadge: {
+        backgroundColor: Colors.primary,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+    },
+    todayBadgeText: {
+        color: '#FFF',
+        fontSize: 9,
         fontWeight: '800',
-        color: Colors.text.primary,
-        marginRight: 10,
     },
     dayLine: {
         flex: 1,
         height: 1,
-        backgroundColor: '#E0E0E0',
+        backgroundColor: Colors.divider,
+    },
+    eventsContainer: {
+        gap: 0,
+    },
+    emptyContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        paddingLeft: 4,
     },
     noClassText: {
         fontStyle: 'italic',
-        color: '#A0AEC0',
+        color: Colors.text.tertiary,
         fontSize: 14,
-        marginLeft: 10,
     },
-
+    loaderContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    spinner: {
+        marginBottom: 16,
+    },
+    loaderText: {
+        fontSize: 15,
+        color: Colors.text.secondary,
+        fontWeight: '500',
+    }
 });

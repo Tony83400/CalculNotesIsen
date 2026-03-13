@@ -92,6 +92,7 @@ const getDonneesAvecNotes = (
       const estValide =
         ueEstComplete && ue.moyenne >= 10 && pasDeNoteEliminatoire;
       ue.isValidated = estValide;
+      ue.hasEliminatoryNote = !pasDeNoteEliminatoire;
 
       if (estValide) ectsValides += ue.ects;
 
