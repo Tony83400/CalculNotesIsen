@@ -14,22 +14,16 @@ export async function login(loginData: { username: string; password: string }) {
     });
 
     if (!res.ok) {
-      let errorText;
-
-      if (res.status == 500) {
-        errorText = "Erreur serveur";
-      } else if (res.status == 400) {
-        errorText = "Erreur login";
-      } else {
-        errorText = "Erreur";
+      if (res.status === 401 || res.status === 400) {
+        throw new Error("Identifiants incorrects ou session expirée");
       }
-      throw new Error(errorText);
+      const errorText = await res.text();
+      throw new Error(errorText || `Erreur de connexion (${res.status})`);
     }
 
     const token = await res.text();
-
     return { token: token };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erreur dans Login :", error);
     throw error;
   }
@@ -57,7 +51,7 @@ export async function getNotes() {
 
     if (!res.ok) {
       const errorText = await res.text();
-      throw new Error(errorText || "Erreur serveur");
+      throw new Error(errorText || `Erreur serveur (${res.status})`);
     }
     const rep = await res.json();
     const formattedNotes: Note[] = rep.map((elt: any) => ({
@@ -68,7 +62,7 @@ export async function getNotes() {
     }));
     await saveNotesToCache(formattedNotes);
     return formattedNotes;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erreur dans getNotes :", error);
     throw error;
   }

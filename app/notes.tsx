@@ -10,11 +10,13 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
+    ActivityIndicator
 } from "react-native";
 import UeCard from '../components/ui/notes/UeList';
-import configDefault from '../structure_note.json'; // Garde-le comme valeur initiale
+import configDefault from '../structure_note.json';
 import RefreshButton from "@/components/ui/notes/RefreshButton";
+import { Colors } from "@/constants/Colors";
 
 export default function Main() {
 
@@ -24,7 +26,8 @@ export default function Main() {
     const [configActuelle, setConfigActuelle] = useState(configDefault);
     const [userId, setUserId] = useState<string | null>("");
     const filieresDisponibles = Object.keys(configActuelle.filieres);
-    const[lastUpdate, setLastUpdate] = useState(new Date());
+    const [lastUpdate, setLastUpdate] = useState(new Date());
+    const [error, setError] = useState<string | null>(null);
 
 
     // State pour les simulations. Clé = uniqueId, Valeur = note
@@ -45,28 +48,31 @@ export default function Main() {
                 setUserId(id);
             } catch (error) {
                 console.error("Erreur Id:", error);
+                setError("Impossible de récupérer vos identifiants.");
             }
         };
         fetchUser();
     }, []);
 
-    useEffect(() => {
+    const fetchNote = async () => {
         if (!userId) return;
-        const fetchNote = async () => {
-            try {
-                const rep = await getNotes();
-                if (rep) {
-                    setNotes(rep);
-                    const date = await loadLastUpdateNotes();
-                    if (date != new Date(0)) {
-                        setLastUpdate(date);
-                    }   
-
+        setError(null);
+        try {
+            const rep = await getNotes();
+            if (rep) {
+                setNotes(rep);
+                const date = await loadLastUpdateNotes();
+                if (date != new Date(0)) {
+                    setLastUpdate(date);
                 }
-            } catch (error) {
-                console.error("Erreur notes:", error);
             }
+        } catch (err: any) {
+            console.error("Erreur notes:", err);
+            setError(err.message || "Une erreur est survenue lors de la récupération des notes.");
         }
+    };
+
+    useEffect(() => {
         fetchNote();
     }, [userId]);
     useEffect(() => {
@@ -111,12 +117,62 @@ export default function Main() {
         );
     }
 
+    if (error) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={[styles.center, { padding: 30 }]}>
+                    <Text style={{ fontSize: 40, marginBottom: 20 }}>⚠️</Text>
+                    <Text style={[styles.title, { fontSize: 20 }]}>Oups ! Une erreur est survenue</Text>
+                    <Text style={{ color: Colors.text.secondary, textAlign: 'center', marginBottom: 30 }}>
+                        {error}
+                    </Text>
+
+                    <TouchableOpacity
+                        style={[styles.buttonChoice, { backgroundColor: Colors.primary }]}
+                        onPress={fetchNote}
+                    >
+                        <Text style={styles.buttonText}>Réessayer</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.buttonChoice, { backgroundColor: '#F3F4F6', marginTop: 10 }]}
+                        onPress={() => router.push("/")}
+                    >
+                        <Text style={[styles.buttonText, { color: '#374151' }]}>Se reconnecter</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={{ marginTop: 20 }}
+                        onPress={() => setSelectedFiliere(null)}
+                    >
+                        <Text style={{ color: Colors.primary, fontWeight: '600' }}>Changer de filière</Text>
+                    </TouchableOpacity>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
     if (!notes && userId != "") {
         return (
-            <View style={styles.center}>
-                <Text>Chargement...</Text>
-            </View>
-        )
+            <SafeAreaView style={styles.container}>
+                <View style={[styles.center, { padding: 20 }]}>
+                    <ActivityIndicator size="large" color={Colors.primary} />
+                    <Text style={[styles.title, { marginTop: 20, fontSize: 18 }]}>
+                        Récupération de vos notes...
+                    </Text>
+                    <Text style={{ color: Colors.text.secondary, textAlign: 'center', marginBottom: 30 }}>
+                        L'api de l'isen est lente c'est pas de ma faute.
+                    </Text>
+                    
+                    <TouchableOpacity
+                        style={styles.buttonChoice}
+                        onPress={() => setSelectedFiliere(null)}
+                    >
+                        <Text style={styles.buttonText}>← Annuler</Text>
+                    </TouchableOpacity>
+                </View>
+            </SafeAreaView>
+        );
     }
 
     const dataFiliere = configActuelle.filieres[selectedFiliere as keyof typeof configActuelle.filieres];
@@ -154,11 +210,9 @@ export default function Main() {
                     </Text>
                     {/* <RefreshButton/> */}
                 </View>
-
                 {/* Zone Droite : Bouton Déconnexion */}
                 <View style={styles.headerRight}>
-                    <TouchableOpacity onPress={() => router.push("/")} style={styles.backButton}>
-                        {/* J'ai raccourci le texte pour que ça rentre, sinon utilisez une icône */}
+                    <TouchableOpacity onPress={() => router.push("/selection")} style={styles.backButton}>
                         <Text style={styles.backText}>Accueil ⌂</Text>
                     </TouchableOpacity>
                 </View>

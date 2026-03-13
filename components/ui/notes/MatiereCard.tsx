@@ -42,7 +42,14 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
                     } else {
                         // Sinon on active le mode édition
                         setEditingId(id);
-                        setTempValue(displayNote !== null && displayNote !== undefined ? displayNote.toString() : "");
+                        const currentVal = displayNote !== null && displayNote !== undefined ? displayNote : 10;
+                        setTempValue(currentVal.toString());
+                        
+                        // IMPORTANT : On "commite" la note en simulation immédiatement 
+                        // pour que la barre reste visible même si on clique ailleurs sans taper
+                        if (!isSimulated) {
+                            updateSimulation(id, currentVal);
+                        }
                     }
                 };
 
@@ -71,7 +78,10 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
                                 onPress={handlePressNote}
                                 activeOpacity={0.7}
                             >
-                                <View style={styles.noteWrapper}>
+                                <View style={[
+                                    styles.noteWrapper,
+                                    !item.hasApiNote && !isSimulated && styles.missingNoteWrapper
+                                ]}>
                                     {editingId === id ? (
                                         <TextInput
                                             style={[
@@ -86,13 +96,19 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
                                             selectTextOnFocus
                                         />
                                     ) : (
-                                        <Text style={[
-                                            styles.noteValue, 
-                                            { color: getNoteColor(displayNote) },
-                                            isSimulated && styles.simulatedText
-                                        ]}>
-                                            {displayNote !== null && displayNote !== undefined ? displayNote.toFixed(2) : "--"}
-                                        </Text>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                            <Text style={[
+                                                styles.noteValue, 
+                                                { color: getNoteColor(displayNote) },
+                                                isSimulated && styles.simulatedText,
+                                                !item.hasApiNote && !isSimulated && { color: Colors.primary }
+                                            ]}>
+                                                {displayNote !== null && displayNote !== undefined ? displayNote.toFixed(2) : "--"}
+                                            </Text>
+                                            {!item.hasApiNote && !isSimulated && (
+                                                <Text style={styles.editIcon}> ✏️</Text>
+                                            )}
+                                        </View>
                                     )}
                                     <Text style={styles.noteTotal}>/20</Text>
                                 </View>
@@ -146,6 +162,19 @@ const styles = StyleSheet.create({
     rightInfo: { alignItems: 'flex-end' },
     noteWrapper: { flexDirection: 'row', alignItems: 'baseline' },
     noteValue: { fontSize: 16, fontWeight: '700' },
+    missingNoteWrapper: {
+        borderWidth: 1,
+        borderStyle: 'dashed',
+        borderColor: Colors.primary,
+        borderRadius: 6,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        backgroundColor: Colors.primaryLight,
+    },
+    editIcon: {
+        fontSize: 10,
+        marginLeft: 4,
+    },
     noteInput: { 
         fontSize: 16, 
         fontWeight: '700', 
