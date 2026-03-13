@@ -1,61 +1,51 @@
-# 🎨 Guide de Refonte UI/UX - CalculNotesIsen
+# 🚀 CalculNotesIsen - Documentation Technique & Développement
 
-Ce document sert de référence pour la refonte complète de l'interface utilisateur. L'objectif est de passer d'une application utilitaire à une expérience premium, fluide et professionnelle.
+Ce document centralise les connaissances techniques, les règles métier et les standards du projet pour guider le développement.
 
-## 🏛️ Vision du Design
-- **Style :** Minimaliste moderne (inspiré de Linear, Apple Health, et Vercel).
-- **Atmosphère :** Propre, aérée, fiable.
-- **Utilisabilité :** Hiérarchie visuelle claire, micro-interactions subtiles, feedback haptique.
+## 🛠️ Stack Technique
+- **Framework :** Expo (SDK 54) avec React Native.
+- **Navigation :** Expo Router (File-based routing).
+- **Langage :** TypeScript (Strict mode).
+- **Styles :** StyleSheet standard avec un système de constantes (`constants/Colors.ts`).
+- **Icônes :** `lucide-react-native`.
+- **Animations :** `react-native-reanimated` et API `Animated` native.
+- **Stockage :** `@react-native-async-storage/async-storage` et `expo-secure-store`.
 
-## 🎨 Système de Design
+## 📏 Règles Métier (ISEN)
 
-### Couleurs (Pro Palette)
-| Usage | Hex | Description |
-| :--- | :--- | :--- |
-| **Primary** | `#4F46E5` | Indigo ISEN (moderne) |
-| **Success** | `#10B981` | Vert émeraude pour les bonnes notes |
-| **Warning** | `#F59E0B` | Ambre pour les moyennes limites |
-| **Danger** | `#EF4444` | Rouge corail pour les échecs |
-| **Background** | `#F9FAFB` | Gris très clair (Ne pas utiliser le blanc pur partout) |
-| **Surface** | `#FFFFFF` | Blanc pour les cartes et composants |
-| **Text Primary**| `#111827` | Gris ardoise foncé |
-| **Text Secondary**| `#6B7280` | Gris moyen pour les labels |
+### Validation des UE
+Pour qu'une Unité d'Enseignement (UE) soit validée, deux conditions sont nécessaires :
+1. **Moyenne de l'UE ≥ 10/20**.
+2. **Aucune matière constitutive de l'UE n'a une moyenne < 6/20** (Note éliminatoire).
 
-### Typographie
-- **Titres :** `Inter-Bold` ou `System-Bold`. Espacement serré.
-- **Corps :** `Inter-Regular`. Taille minimum 14pt pour la lisibilité.
-- **Chiffres (Notes) :** Utiliser une police mono ou très lisible pour les moyennes.
+### Calcul des Moyennes
+- **Matière :** Moyenne pondérée des évaluations selon leurs coefficients respectifs.
+- **UE :** Moyenne pondérée des matières selon les coefficients de matière.
+- **Semestre :** Moyenne pondérée des UE selon leurs ECTS.
 
-### Composants & Rayons
-- **Bordures :** `12px` pour les cartes, `8px` pour les boutons.
-- **Ombres :** `Shadow-sm` (subtile) pour détacher les cartes du fond. Pas d'ombres portées agressives.
-- **Espacement (Padding) :** Minimum `16px` sur les bords d'écran.
+## 🎨 Système de Design (Premium)
+- **Primary :** `#4F46E5` (Indigo moderne).
+- **Success :** `#10B981` (Vert émeraude).
+- **Error :** `#EF4444` (Rouge corail).
+- **Neutral :** `#F3F4F6` (Gris clair pour les blocs de contenu).
+- **Bordures :** `12px` pour les cartes de base, `20px` pour les grandes sections.
 
-## 🛠️ Directives de Refonte par Écran
+## 📂 Structure du Code
+- `app/` : Routes de l'application (Navigation).
+- `components/ui/` : Composants atomiques et cartes complexes.
+- `services/` : Appels API (isenApi, agendaApi) et gestion du stockage.
+- `utils/` : Logique pure de traitement de données (calculs de notes).
+- `types/` : Définitions TypeScript globales.
 
-### 1. Navigation & Layout
-- Utiliser `Expo Router` avec des transitions fluides.
-- Tab bar avec des icônes fines (`lucide-react-native`).
-- Remplacer les boutons classiques par des surfaces tactiles élégantes.
+## ⌨️ Standards de Code pour Gemini
+1. **Typage :** Toujours définir des interfaces dans `types/` avant d'implémenter une nouvelle fonctionnalité.
+2. **Surgical Updates :** Utiliser `replace` avec un contexte suffisant pour éviter les erreurs de duplication.
+3. **Validation :** Après chaque changement de logique de calcul, vérifier l'impact dans `utils/notes.ts`.
+4. **Performance :** Utiliser `useCallback` et `useMemo` pour les calculs lourds dans les listes de notes.
+5. **Animations :** Favoriser les animations fluides pour les états de chargement et les transitions.
 
-### 2. Écran Notes (`app/notes.tsx`)
-- **UE Card :** Design rétractable avec un indicateur de progression (barre fine).
-- **Matière Card :** Affichage de la note en gros à droite, intitulé à gauche.
-- **Badges :** Utiliser des badges pastels (`bg-opacity-10`) pour les coefficients.
-
-### 3. Écran Agenda (`app/agenda.tsx`)
-- Vue liste verticale type "Timeline".
-- Indicateur de cours actuel avec une bordure gauche colorée (`Primary`).
-- Squelettes de chargement (`Skeleton screens`) à la place des spinners.
-
-## 🚀 Règles de Développement pour Gemini
-- **Accessibilité :** Contraste élevé obligatoire, support du Mode Sombre (Dark Mode).
-- **Performance :** Utiliser `FlashList` pour les longues listes de notes.
-- **Icônes :** Utiliser uniquement `lucide-react-native`.
-- **Atomic Design :** Créer des composants réutilisables dans `components/ui/`.
-
-## 📌 Roadmap de la Refonte
-1. [ ] Mise à jour des constantes de couleurs (`constants/Colors.ts`).
-2. [ ] Refonte des composants de base (`CourseCard`, `MatiereCard`).
-3. [ ] Implémentation du nouveau layout global.
-4. [ ] Ajout de micro-animations avec `moti` ou `react-native-reanimated`.
+## 🔄 Flux de Données
+1. Récupération des notes brutes via `isenApi.ts`.
+2. Chargement de la structure de la filière (`structure_note.json`).
+3. Fusion et calcul via `getDonneesAvecNotes` (`utils/notes.ts`).
+4. Affichage via `UeCard` et `MatiereCard`.
