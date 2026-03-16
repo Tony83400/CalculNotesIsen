@@ -23,12 +23,18 @@ Pour qu'une Unité d'Enseignement (UE) soit validée, deux conditions sont néce
 - **UE :** Moyenne pondérée des matières selon les coefficients de matière.
 - **Semestre :** Moyenne pondérée des UE selon leurs ECTS.
 
-## 🎨 Système de Design (Premium)
-- **Primary :** `#4F46E5` (Indigo moderne).
+## 🎨 Système de Design (Premium v2)
+- **Primary :** `#2563EB` (Bleu Royal moderne).
 - **Success :** `#10B981` (Vert émeraude).
-- **Error :** `#EF4444` (Rouge corail).
-- **Neutral :** `#F3F4F6` (Gris clair pour les blocs de contenu).
-- **Bordures :** `12px` pour les cartes de base, `20px` pour les grandes sections.
+- **Error :** `#F43F5E` (Rose-rouge corail).
+- **Warning :** `#F59E0B` (Ambre).
+- **Neutral :** `#F8FAFC` (Gris très clair pour les fonds).
+- **Rayons de courbure (Border Radius) :** 
+  - `24px` pour les grandes cartes principales.
+  - `16px` pour les sous-sections et éléments internes.
+  - `12px` pour les boutons et badges.
+- **Ombres (Shadows) :** Opacité très faible (`0.02` à `0.04`) avec un rayon de diffusion large pour un effet premium et léger.
+- **Typographie :** Graisses `800` pour les titres et moyennes `600/700` pour les informations clés. Espacement des lettres (`letterSpacing: -0.5`) sur les titres.
 
 ## 📂 Structure du Code
 - `app/` : Routes de l'application (Navigation).
@@ -43,6 +49,7 @@ Pour qu'une Unité d'Enseignement (UE) soit validée, deux conditions sont néce
 3. **Validation :** Après chaque changement de logique de calcul, vérifier l'impact dans `utils/notes.ts`.
 4. **Performance :** Utiliser `useCallback` et `useMemo` pour les calculs lourds dans les listes de notes.
 5. **Animations :** Favoriser les animations fluides pour les états de chargement et les transitions.
+6. **UI Premium :** Toujours respecter le système de design v2 (arrondis généreux, ombres douces, bleu royal).
 
 ## 🔄 Flux de Données
 1. Récupération des notes brutes via `isenApi.ts`.

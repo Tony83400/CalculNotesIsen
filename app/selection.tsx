@@ -16,7 +16,6 @@ import {
     LogOut, 
     User,
     Settings,
-    LayoutDashboard,
     Heart
 } from "lucide-react-native";
 
@@ -55,7 +54,7 @@ export default function SelectionScreen() {
                             <User size={24} color={Colors.primary} />
                         </View>
                         <TouchableOpacity style={styles.settingsBtn}>
-                            <Settings size={20} color={Colors.text.secondary} />
+                            <Settings size={22} color={Colors.text.secondary} />
                         </TouchableOpacity>
                     </View>
                     <Text style={styles.welcomeText}>Bonjour,</Text>
@@ -73,7 +72,7 @@ export default function SelectionScreen() {
                         activeOpacity={0.7}
                     >
                         <View style={[styles.iconBox, { backgroundColor: Colors.primary + '10' }]}>
-                            <GraduationCap size={28} color={Colors.primary} />
+                            <GraduationCap size={32} color={Colors.primary} />
                         </View>
                         <View style={styles.cardTextContainer}>
                             <Text style={styles.cardTitle}>Mes Notes</Text>
@@ -91,7 +90,7 @@ export default function SelectionScreen() {
                         activeOpacity={0.7}
                     >
                         <View style={[styles.iconBox, { backgroundColor: Colors.status.warning + '10' }]}>
-                            <CalendarDays size={28} color={Colors.status.warning} />
+                            <CalendarDays size={32} color={Colors.status.warning} />
                         </View>
                         <View style={styles.cardTextContainer}>
                             <Text style={styles.cardTitle}>Mon Agenda</Text>
@@ -105,8 +104,6 @@ export default function SelectionScreen() {
 
                 {/* FOOTER : Actions & Infos */}
                 <View style={styles.footer}>
-                    <View style={styles.divider} />
-                    
                     <View style={styles.actionRow}>
                         <RefreshButton />
                         <TouchableOpacity
@@ -119,7 +116,7 @@ export default function SelectionScreen() {
                     </View>
 
                     <View style={styles.creditsContainer}>
-                        <Text style={styles.versionText}>Version 2.0.0 — Refonte UI</Text>
+                        <Text style={styles.versionText}>CalculNotesISEN v2.0</Text>
                         <View style={styles.authorRow}>
                             <Text style={styles.creditsText}>Fait avec </Text>
                             <Heart size={10} color={Colors.status.error} fill={Colors.status.error} />
@@ -150,36 +147,39 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 24,
+        marginBottom: 32,
     },
     avatarContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 16,
+        width: 52,
+        height: 52,
+        borderRadius: 18,
         backgroundColor: Colors.primaryLight,
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: Colors.primary + '20',
     },
     settingsBtn: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
+        width: 44,
+        height: 44,
+        borderRadius: 14,
         backgroundColor: Colors.surface,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
         borderColor: Colors.border,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.02,
+        shadowRadius: 8,
+        elevation: 1,
     },
     welcomeText: {
         fontSize: 16,
         color: Colors.text.secondary,
-        fontWeight: '500',
+        fontWeight: '600',
         letterSpacing: -0.2,
     },
     title: {
-        fontSize: 32,
+        fontSize: 34,
         fontWeight: '800',
         color: Colors.text.primary,
         letterSpacing: -1,
@@ -187,16 +187,16 @@ const styles = StyleSheet.create({
     },
     // Main Content
     mainContent: {
-        paddingHorizontal: 20,
+        paddingHorizontal: 16,
         gap: 16,
     },
     sectionTitle: {
-        fontSize: 14,
-        fontWeight: '700',
+        fontSize: 13,
+        fontWeight: '800',
         color: Colors.text.tertiary,
         textTransform: 'uppercase',
-        letterSpacing: 1,
-        marginLeft: 4,
+        letterSpacing: 1.5,
+        marginLeft: 8,
         marginBottom: 4,
     },
     card: {
@@ -207,17 +207,17 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         borderWidth: 1,
         borderColor: Colors.border,
-        // Ombre portée plus diffuse
+        // Ombre portée très douce
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.03,
-        shadowRadius: 12,
+        shadowOpacity: 0.04,
+        shadowRadius: 16,
         elevation: 3,
     },
     iconBox: {
-        width: 64,
-        height: 64,
-        borderRadius: 18,
+        width: 68,
+        height: 68,
+        borderRadius: 20,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 16,
@@ -226,20 +226,21 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     cardTitle: {
-        fontSize: 18,
-        fontWeight: '700',
+        fontSize: 19,
+        fontWeight: '800',
         color: Colors.text.primary,
         letterSpacing: -0.5,
+        marginBottom: 2,
     },
     cardDescription: {
         fontSize: 13,
         color: Colors.text.secondary,
-        marginTop: 2,
+        fontWeight: '500',
     },
     arrowContainer: {
-        width: 32,
-        height: 32,
-        borderRadius: 10,
+        width: 36,
+        height: 36,
+        borderRadius: 12,
         backgroundColor: Colors.background,
         alignItems: 'center',
         justifyContent: 'center',
@@ -250,24 +251,20 @@ const styles = StyleSheet.create({
         padding: 32,
         alignItems: 'center',
     },
-    divider: {
-        width: '100%',
-        height: 1,
-        backgroundColor: Colors.divider,
-        marginBottom: 24,
-    },
     actionRow: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 24,
-        marginBottom: 32,
+        marginBottom: 40,
     },
     logoutBtn: {
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: Colors.status.error + '10',
+        borderRadius: 14,
         gap: 8,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
     },
     logoutText: {
         color: Colors.status.error,
@@ -276,20 +273,25 @@ const styles = StyleSheet.create({
     },
     creditsContainer: {
         alignItems: 'center',
+        paddingTop: 24,
+        borderTopWidth: 1,
+        borderTopColor: Colors.divider,
+        width: '100%',
     },
     authorRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 4,
+        marginTop: 6,
     },
     versionText: {
-        color: Colors.text.tertiary,
-        fontSize: 12,
-        fontWeight: '600',
+        color: Colors.text.primary,
+        fontSize: 13,
+        fontWeight: '700',
+        letterSpacing: -0.2,
     },
     creditsText: {
-        color: Colors.text.tertiary,
-        fontSize: 11,
+        color: Colors.text.secondary,
+        fontSize: 12,
         fontWeight: '500',
     },
 });

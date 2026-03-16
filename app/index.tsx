@@ -93,7 +93,7 @@ export default function LoginScreen() {
                     {/* LOGO SECTION */}
                     <View style={styles.logoContainer}>
                         <View style={styles.logoIcon}>
-                            <GraduationCap size={40} color={Colors.primary} />
+                            <GraduationCap size={44} color={Colors.primary} />
                         </View>
                         <Text style={styles.logoTitle}>CalculNotes<Text style={{color: Colors.primary}}>ISEN</Text></Text>
                     </View>
@@ -148,7 +148,7 @@ export default function LoginScreen() {
 
                         {errorText ? (
                             <View style={styles.errorContainer}>
-                                <AlertCircle size={16} color={Colors.status.error} />
+                                <AlertCircle size={18} color={Colors.status.error} />
                                 <Text style={styles.errorText}>{errorText}</Text>
                             </View>
                         ) : null}
@@ -206,21 +206,21 @@ const styles = StyleSheet.create({
     // Logo
     logoContainer: {
         alignItems: "center",
-        marginBottom: 40,
+        marginBottom: 48,
     },
     logoIcon: {
-        width: 80,
-        height: 80,
+        width: 88,
+        height: 88,
         borderRadius: 24,
         backgroundColor: Colors.primaryLight,
         alignItems: "center",
         justifyContent: "center",
-        marginBottom: 16,
+        marginBottom: 20,
         borderWidth: 1,
-        borderColor: Colors.primary + "20",
+        borderColor: Colors.primary + "15",
     },
     logoTitle: {
-        fontSize: 24,
+        fontSize: 26,
         fontWeight: "800",
         color: Colors.text.primary,
         letterSpacing: -1,
@@ -230,15 +230,16 @@ const styles = StyleSheet.create({
         marginBottom: 32,
     },
     title: {
-        fontSize: 28,
+        fontSize: 32,
         fontWeight: "800",
         color: Colors.text.primary,
         letterSpacing: -1,
     },
     subtitle: {
-        fontSize: 15,
+        fontSize: 16,
         color: Colors.text.secondary,
-        marginTop: 4,
+        marginTop: 6,
+        fontWeight: "500",
     },
     // Form
     form: {
@@ -248,36 +249,35 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: Colors.surface,
-        borderRadius: 16,
+        borderRadius: 18,
         borderWidth: 1,
         borderColor: Colors.border,
-        paddingHorizontal: 16,
-        height: 56,
-        // Subtile shadow
+        paddingHorizontal: 20,
+        height: 60,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.02,
-        shadowRadius: 4,
-        elevation: 2,
+        shadowRadius: 8,
+        elevation: 1,
     },
     inputIcon: {
-        marginRight: 12,
+        marginRight: 14,
     },
     input: {
         flex: 1,
-        fontSize: 16,
+        fontSize: 17,
         color: Colors.text.primary,
         fontWeight: "500",
     },
     keepLoginContainer: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 8,
+        gap: 10,
         marginTop: 4,
         paddingLeft: 4,
     },
     keepLoginText: {
-        fontSize: 14,
+        fontSize: 15,
         color: Colors.text.secondary,
         fontWeight: "600",
     },
@@ -285,17 +285,16 @@ const styles = StyleSheet.create({
     loginButton: {
         flexDirection: "row",
         backgroundColor: Colors.primary,
-        height: 56,
-        borderRadius: 16,
+        height: 60,
+        borderRadius: 18,
         justifyContent: "center",
         alignItems: "center",
-        marginTop: 16,
+        marginTop: 20,
         gap: 8,
-        // Shadow
         shadowColor: Colors.primary,
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.2,
-        shadowRadius: 12,
+        shadowOpacity: 0.25,
+        shadowRadius: 16,
         elevation: 6,
     },
     loginButtonDisabled: {
@@ -303,17 +302,18 @@ const styles = StyleSheet.create({
     },
     loginButtonText: {
         color: "#FFF",
-        fontSize: 16,
-        fontWeight: "700",
+        fontSize: 17,
+        fontWeight: "800",
+        letterSpacing: 0.5,
     },
     ghostButton: {
-        paddingVertical: 12,
+        paddingVertical: 14,
         alignItems: "center",
     },
     ghostButtonText: {
         color: Colors.text.secondary,
-        fontSize: 14,
-        fontWeight: "600",
+        fontSize: 15,
+        fontWeight: "700",
         textDecorationLine: "underline",
     },
     // Error
@@ -321,13 +321,15 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: Colors.status.error + "10",
-        padding: 12,
-        borderRadius: 12,
-        gap: 8,
+        padding: 16,
+        borderRadius: 16,
+        gap: 12,
+        borderWidth: 1,
+        borderColor: Colors.status.error + "20",
     },
     errorText: {
         color: Colors.status.error,
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: "600",
         flex: 1,
     },
@@ -335,11 +337,13 @@ const styles = StyleSheet.create({
     footer: {
         padding: 24,
         alignItems: "center",
+        paddingBottom: Platform.OS === 'ios' ? 32 : 24,
     },
     footerText: {
-        fontSize: 11,
+        fontSize: 12,
         color: Colors.text.tertiary,
         textAlign: "center",
-        lineHeight: 16,
+        lineHeight: 18,
+        fontWeight: "500",
     }
 });
