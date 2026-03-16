@@ -1,29 +1,30 @@
 export const Colors = {
-  // Une seule couleur primaire pour toute l'app (au lieu de mélanger #007AFF, #2563EB, #3182CE)
-  primary: '#2563EB', 
-  primaryLight: '#EFF6FF', // Pour les badges ou fonds légers
+  // Palette Moderne & Vibrante
+  primary: '#2563EB', // Bleu Royal plus pur
+  primaryLight: '#EFF6FF', 
 
-  // Fonds harmonisés
-  background: '#F2F5F8', // Un gris bleuté moderne (remplace le #f5f5f5 et #F7F9FC)
-  surface: '#FFFFFF',    // Cartes et éléments blancs
+  // Fonds épurés
+  background: '#F8FAFC', 
+  surface: '#FFFFFF',    
 
-  // Textes
+  // Typographie
   text: {
-    primary: '#111827',   // Noir doux pour les titres
-    secondary: '#6B7280', // Gris pour les sous-titres
-    tertiary: '#9CA3AF',  // Gris clair pour les infos peu importantes
-    inverse: '#FFFFFF',   // Texte sur fond bleu
+    primary: '#0F172A',   // Slate 900
+    secondary: '#475569', // Slate 600
+    tertiary: '#94A3B8',  // Slate 400
+    inverse: '#FFFFFF',   
   },
 
-  // Status (Notes, Validation)
+  // États sémantiques
   status: {
-    success: '#10B981', // Vert moderne (plus doux que #4CAF50)
-    warning: '#F59E0B', // Orange
-    error: '#EF4444',   // Rouge
-    info: '#3B82F6',    // Bleu info
-    neutral: '#E5E7EB', // Gris neutre (notes manquantes)
+    success: '#10B981', 
+    warning: '#F59E0B', 
+    error: '#F43F5E',   // Rose-rouge plus moderne
+    info: '#0EA5E9',    
+    neutral: '#F1F5F9', 
   },
 
-  // Bordures et séparateurs
-  border: '#E5E7EB',
+  // Bordures
+  border: '#E2E8F0',
+  divider: '#F1F5F9',
 };

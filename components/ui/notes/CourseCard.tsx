@@ -1,158 +1,172 @@
+import React from "react";
+import { View, StyleSheet, Text } from "react-native";
+import { MapPin, User, Clock } from "lucide-react-native";
 import { Colors } from "@/constants/Colors";
 import { AgendaEvent } from "@/types/agenda";
-import { Ionicons } from "@expo/vector-icons";
-import { View , StyleSheet, Text } from "react-native";
 
-// Composant pour afficher un cours unique
-   export default function CourseCard({ event }: { event: AgendaEvent }) {
-        // On vérifie si c'est un examen
-        const isExam = event.isExam; 
+export default function CourseCard({ event }: { event: AgendaEvent }) {
+  const isExam = event.isExam;
 
-        return (
-            <View style={[styles.card, isExam && styles.cardExamShadow]}>
-                {/* Barre de couleur : Rouge si examen, Bleu (primaire) sinon */}
-                <View style={[
-                    styles.accentBar, 
-                    { backgroundColor: isExam ? Colors.status.error : Colors.primary }
-                ]} />
-                
-                <View style={styles.cardContent}>
-                    <View style={styles.timeContainer}>
-                        <Text style={[styles.timeText, isExam && styles.examTimeText]}>
-                            {event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </Text>
-                        <Text style={styles.timeSeparator}>|</Text>
-                        <Text style={styles.endTimeText}>
-                            {event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </Text>
-                    </View>
-                    
-                    <View style={styles.infoContainer}>
-                        {/* Conteneur Titre + Badge */}
-                        <View style={styles.titleRow}>
-                            <Text style={styles.courseTitle} numberOfLines={2}>
-                                {event.title}
-                            </Text>
-                            {isExam && (
-                                <View style={styles.examBadge}>
-                                    <Text style={styles.examBadgeText}>EXAMEN</Text>
-                                </View>
-                            )}
-                        </View>
+  return (
+    <View style={[styles.card, isExam && styles.cardExam]}>
+      {/* Barre d'accentuation plus fine et élégante */}
+      <View
+        style={[
+          styles.accentBar,
+          { backgroundColor: isExam ? Colors.status.error : Colors.primary },
+        ]}
+      />
 
-                        <View style={styles.locationContainer}>
-                            <Ionicons 
-                                name="location-sharp" 
-                                size={14} 
-                                color={isExam ? Colors.status.error : "#666"} 
-                            />
-                            <Text style={[styles.locationText, isExam && { color: Colors.status.error }]}>
-                                {event.location || "Salle non définie"}
-                            </Text>
-                            
-                            
-                        </View>
-                        <Text style={[styles.locationText, isExam && { color: Colors.status.error }]}>
-                                {event.professors}
-                            </Text>
-                    </View>
-                </View>
+      <View style={styles.cardContent}>
+        {/* Section Temps : Alignement propre et moderne */}
+        <View style={styles.timeSection}>
+          <Text style={[styles.timeText, isExam && styles.examText]}>
+            {event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </Text>
+          <View style={styles.timeDivider} />
+          <Text style={styles.endTimeText}>
+            {event.end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </Text>
+        </View>
+
+        {/* Section Infos : Séparation visuelle plus discrète */}
+        <View style={styles.infoSection}>
+          <View style={styles.titleRow}>
+            <Text style={styles.courseTitle} numberOfLines={2}>
+              {event.title}
+            </Text>
+            {isExam && (
+              <View style={styles.examBadge}>
+                <Text style={styles.examBadgeText}>EXAMEN</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.detailsContainer}>
+            <View style={styles.detailItem}>
+              <MapPin size={12} color={isExam ? Colors.status.error : Colors.text.secondary} />
+              <Text 
+                style={[styles.detailText, isExam && { color: Colors.status.error }]} 
+                numberOfLines={1}
+              >
+                {event.location || "Salle non définie"}
+              </Text>
             </View>
-        );
-    };
 
+            <View style={styles.detailItem}>
+              <User size={12} color={isExam ? Colors.status.error : Colors.text.secondary} />
+              <Text 
+                style={[styles.detailText, isExam && { color: Colors.status.error }]} 
+                numberOfLines={1}
+              >
+                {event.professors || "Non défini"}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
-    // Carte de Cours
-    card: {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        marginBottom: 12,
-        overflow: 'hidden',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-        elevation: 3,
-    },
-    accentBar: {
-        width: 5,
-        backgroundColor: Colors.primary,
-    },
-    cardContent: {
-        flex: 1,
-        flexDirection: 'row',
-        padding: 15,
-        alignItems: 'center',
-    },
-    timeContainer: {
-        marginRight: 15,
-        alignItems: 'center',
-        minWidth: 50,
-    },
-    timeText: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#2D3748',
-    },
-    timeSeparator: {
-        fontSize: 10,
-        color: '#CBD5E0',
-        marginVertical: 2,
-    },
-    endTimeText: {
-        fontSize: 13,
-        color: '#718096',
-    },
-    infoContainer: {
-        flex: 1,
-        borderLeftWidth: 1,
-        borderLeftColor: '#F0F0F0',
-        paddingLeft: 15,
-    },
-    courseTitle: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#1A202C',
-        marginBottom: 6,
-    },
-    locationContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    locationText: {
-        fontSize: 13,
-        color: '#718096',
-        marginLeft: 4,
-    },
-    cardExamShadow: {
-        shadowColor: Colors.status.error, // Ombre rouge pour ressortir
-        shadowOpacity: 0.15,
-        elevation: 4,
-        backgroundColor: '#FFF5F5', // Fond très légèrement rouge (optionnel, sinon laisser blanc)
-    },
-    examTimeText: {
-        color: Colors.status.error,
-        fontWeight: '800',
-    },
-    titleRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flexWrap: 'wrap', // Pour que le badge passe à la ligne si le titre est trop long
-        marginBottom: 4,
-        gap: 8, // Espace entre le titre et le badge
-    },
-    examBadge: {
-        backgroundColor: Colors.status.error, // Fond rouge
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 4,
-    },
-    examBadgeText: {
-        color: '#FFFFFF',
-        fontSize: 10,
-        fontWeight: 'bold',
-        textTransform: 'uppercase',
-    },
-})
+  card: {
+    flexDirection: "row",
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    marginBottom: 12,
+    overflow: "hidden",
+    // Ombre plus subtile (look moderne)
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  cardExam: {
+    borderColor: Colors.status.error + "40", // 25% opacité rouge
+    backgroundColor: Colors.status.error + "05", // 2% opacité rouge pour le fond
+  },
+  accentBar: {
+    width: 4,
+  },
+  cardContent: {
+    flex: 1,
+    flexDirection: "row",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  timeSection: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: 55,
+    marginRight: 16,
+  },
+  timeText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: Colors.text.primary,
+    letterSpacing: -0.5,
+  },
+  timeDivider: {
+    width: 1,
+    height: 10,
+    backgroundColor: Colors.divider,
+    marginVertical: 4,
+  },
+  endTimeText: {
+    fontSize: 12,
+    color: Colors.text.secondary,
+    fontWeight: "500",
+  },
+  examText: {
+    color: Colors.status.error,
+  },
+  infoSection: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    marginBottom: 8,
+    gap: 8,
+  },
+  courseTitle: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "600",
+    color: Colors.text.primary,
+    lineHeight: 20,
+  },
+  examBadge: {
+    backgroundColor: Colors.status.error,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  examBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  detailsContainer: {
+    flexDirection: "column",
+    gap: 4,
+  },
+  detailItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  detailText: {
+    fontSize: 12,
+    color: Colors.text.secondary,
+    fontWeight: "400",
+  },
+});

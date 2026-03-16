@@ -29,4 +29,5 @@ export interface Ue {
   matieres: Matiere[];
   moyenne?: number | null; 
   isValidated?: boolean; 
+  hasEliminatoryNote?: boolean;
 }

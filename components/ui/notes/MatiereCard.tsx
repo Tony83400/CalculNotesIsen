@@ -1,8 +1,9 @@
 import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View, TextInput } from "react-native";
+import Slider from '@react-native-community/slider';
+import { Pencil, RotateCcw } from "lucide-react-native";
 import { Colors } from "@/constants/Colors";
 import { Evaluations } from "@/types/note";
-import Slider from '@react-native-community/slider';
-import { StyleSheet, Text, TouchableOpacity, View, TextInput } from "react-native";
 
 interface MatiereCardProps {
     evaluationData: Evaluations[];
@@ -11,7 +12,7 @@ interface MatiereCardProps {
 }
 
 const getNoteColor = (note: number | undefined | null) => {
-    if (note === undefined || note === null) return Colors.status.neutral;
+    if (note === undefined || note === null) return Colors.text.tertiary;
     if (note >= 10) return Colors.status.success;
     if (note >= 8) return Colors.status.warning;
     return Colors.status.error;
@@ -35,18 +36,14 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
 
                 const handlePressNote = () => {
                     if (isSimulated && editingId !== id) {
-                        // Si c'est déjà simulé mais qu'on ne l'éditait pas, on reset
                         updateSimulation(id, null);
                         setEditingId(null);
                         setTempValue("");
                     } else {
-                        // Sinon on active le mode édition
                         setEditingId(id);
                         const currentVal = displayNote !== null && displayNote !== undefined ? displayNote : 10;
                         setTempValue(currentVal.toString());
                         
-                        // IMPORTANT : On "commite" la note en simulation immédiatement 
-                        // pour que la barre reste visible même si on clique ailleurs sans taper
                         if (!isSimulated) {
                             updateSimulation(id, currentVal);
                         }
@@ -54,7 +51,6 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
                 };
 
                 const handleTextChange = (val: string) => {
-                    // On accepte les virgules et les points
                     const formattedVal = val.replace(',', '.');
                     setTempValue(formattedVal);
                     
@@ -69,18 +65,19 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
                         
                         <View style={styles.rowTop}>
                             <View style={styles.leftInfo}>
-                                <Text style={styles.name}>{item.name}</Text>
+                                <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
                                 <Text style={styles.code}>{item.code}</Text>
                             </View>
 
                             <TouchableOpacity 
                                 style={styles.rightInfo}
                                 onPress={handlePressNote}
-                                activeOpacity={0.7}
+                                activeOpacity={0.6}
                             >
                                 <View style={[
-                                    styles.noteWrapper,
-                                    !item.hasApiNote && !isSimulated && styles.missingNoteWrapper
+                                    styles.noteContainer,
+                                    !item.hasApiNote && !isSimulated && styles.missingNoteContainer,
+                                    isSimulated && styles.simulatedContainer
                                 ]}>
                                     {editingId === id ? (
                                         <TextInput
@@ -96,44 +93,48 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
                                             selectTextOnFocus
                                         />
                                     ) : (
-                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <View style={styles.noteValueRow}>
                                             <Text style={[
                                                 styles.noteValue, 
                                                 { color: getNoteColor(displayNote) },
-                                                isSimulated && styles.simulatedText,
                                                 !item.hasApiNote && !isSimulated && { color: Colors.primary }
                                             ]}>
                                                 {displayNote !== null && displayNote !== undefined ? displayNote.toFixed(2) : "--"}
                                             </Text>
                                             {!item.hasApiNote && !isSimulated && (
-                                                <Text style={styles.editIcon}> ✏️</Text>
+                                                <Pencil size={12} color={Colors.primary} style={styles.editIcon} />
+                                            )}
+                                            {isSimulated && (
+                                                <RotateCcw size={12} color={Colors.primary} style={styles.editIcon} />
                                             )}
                                         </View>
                                     )}
                                     <Text style={styles.noteTotal}>/20</Text>
                                 </View>
-                                <Text style={styles.coeff}>Coeff {item.coeff}</Text>
+                                <View style={styles.coeffBadge}>
+                                    <Text style={styles.coeffText}>coeff {item.coeff}</Text>
+                                </View>
                             </TouchableOpacity>
                         </View>
 
                         {showSlider && (
-                            <View style={styles.sliderWrapper}>
+                            <View style={styles.sliderSection}>
                                 <Slider
-                                    style={{ width: '100%', height: 30 }}
+                                    style={styles.slider}
                                     minimumValue={0}
                                     maximumValue={20}
                                     step={0.1}
                                     value={sliderValue}
                                     onValueChange={(val) => {
                                         updateSimulation(id, val);
-                                        setTempValue(val.toString());
+                                        setTempValue(val.toFixed(1));
                                     }}
-                                    minimumTrackTintColor={isSimulated ? Colors.status.info : "#E0E0E0"}
-                                    maximumTrackTintColor="#000000"
-                                    thumbTintColor={isSimulated ? Colors.status.info : "#999"}
+                                    minimumTrackTintColor={Colors.primary}
+                                    maximumTrackTintColor={Colors.border}
+                                    thumbTintColor={Colors.primary}
                                 />
-                                <Text style={styles.resetHint}>
-                                    {isSimulated ? "Appuie sur la note pour annuler" : "Bouge le curseur ou clique sur la note pour taper"}
+                                <Text style={styles.simulationHint}>
+                                    {isSimulated ? "Simulation active • Tapez pour annuler" : "Glissez pour simuler votre note"}
                                 </Text>
                             </View>
                         )}
@@ -146,50 +147,110 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
 
 const styles = StyleSheet.create({
     container: { 
-        backgroundColor: 'transparent', 
-        paddingHorizontal: 0, 
-        borderRadius: 0 
+        backgroundColor: 'transparent',
     },
-    row: { paddingVertical: 10 },
+    row: { 
+        paddingVertical: 14,
+    },
     separator: { 
         borderBottomWidth: 1, 
-        borderBottomColor: Colors.border 
+        borderBottomColor: Colors.divider,
     },
-    rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 5 },
-    leftInfo: { flex: 1, paddingRight: 10 },
-    name: { fontSize: 14, color: '#333', fontWeight: '500' },
-    code: { fontSize: 10, color: '#AAA', fontFamily: 'monospace' },
-    rightInfo: { alignItems: 'flex-end' },
-    noteWrapper: { flexDirection: 'row', alignItems: 'baseline' },
-    noteValue: { fontSize: 16, fontWeight: '700' },
-    missingNoteWrapper: {
+    rowTop: { 
+        flexDirection: 'row', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+    },
+    leftInfo: { 
+        flex: 1, 
+        marginRight: 16,
+    },
+    name: { 
+        fontSize: 14, 
+        color: Colors.text.primary, 
+        fontWeight: '600',
+        lineHeight: 20,
+    },
+    code: { 
+        fontSize: 11, 
+        color: Colors.text.tertiary, 
+        marginTop: 2,
+        letterSpacing: 0.5,
+    },
+    rightInfo: { 
+        alignItems: 'flex-end',
+        minWidth: 85,
+    },
+    noteContainer: { 
+        flexDirection: 'row', 
+        alignItems: 'baseline',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 10,
+        backgroundColor: Colors.background,
+    },
+    missingNoteContainer: {
+        backgroundColor: Colors.primary + '08',
         borderWidth: 1,
         borderStyle: 'dashed',
-        borderColor: Colors.primary,
-        borderRadius: 6,
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        backgroundColor: Colors.primaryLight,
+        borderColor: Colors.primary + '30',
+    },
+    simulatedContainer: {
+        backgroundColor: Colors.primary + '10',
+        borderWidth: 1,
+        borderColor: Colors.primary + '40',
+    },
+    noteValueRow: { 
+        flexDirection: 'row', 
+        alignItems: 'center',
+    },
+    noteValue: { 
+        fontSize: 17, 
+        fontWeight: '800',
+        letterSpacing: -0.5,
     },
     editIcon: {
-        fontSize: 10,
-        marginLeft: 4,
+        marginLeft: 6,
+        opacity: 0.9,
     },
     noteInput: { 
-        fontSize: 16, 
-        fontWeight: '700', 
-        borderBottomWidth: 1, 
-        borderBottomColor: Colors.status.info,
+        fontSize: 17, 
+        fontWeight: '800', 
         padding: 0,
         minWidth: 40,
-        textAlign: 'right'
+        textAlign: 'right',
     },
-    simulatedText: { 
-        color: Colors.status.info, 
-        textDecorationLine: 'underline' 
+    noteTotal: { 
+        fontSize: 11, 
+        color: Colors.text.tertiary, 
+        marginLeft: 2,
+        fontWeight: '600',
     },
-    noteTotal: { fontSize: 10, color: '#BBB', marginLeft: 2 },
-    coeff: { fontSize: 11, color: '#888' },
-    sliderWrapper: { paddingTop: 0 },
-    resetHint: { fontSize: 9, color: '#2196F3', textAlign: 'center', marginTop: -5 }
+    coeffBadge: {
+        marginTop: 6,
+    },
+    coeffText: { 
+        fontSize: 10, 
+        color: Colors.text.tertiary,
+        fontWeight: '600',
+        textTransform: 'uppercase',
+    },
+    sliderSection: { 
+        marginTop: 12,
+        paddingHorizontal: 4,
+        backgroundColor: Colors.background,
+        paddingVertical: 12,
+        borderRadius: 12,
+    },
+    slider: { 
+        width: '100%', 
+        height: 30,
+    },
+    simulationHint: { 
+        fontSize: 11, 
+        color: Colors.primary, 
+        textAlign: 'center', 
+        marginTop: -2,
+        fontWeight: '600',
+    }
 });

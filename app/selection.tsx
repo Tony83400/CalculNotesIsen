@@ -1,22 +1,33 @@
-import RefreshButton from "@/components/ui/notes/RefreshButton";
-import { Colors } from "@/constants/Colors";
-import { getAgendaIsen } from "@/services/agendaApi";
-import { getNotes } from "@/services/isenApi";
-import { clearAllStorage, clearAppCache, getId } from "@/services/storage";
-import { Ionicons } from '@expo/vector-icons';
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     SafeAreaView,
     StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
+    ScrollView
 } from "react-native";
+import { router } from "expo-router";
+import { 
+    GraduationCap, 
+    CalendarDays, 
+    ChevronRight, 
+    LogOut, 
+    User,
+    Settings,
+    Heart
+} from "lucide-react-native";
 
-export default function Selection() {
+import RefreshButton from "@/components/ui/notes/RefreshButton";
+import { Colors } from "@/constants/Colors";
+import { getAgendaIsen } from "@/services/agendaApi";
+import { getNotes } from "@/services/isenApi";
+import { clearAllStorage, getId } from "@/services/storage";
+
+export default function SelectionScreen() {
     const [userId, setUserId] = useState<string | null>(null);
+
     useEffect(() => {
         const fetchId = async () => {
             const id = await getId();
@@ -25,82 +36,95 @@ export default function Selection() {
         fetchId();
     }, []);
 
-
     useEffect(() => {
-        // Si pas d'ID, on ne fait rien (on sort)
         if (!userId) return;
         getAgendaIsen();
         getNotes();
-
     }, [userId]);
-
-
 
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" />
-
-            {/* HEADER : Bienvenue */}
-            <View style={styles.header}>
-                <Text style={styles.subtitle}>Bienvenue sur ton espace</Text>
-                <Text style={styles.title}>Tableau de bord</Text>
-            </View>
-
-            {/* CORPS : Les fonctionnalités principales */}
-            <View style={styles.mainContent}>
-
-                {/* Carte NOTES */}
-                <TouchableOpacity
-                    style={styles.card}
-                    onPress={() => router.push("/notes")}
-                    activeOpacity={0.7}
-                >
-                    <View style={[styles.iconContainer, { backgroundColor: '#E0F2FE' }]}>
-                        <Ionicons name="school" size={32} color={Colors.primary} />
+            
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+                {/* HEADER : Profil & Bienvenue */}
+                <View style={styles.header}>
+                    <View style={styles.headerTop}>
+                        <View style={styles.avatarContainer}>
+                            <User size={24} color={Colors.primary} />
+                        </View>
+                        <TouchableOpacity style={styles.settingsBtn}>
+                            <Settings size={22} color={Colors.text.secondary} />
+                        </TouchableOpacity>
                     </View>
-                    <View style={styles.cardTextContainer}>
-                        <Text style={styles.cardTitle}>Mes Notes</Text>
-                        <Text style={styles.cardDescription}>Consulter mes moyennes et résultats</Text>
+                    <Text style={styles.welcomeText}>Bonjour,</Text>
+                    <Text style={styles.title}>Tableau de bord</Text>
+                </View>
+
+                {/* CORPS : Fonctionnalités principales */}
+                <View style={styles.mainContent}>
+                    <Text style={styles.sectionTitle}>Services académiques</Text>
+                    
+                    {/* Carte NOTES */}
+                    <TouchableOpacity
+                        style={styles.card}
+                        onPress={() => router.push("/notes")}
+                        activeOpacity={0.7}
+                    >
+                        <View style={[styles.iconBox, { backgroundColor: Colors.primary + '10' }]}>
+                            <GraduationCap size={32} color={Colors.primary} />
+                        </View>
+                        <View style={styles.cardTextContainer}>
+                            <Text style={styles.cardTitle}>Mes Notes</Text>
+                            <Text style={styles.cardDescription}>Moyennes, ECTS et simulations</Text>
+                        </View>
+                        <View style={styles.arrowContainer}>
+                            <ChevronRight size={20} color={Colors.text.tertiary} />
+                        </View>
+                    </TouchableOpacity>
+
+                    {/* Carte AGENDA */}
+                    <TouchableOpacity
+                        style={styles.card}
+                        onPress={() => router.push("/agenda")}
+                        activeOpacity={0.7}
+                    >
+                        <View style={[styles.iconBox, { backgroundColor: Colors.status.warning + '10' }]}>
+                            <CalendarDays size={32} color={Colors.status.warning} />
+                        </View>
+                        <View style={styles.cardTextContainer}>
+                            <Text style={styles.cardTitle}>Mon Agenda</Text>
+                            <Text style={styles.cardDescription}>Emploi du temps de la semaine</Text>
+                        </View>
+                        <View style={styles.arrowContainer}>
+                            <ChevronRight size={20} color={Colors.text.tertiary} />
+                        </View>
+                    </TouchableOpacity>
+                </View>
+
+                {/* FOOTER : Actions & Infos */}
+                <View style={styles.footer}>
+                    <View style={styles.actionRow}>
+                        <RefreshButton />
+                        <TouchableOpacity
+                            onPress={() => { clearAllStorage(); router.replace("/") }}
+                            style={styles.logoutBtn}
+                        >
+                            <LogOut size={18} color={Colors.status.error} />
+                            <Text style={styles.logoutText}>Déconnexion</Text>
+                        </TouchableOpacity>
                     </View>
-                    <Ionicons name="chevron-forward" size={24} color="#C7C7CC" />
-                </TouchableOpacity>
 
-                {/* Carte AGENDA */}
-                <TouchableOpacity
-                    style={styles.card}
-                    onPress={() => router.push("/agenda")}
-                    activeOpacity={0.7}
-                >
-                    <View style={[styles.iconContainer, { backgroundColor: '#FEF3C7' }]}>
-                        <Ionicons name="calendar" size={32} color={Colors.status.warning} />
+                    <View style={styles.creditsContainer}>
+                        <Text style={styles.versionText}>CalculNotesISEN v2.0</Text>
+                        <View style={styles.authorRow}>
+                            <Text style={styles.creditsText}>Fait avec </Text>
+                            <Heart size={10} color={Colors.status.error} fill={Colors.status.error} />
+                            <Text style={styles.creditsText}> par Anthony Coulais</Text>
+                        </View>
                     </View>
-                    <View style={styles.cardTextContainer}>
-                        <Text style={styles.cardTitle}>Mon Agenda</Text>
-                        <Text style={styles.cardDescription}>Voir mon emploi du temps de la semaine</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={24} color="#C7C7CC" />
-                </TouchableOpacity>
-
-            </View>
-
-            {/* FOOTER : Actions secondaires */}
-            <View style={styles.footer}>
-
-                {/* Bouton Actualiser */}
-                <RefreshButton/>
-
-                {/* Bouton Déconnexion */}
-                <TouchableOpacity
-                    onPress={() => { clearAllStorage(); router.replace("/") }}
-                    style={styles.logoutButton}
-                >
-                    <Ionicons name="log-out-outline" size={20} color={Colors.status.error} />
-                    <Text style={styles.logoutText}>Se déconnecter</Text>
-                </TouchableOpacity>
-
-                <Text style={styles.versionText}>v1.0.0 </Text>
-                <Text style={styles.creditsText}>Réalisé par : Anthony Coulais</Text>
-            </View>
+                </View>
+            </ScrollView>
         </SafeAreaView>
     );
 }
@@ -110,46 +134,90 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.background,
     },
-    // Header Styles
+    scrollContent: {
+        flexGrow: 1,
+    },
+    // Header
     header: {
         paddingHorizontal: 24,
         paddingTop: 40,
-        paddingBottom: 20,
+        paddingBottom: 32,
     },
-    subtitle: {
+    headerTop: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 32,
+    },
+    avatarContainer: {
+        width: 52,
+        height: 52,
+        borderRadius: 18,
+        backgroundColor: Colors.primaryLight,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    settingsBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 14,
+        backgroundColor: Colors.surface,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: Colors.border,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.02,
+        shadowRadius: 8,
+        elevation: 1,
+    },
+    welcomeText: {
         fontSize: 16,
         color: Colors.text.secondary,
-        fontWeight: '500',
+        fontWeight: '600',
+        letterSpacing: -0.2,
     },
     title: {
-        fontSize: 32,
+        fontSize: 34,
         fontWeight: '800',
         color: Colors.text.primary,
+        letterSpacing: -1,
         marginTop: 4,
     },
-
-    // Main Content (Cards)
+    // Main Content
     mainContent: {
-        paddingHorizontal: 20,
-        gap: 20, // Espace entre les cartes
+        paddingHorizontal: 16,
+        gap: 16,
+    },
+    sectionTitle: {
+        fontSize: 13,
+        fontWeight: '800',
+        color: Colors.text.tertiary,
+        textTransform: 'uppercase',
+        letterSpacing: 1.5,
+        marginLeft: 8,
+        marginBottom: 4,
     },
     card: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: Colors.surface,
-        padding: 20,
-        borderRadius: 20,
-        // Ombres douces
+        padding: 16,
+        borderRadius: 24,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        // Ombre portée très douce
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 4,
+        shadowOpacity: 0.04,
+        shadowRadius: 16,
+        elevation: 3,
     },
-    iconContainer: {
-        width: 60,
-        height: 60,
-        borderRadius: 15,
+    iconBox: {
+        width: 68,
+        height: 68,
+        borderRadius: 20,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 16,
@@ -158,54 +226,72 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     cardTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontSize: 19,
+        fontWeight: '800',
         color: Colors.text.primary,
-        marginBottom: 4,
+        letterSpacing: -0.5,
+        marginBottom: 2,
     },
     cardDescription: {
         fontSize: 13,
-        color: Colors.text.tertiary,
+        color: Colors.text.secondary,
+        fontWeight: '500',
     },
-
-    // Footer Styles
+    arrowContainer: {
+        width: 36,
+        height: 36,
+        borderRadius: 12,
+        backgroundColor: Colors.background,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    // Footer
     footer: {
-        marginTop: 'auto', // Pousse le footer tout en bas
-        padding: 30,
+        marginTop: 'auto',
+        padding: 32,
         alignItems: 'center',
-        gap: 15,
     },
-    secondaryButton: {
+    actionRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.surface, // Fond blanc
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 50,
-        borderWidth: 1,
-        borderColor: Colors.border,
+        gap: 24,
+        marginBottom: 40,
+    },
+    logoutBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.status.error + '10',
+        borderRadius: 14,
         gap: 8,
-    },
-    logoutButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 10,
-        gap: 6,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
     },
     logoutText: {
         color: Colors.status.error,
-        fontWeight: '600',
+        fontWeight: '700',
         fontSize: 14,
     },
+    creditsContainer: {
+        alignItems: 'center',
+        paddingTop: 24,
+        borderTopWidth: 1,
+        borderTopColor: Colors.divider,
+        width: '100%',
+    },
+    authorRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 6,
+    },
     versionText: {
-        color: '#98a5b4',
-        fontSize: 11,
-        marginTop: 10,
+        color: Colors.text.primary,
+        fontSize: 13,
+        fontWeight: '700',
+        letterSpacing: -0.2,
     },
     creditsText: {
-        color: '#98a5b4',
-        fontSize: 10,
-        marginTop: 2,
-        fontStyle: 'italic',
+        color: Colors.text.secondary,
+        fontSize: 12,
+        fontWeight: '500',
     },
 });
