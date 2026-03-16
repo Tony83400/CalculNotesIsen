@@ -1,30 +1,30 @@
 export const Colors = {
-  // Palette Indigo ISEN Moderne
-  primary: '#4F46E5', 
-  primaryLight: '#EEF2FF', // Pour les badges ou fonds légers
+  // Palette Moderne & Vibrante
+  primary: '#2563EB', // Bleu Royal plus pur
+  primaryLight: '#EFF6FF', 
 
-  // Fonds harmonisés (Inspiré de Tailwind/Linear)
-  background: '#F9FAFB', 
+  // Fonds épurés
+  background: '#F8FAFC', 
   surface: '#FFFFFF',    
 
-  // Typographie Ardoise (Slate)
+  // Typographie
   text: {
-    primary: '#111827',   // Gris ardoise très foncé
-    secondary: '#6B7280', // Gris moyen pour les labels
-    tertiary: '#9CA3AF',  // Pour les textes discrets
+    primary: '#0F172A',   // Slate 900
+    secondary: '#475569', // Slate 600
+    tertiary: '#94A3B8',  // Slate 400
     inverse: '#FFFFFF',   
   },
 
-  // États sémantiques raffinés
+  // États sémantiques
   status: {
-    success: '#10B981', // Vert émeraude
-    warning: '#F59E0B', // Ambre
-    error: '#EF4444',   // Rouge corail
-    info: '#3B82F6',    // Bleu moderne
-    neutral: '#F3F4F6', // Gris clair neutre
+    success: '#10B981', 
+    warning: '#F59E0B', 
+    error: '#F43F5E',   // Rose-rouge plus moderne
+    info: '#0EA5E9',    
+    neutral: '#F1F5F9', 
   },
 
-  // Bordures ultra-fines
-  border: '#F3F4F6',
+  // Bordures
+  border: '#E2E8F0',
   divider: '#F1F5F9',
 };

@@ -21,20 +21,15 @@ import {
 } from "lucide-react-native";
 
 import CourseCard from "@/components/ui/notes/CourseCard";
+import AgendaGrid from "@/components/ui/agenda/AgendaGrid";
 import { Colors } from "@/constants/Colors";
 import { getAgendaIsen } from "@/services/agendaApi";
 import { AgendaEvent } from "@/types/agenda";
 import programmerNotifications from "@/utils/notifiations";
 
-export interface AgendaProps {
-    events: AgendaEvent[];
-    day: string; 
-}
-
 export default function AgendaScreen() {
-    const [courses, setCourses] = useState<AgendaProps[]>([]);
+    const [allEvents, setAllEvents] = useState<AgendaEvent[]>([]);
     const [loading, setLoading] = useState(true);
-    const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
     
     // Initialisation au Lundi de la semaine courante
     const [currentDay, setCurrentDay] = useState<Date>(() => {
@@ -53,27 +48,27 @@ export default function AgendaScreen() {
         setLoading(true);
         try {
             const rep = await getAgendaIsen();
-            const tempAgenda: AgendaProps[] = [];
+            // Filtrer les événements pour la semaine sélectionnée
+            const startWeek = new Date(currentDay);
+            const endWeek = new Date(currentDay);
+            endWeek.setDate(endWeek.getDate() + 6);
+            endWeek.setHours(23, 59, 59, 999);
+
+            const filtered = rep.filter(event => {
+                return event.start >= startWeek && event.start <= endWeek;
+            });
+
+            setAllEvents(filtered);
             
-            for (let i = 0; i < days.length; i++) {
-                const startDay = new Date(currentDay);
-                startDay.setDate(startDay.getDate() + i);
-                const endDay = new Date(startDay);
-                endDay.setHours(23, 59, 59, 999);
-                
-                const dateFormatted = startDay.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-                const dayLabel = `${days[i]} ${dateFormatted}`;
-
-                const filtered = rep.filter(event => {
-                    return event.start >= startDay && event.end <= endDay;
-                }).sort((a, b) => a.start.getTime() - b.start.getTime());
-
-                tempAgenda.push({
-                    day: dayLabel,
-                    events: filtered
-                });
+            // Format pour les notifications si nécessaire
+            const tempAgenda: {day: string, events: AgendaEvent[]}[] = [];
+            const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+            for (let i = 0; i < 6; i++) {
+                const d = new Date(currentDay);
+                d.setDate(d.getDate() + i);
+                const dayEvents = filtered.filter(e => e.start.toDateString() === d.toDateString());
+                tempAgenda.push({ day: d.toDateString(), events: dayEvents });
             }
-            setCourses(tempAgenda);
             programmerNotifications(tempAgenda);
         } catch (error) {
             console.error("Erreur Agenda:", error);
@@ -92,11 +87,6 @@ export default function AgendaScreen() {
             newDate.setDate(newDate.getDate() + offset);
             return newDate;
         });
-    };
-
-    const isToday = (dayStr: string) => {
-        const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-        return dayStr.includes(today);
     };
 
     return (
@@ -145,40 +135,7 @@ export default function AgendaScreen() {
                     <Text style={styles.loaderText}>Chargement de votre planning...</Text>
                 </View>
             ) : (
-                <FlatList
-                    data={courses}
-                    keyExtractor={(item) => item.day}
-                    contentContainerStyle={styles.listContent}
-                    showsVerticalScrollIndicator={false}
-                    renderItem={({ item }) => (
-                        <View style={styles.daySection}>
-                            <View style={styles.dayHeader}>
-                                <Text style={[styles.dayTitle, isToday(item.day) && styles.todayTitle]}>
-                                    {item.day}
-                                </Text>
-                                {isToday(item.day) && (
-                                    <View style={styles.todayBadge}>
-                                        <Text style={styles.todayBadgeText}>AUJOURD'HUI</Text>
-                                    </View>
-                                )}
-                                <View style={styles.dayLine} />
-                            </View>
-
-                            {item.events.length > 0 ? (
-                                <View style={styles.eventsContainer}>
-                                    {item.events.map((event, index) => (
-                                        <CourseCard key={index} event={event} />
-                                    ))}
-                                </View>
-                            ) : (
-                                <View style={styles.emptyContainer}>
-                                    <Clock size={16} color={Colors.text.tertiary} />
-                                    <Text style={styles.noClassText}>Aucun cours prévu</Text>
-                                </View>
-                            )}
-                        </View>
-                    )}
-                />
+                <AgendaGrid events={allEvents} startDay={currentDay} />
             )}
         </SafeAreaView>
     );
