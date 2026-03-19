@@ -14,41 +14,21 @@ export const parseAgenda = (icsRawData: string): AgendaEvent[] => {
       const event = new ICAL.Event(vevent);
 
       // --- NETTOYAGE ---
-      const description = event.description || "";
-
-      // On enlève les retours à la ligne (\n) qui traînent souvent dans les ICS de l'ISEN
       const cleanLocation = event.location
-        ? event.location.replace(/\n/g, "").trim()
+        ? event.location.replace(/\\n/g, "").replace(/\n/g, "").trim()
         : "Non défini";
       const cleanSummary = event.summary
-        ? event.summary.replace(/\n/g, "").trim()
+        ? event.summary.replace(/\\n/g, "").replace(/\n/g, "").trim()
         : "Sans titre";
 
-      // --- EXTRACTION INTELLIGENTE (REGEX) ---
-      // On cherche le texte après "- Cours :"
-      const coursMatch = description.match(/- Cours\s*:\s*(.*?)(?=\n|$)/);
-      // On cherche le texte après "- Intervenant(s) :"
-      const profMatch = description.match(
-        /- Intervenant\(s\)\s*:\s*(.*?)(?=\n|$)/
-      );
-
-      // Si on trouve un nom de cours dans la description, on le prend. Sinon on garde le summary.
-      const nomCours =
-        coursMatch && coursMatch[1].trim() !== ""
-          ? coursMatch[1].trim()
-          : cleanSummary;
-
-      const profs = profMatch ? profMatch[1].trim() : "";
-
       return {
-        id: event.uid || Math.random().toString(), // Fallback si pas d'UID
-        title: nomCours,
-        professors: profs,
+        id: event.uid || Math.random().toString(),
+        title: cleanSummary,
+        professors: "", // On ne s'en sert plus selon la demande
         location: cleanLocation,
         start: event.startDate.toJSDate(),
         end: event.endDate.toJSDate(),
-        isExam:
-          cleanSummary.toUpperCase().includes("EXAM"),
+        isExam: cleanSummary.toUpperCase().includes("EXAM"),
       };
     });
 

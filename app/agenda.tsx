@@ -59,7 +59,7 @@ export default function AgendaScreen() {
             });
 
             setAllEvents(filtered);
-            
+            console.log(filtered);
             // Format pour les notifications si nécessaire
             const tempAgenda: {day: string, events: AgendaEvent[]}[] = [];
             const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
