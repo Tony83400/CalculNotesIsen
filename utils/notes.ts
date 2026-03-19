@@ -3,10 +3,15 @@ import { Ue } from "../types/note";
 const getDonneesAvecNotes = (
   dataFiliere: Ue[],
   notes: any[],
-  simulatedNotes: any
+  simulatedNotes: any,
+  showRattrapages: boolean = false
 ) => {
   const structureCopie: Ue[] = JSON.parse(JSON.stringify(dataFiliere));
   const usedNoteCodes = new Set<string>();
+
+  // 0. Prétraitement des rattrapages
+  const rattrapageNotes = notes.filter(n => n.code.includes("_RATTRAPAGE_"));
+  const normalNotes = notes.filter(n => !n.code.includes("_RATTRAPAGE_"));
 
   let ectsValides = 0;
   let totalPointsSemestre = 0;
@@ -15,6 +20,8 @@ const getDonneesAvecNotes = (
   structureCopie.forEach((ue) => {
     let sommePointsUE = 0;
     let totalCoeffUE = 0;
+    let sommePointsUE_Initial = 0;
+    let totalCoeffUE_Initial = 0;
     let ueEstComplete = true;
     let pasDeNoteEliminatoire = true;
 
@@ -22,8 +29,8 @@ const getDonneesAvecNotes = (
       let sommePointsMat = 0;
       let totalCoeffMat = 0;
 
+      // On traite d'abord les évaluations normalement
       matiere.evaluations.forEach((evaluation, indexEval) => {
-        // 1. Génération d'un ID UNIQUE pour éviter le bug des sliders liés
         const uniqueId =
           evaluation.code && evaluation.code.length > 0
             ? evaluation.code
@@ -31,15 +38,11 @@ const getDonneesAvecNotes = (
 
         evaluation.uniqueId = uniqueId;
 
-        // 2. Recherche note API
         let noteFromApi = null;
         if (evaluation.code) {
-          // On cherche d'abord une correspondance exacte
-          noteFromApi = notes.find((n) => n.code === evaluation.code);
-
-          // Si pas de correspondance exacte, on cherche par préfixe (ex: LV2 -> LV2_ITALIEN)
+          noteFromApi = normalNotes.find((n) => n.code === evaluation.code);
           if (!noteFromApi) {
-            noteFromApi = notes.find((n) => n.code.startsWith(evaluation.code));
+            noteFromApi = normalNotes.find((n) => n.code.startsWith(evaluation.code));
           }
 
           if (noteFromApi) {
@@ -47,29 +50,67 @@ const getDonneesAvecNotes = (
           }
         }
 
-        // 3. Gestion Priorité : Simulation > API > Rien
         const simu = simulatedNotes[uniqueId];
-
         let finalNote: number | null = null;
         let isFromApi = false;
 
-        // Si une simulation existe, elle gagne
         if (simu !== undefined && simu !== null) {
           finalNote = simu;
-        }
-        // Sinon, si on a une note API
-        else if (noteFromApi) {
+        } else if (noteFromApi) {
           finalNote = noteFromApi.note;
           isFromApi = true;
         }
 
-        // On stocke les infos pour l'affichage
         evaluation.noteReelle = finalNote;
-        evaluation.hasApiNote = isFromApi; // <-- Pour cacher le slider
+        evaluation.hasApiNote = isFromApi;
+      });
 
-        // Calculs
-        if (finalNote !== null) {
-          sommePointsMat += finalNote * evaluation.coeff;
+      // --- CALCUL MOYENNE INITIALE (SANS RATTRAPAGES) ---
+      let pointsMatiereSansRat = 0;
+      let coeffMatiereSansRat = 0;
+      matiere.evaluations.forEach(ev => {
+        if (ev.noteReelle !== null) {
+          pointsMatiereSansRat += ev.noteReelle * ev.coeff;
+          coeffMatiereSansRat += ev.coeff;
+        }
+      });
+      const moyenneMatiereSansRat = coeffMatiereSansRat > 0 ? pointsMatiereSansRat / coeffMatiereSansRat : null;
+      if (moyenneMatiereSansRat !== null) {
+        sommePointsUE_Initial += moyenneMatiereSansRat * matiere.coeff_matiere;
+        totalCoeffUE_Initial += matiere.coeff_matiere;
+      }
+
+      // Logique de Rattrapage (si activé)
+      if (showRattrapages) {
+        const matiereNameUpper = matiere.name.toUpperCase().replace(/\s+/g, '_');
+        
+        const applicableRattrapages = rattrapageNotes.filter(r => {
+          const rattrapageSubject = r.code.split('_RATTRAPAGE_')[1] || "";
+          const matchMatiere = matiereNameUpper.includes(rattrapageSubject) || rattrapageSubject.includes(matiereNameUpper);
+          const matchEval = matiere.evaluations.some(ev => {
+            const evalSuffix = ev.code?.split('_').pop() || "";
+            return (evalSuffix && evalSuffix.includes(rattrapageSubject)) || (rattrapageSubject && rattrapageSubject.includes(evalSuffix));
+          });
+          return matchMatiere || matchEval;
+        });
+
+        if (applicableRattrapages.length > 0) {
+          const bestRattrapage = [...applicableRattrapages].sort((a, b) => b.note - a.note)[0];
+          usedNoteCodes.add(bestRattrapage.code);
+          matiere.evaluations.forEach((evaluation) => {
+            const currentNote = evaluation.noteReelle ?? -1;
+            if (bestRattrapage.note > currentNote) {
+              evaluation.noteReelle = bestRattrapage.note;
+              evaluation.hasApiNote = true;
+            }
+          });
+        }
+      }
+
+      // Calcul de la moyenne de la matière avec les notes potentiellement modifiées
+      matiere.evaluations.forEach((evaluation) => {
+        if (evaluation.noteReelle !== null) {
+          sommePointsMat += evaluation.noteReelle * evaluation.coeff;
           totalCoeffMat += evaluation.coeff;
         } else {
           ueEstComplete = false;
@@ -88,7 +129,23 @@ const getDonneesAvecNotes = (
     });
 
     if (totalCoeffUE > 0) {
-      ue.moyenne = sommePointsUE / totalCoeffUE;
+      const moyenneInitiale = totalCoeffUE_Initial > 0 ? sommePointsUE_Initial / totalCoeffUE_Initial : 0;
+      const moyenneAvecRattrapages = sommePointsUE / totalCoeffUE;
+
+      if (showRattrapages) {
+        // RÈGLE ISEN :
+        // 1. Si moyenneInitiale < 10 : on plafonne à 10
+        if (moyenneInitiale < 10) {
+          ue.moyenne = Math.min(moyenneAvecRattrapages, 10);
+        } 
+        // 2. Si moyenneInitiale >= 10 : on garde la moyenne initiale (le rattrapage ne sert qu'à lever le < 6)
+        else {
+          ue.moyenne = moyenneInitiale;
+        }
+      } else {
+        ue.moyenne = moyenneAvecRattrapages;
+      }
+
       const estValide =
         ueEstComplete && ue.moyenne >= 10 && pasDeNoteEliminatoire;
       ue.isValidated = estValide;

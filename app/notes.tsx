@@ -6,7 +6,6 @@ import {
     Text,
     TouchableOpacity,
     View,
-    ActivityIndicator,
     StatusBar,
     Animated,
     Easing
@@ -40,6 +39,7 @@ export default function NotesScreen() {
     const [lastUpdate, setLastUpdate] = useState(new Date());
     const [error, setError] = useState<string | null>(null);
     const [simulatedNotes, setSimulatedNotes] = useState<Record<string, number | null>>({});
+    const [isRattrapageMode, setIsRattrapageMode] = useState(false);
 
     const spinValue = useRef(new Animated.Value(0)).current;
 
@@ -157,7 +157,7 @@ export default function NotesScreen() {
                             onPress={() => router.push("/selection")}
                         >
                             <ChevronLeft size={20} color={Colors.text.secondary} />
-                            <Text style={styles.backButtonLargeText}>Retour à l'accueil</Text>
+                            <Text style={styles.backButtonLargeText}>{"Retour à l'accueil"}</Text>
                         </TouchableOpacity>
                     }
                 />
@@ -203,7 +203,7 @@ export default function NotesScreen() {
                     </Animated.View>
                     <Text style={styles.loadingTitle}>Récupération de vos notes...</Text>
                     <Text style={styles.loadingSubtitle}>
-                        L'API de l'ISEN prend parfois un peu de temps...
+                        {"L'API de l'ISEN prend parfois un peu de temps..."}
                     </Text>
                     <TouchableOpacity
                         style={styles.cancelButton}
@@ -217,7 +217,7 @@ export default function NotesScreen() {
     }
 
     const dataFiliere = configActuelle.filieres[selectedFiliere as keyof typeof configActuelle.filieres];
-    const resultats = getDonneesAvecNotes(dataFiliere, notes || [], simulatedNotes);
+    const resultats = getDonneesAvecNotes(dataFiliere, notes || [], simulatedNotes, isRattrapageMode);
     const donneesAffichables = resultats.structure;
     const stats = resultats.stats;
 
@@ -247,6 +247,30 @@ export default function NotesScreen() {
             <View style={styles.infoBar}>
                 <Info size={14} color={Colors.primary} />
                 <Text style={styles.infoBarText}>Tapez sur une note pour simuler votre moyenne</Text>
+            </View>
+
+            {/* Sélecteur de Mode (Standard / Rattrapage) */}
+            <View style={styles.modeSelectorContainer}>
+                <View style={styles.modeSelector}>
+                    <TouchableOpacity 
+                        style={[styles.modeTab, !isRattrapageMode && styles.activeModeTab]}
+                        onPress={() => setIsRattrapageMode(false)}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={[styles.modeTabText, !isRattrapageMode && styles.activeModeTabText]}>
+                            Standard
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={[styles.modeTab, isRattrapageMode && styles.activeModeTab]}
+                        onPress={() => setIsRattrapageMode(true)}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={[styles.modeTabText, isRattrapageMode && styles.activeModeTabText]}>
+                            Rattrapages
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* Liste Principale */}
@@ -362,6 +386,43 @@ const styles = StyleSheet.create({
         color: Colors.primary,
         fontWeight: '600',
         letterSpacing: -0.2,
+    },
+    // Mode Selector
+    modeSelectorContainer: {
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        paddingBottom: 0,
+    },
+    modeSelector: {
+        flexDirection: 'row',
+        backgroundColor: Colors.surface,
+        borderRadius: 16,
+        padding: 4,
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+    modeTab: {
+        flex: 1,
+        paddingVertical: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 12,
+    },
+    activeModeTab: {
+        backgroundColor: Colors.primary,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 4,
+    },
+    modeTabText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: Colors.text.secondary,
+    },
+    activeModeTabText: {
+        color: '#FFFFFF',
     },
     // Stats
     statsRow: { 

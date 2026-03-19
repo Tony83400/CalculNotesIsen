@@ -140,6 +140,10 @@ dist
 
 expo-env.d.ts
 # @end expo-cli
+
+.expo/
+dist/
+.vscode/
 .vercel
 .env*.local
 /android
