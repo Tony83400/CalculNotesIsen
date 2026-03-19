@@ -223,10 +223,10 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     matiereItem: {
-        backgroundColor: Colors.background, // Fond très subtil pour différencier
+        backgroundColor: Colors.background, 
         borderRadius: 16,
-        padding: 2, // Petit padding pour créer un effet "encadré" avec le conteneur intérieur
-        borderWidth: 1,
+        padding: 2, 
+        borderWidth: 1.5, // Un peu plus épais pour la distinction
         borderColor: Colors.divider,
     },
     matiereHeader: { 
