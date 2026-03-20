@@ -14,8 +14,6 @@ import {
     CalendarDays, 
     ChevronRight, 
     LogOut, 
-    User,
-    Settings,
     Heart
 } from "lucide-react-native";
 
@@ -47,16 +45,8 @@ export default function SelectionScreen() {
             <StatusBar barStyle="dark-content" />
             
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                {/* HEADER : Profil & Bienvenue */}
+                {/* HEADER : Bienvenue */}
                 <View style={styles.header}>
-                    <View style={styles.headerTop}>
-                        <View style={styles.avatarContainer}>
-                            <User size={24} color={Colors.primary} />
-                        </View>
-                        <TouchableOpacity style={styles.settingsBtn}>
-                            <Settings size={22} color={Colors.text.secondary} />
-                        </TouchableOpacity>
-                    </View>
                     <Text style={styles.welcomeText}>Bonjour,</Text>
                     <Text style={styles.title}>Tableau de bord</Text>
                 </View>
@@ -142,35 +132,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
         paddingTop: 40,
         paddingBottom: 32,
-    },
-    headerTop: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 32,
-    },
-    avatarContainer: {
-        width: 52,
-        height: 52,
-        borderRadius: 18,
-        backgroundColor: Colors.primaryLight,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    settingsBtn: {
-        width: 44,
-        height: 44,
-        borderRadius: 14,
-        backgroundColor: Colors.surface,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: Colors.border,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.02,
-        shadowRadius: 8,
-        elevation: 1,
     },
     welcomeText: {
         fontSize: 16,

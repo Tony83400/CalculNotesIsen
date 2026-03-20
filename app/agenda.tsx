@@ -17,11 +17,14 @@ import {
     ArrowLeft,
     Clock,
     LayoutDashboard,
-    Loader2
+    Loader2,
+    CalendarDays,
+    CalendarRange
 } from "lucide-react-native";
 
 import CourseCard from "@/components/ui/notes/CourseCard";
 import AgendaGrid from "@/components/ui/agenda/AgendaGrid";
+import DailyAgenda from "@/components/ui/agenda/DailyAgenda";
 import { Colors } from "@/constants/Colors";
 import { getAgendaIsen } from "@/services/agendaApi";
 import { AgendaEvent } from "@/types/agenda";
@@ -29,7 +32,9 @@ import programmerNotifications from "@/utils/notifiations";
 
 export default function AgendaScreen() {
     const [allEvents, setAllEvents] = useState<AgendaEvent[]>([]);
+    const [filteredEvents, setFilteredEvents] = useState<AgendaEvent[]>([]);
     const [loading, setLoading] = useState(true);
+    const [viewMode, setViewMode] = useState<'week' | 'day'>('week');
     
     // Initialisation au Lundi de la semaine courante
     const [currentDay, setCurrentDay] = useState<Date>(() => {
@@ -41,6 +46,12 @@ export default function AgendaScreen() {
         return startweek; 
     });
 
+    const [selectedDate, setSelectedDate] = useState<Date>(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return today;
+    });
+
     const endOfWeek = new Date(currentDay);
     endOfWeek.setDate(currentDay.getDate() + 5); // Samedi inclus
 
@@ -48,7 +59,9 @@ export default function AgendaScreen() {
         setLoading(true);
         try {
             const rep = await getAgendaIsen();
-            // Filtrer les événements pour la semaine sélectionnée
+            setAllEvents(rep);
+            
+            // Filtrer les événements pour la semaine sélectionnée (pour AgendaGrid)
             const startWeek = new Date(currentDay);
             const endWeek = new Date(currentDay);
             endWeek.setDate(endWeek.getDate() + 6);
@@ -58,11 +71,10 @@ export default function AgendaScreen() {
                 return event.start >= startWeek && event.start <= endWeek;
             });
 
-            setAllEvents(filtered);
-            console.log(filtered);
+            setFilteredEvents(filtered);
+            
             // Format pour les notifications si nécessaire
             const tempAgenda: {day: string, events: AgendaEvent[]}[] = [];
-            const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
             for (let i = 0; i < 6; i++) {
                 const d = new Date(currentDay);
                 d.setDate(d.getDate() + i);
@@ -81,12 +93,54 @@ export default function AgendaScreen() {
         getAgenda();
     }, [currentDay]);
 
-    const changeWeek = (offset: number) => {
-        setCurrentDay(prev => {
-            const newDate = new Date(prev);
-            newDate.setDate(newDate.getDate() + offset);
-            return newDate;
-        });
+    const changeDate = (offset: number) => {
+        if (viewMode === 'week') {
+            setCurrentDay(prev => {
+                const newDate = new Date(prev);
+                newDate.setDate(newDate.getDate() + offset);
+                return newDate;
+            });
+        } else {
+            setSelectedDate(prev => {
+                const newDate = new Date(prev);
+                newDate.setDate(newDate.getDate() + offset);
+                
+                // Mettre à jour currentDay si on change de semaine
+                const day = newDate.getDay();
+                const diff = newDate.getDate() - day + (day === 0 ? -6 : 1);
+                const monday = new Date(newDate);
+                monday.setDate(diff);
+                monday.setHours(0, 0, 0, 0);
+                
+                if (monday.getTime() !== currentDay.getTime()) {
+                    setCurrentDay(monday);
+                }
+                
+                return newDate;
+            });
+        }
+    };
+
+    const toggleViewMode = () => {
+        const newMode = viewMode === 'week' ? 'day' : 'week';
+        setViewMode(newMode);
+        
+        // Si on passe en mode jour, s'assurer que selectedDate est dans la semaine courante
+        // ou réinitialiser à aujourd'hui si aujourd'hui est dans la semaine.
+        if (newMode === 'day') {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const startWeek = new Date(currentDay);
+            const endWeek = new Date(currentDay);
+            endWeek.setDate(endWeek.getDate() + 6);
+            
+            if (today >= startWeek && today <= endWeek) {
+                setSelectedDate(today);
+            } else {
+                setSelectedDate(new Date(currentDay));
+            }
+        }
     };
 
     return (
@@ -110,23 +164,44 @@ export default function AgendaScreen() {
                 </TouchableOpacity>
             </View>
 
-            {/* Navigation Semaine : Style Sélecteur épuré */}
-            <View style={styles.weekNav}>
-                <TouchableOpacity onPress={() => changeWeek(-7)} style={styles.navArrow}>
-                    <ChevronLeft size={20} color={Colors.text.secondary} />
-                </TouchableOpacity>
-                
-                <View style={styles.dateDisplay}>
-                    <Text style={styles.dateRangeText}>
-                        {currentDay.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                        {" — "}
-                        {endOfWeek.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                    </Text>
+            {/* Sélecteur de Vue & Navigation */}
+            <View style={styles.navContainer}>
+                <View style={styles.viewToggle}>
+                    <TouchableOpacity 
+                        onPress={() => viewMode !== 'day' && toggleViewMode()}
+                        style={[styles.toggleBtn, viewMode === 'day' && styles.toggleBtnActive]}
+                    >
+                        <CalendarDays size={16} color={viewMode === 'day' ? '#FFF' : Colors.text.secondary} />
+                        <Text style={[styles.toggleBtnText, viewMode === 'day' && styles.toggleBtnTextActive]}>Jour</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        onPress={() => viewMode !== 'week' && toggleViewMode()}
+                        style={[styles.toggleBtn, viewMode === 'week' && styles.toggleBtnActive]}
+                    >
+                        <CalendarRange size={16} color={viewMode === 'week' ? '#FFF' : Colors.text.secondary} />
+                        <Text style={[styles.toggleBtnText, viewMode === 'week' && styles.toggleBtnTextActive]}>Semaine</Text>
+                    </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity onPress={() => changeWeek(7)} style={styles.navArrow}>
-                    <ChevronRight size={20} color={Colors.text.secondary} />
-                </TouchableOpacity>
+                <View style={styles.weekNav}>
+                    <TouchableOpacity onPress={() => changeDate(viewMode === 'week' ? -7 : -1)} style={styles.navArrow}>
+                        <ChevronLeft size={20} color={Colors.text.secondary} />
+                    </TouchableOpacity>
+                    
+                    <View style={styles.dateDisplay}>
+                        <Text style={styles.dateRangeText}>
+                            {viewMode === 'week' ? (
+                                `${currentDay.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} — ${endOfWeek.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`
+                            ) : (
+                                selectedDate.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' })
+                            )}
+                        </Text>
+                    </View>
+
+                    <TouchableOpacity onPress={() => changeDate(viewMode === 'week' ? 7 : 1)} style={styles.navArrow}>
+                        <ChevronRight size={20} color={Colors.text.secondary} />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {loading ? (
@@ -135,7 +210,11 @@ export default function AgendaScreen() {
                     <Text style={styles.loaderText}>Chargement de votre planning...</Text>
                 </View>
             ) : (
-                <AgendaGrid events={allEvents} startDay={currentDay} />
+                viewMode === 'week' ? (
+                    <AgendaGrid events={filteredEvents} startDay={currentDay} />
+                ) : (
+                    <DailyAgenda events={allEvents} selectedDate={selectedDate} />
+                )
             )}
         </SafeAreaView>
     );
@@ -189,21 +268,59 @@ const styles = StyleSheet.create({
         color: Colors.primary,
         textTransform: 'uppercase',
     },
-    weekNav: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+    navContainer: {
         backgroundColor: Colors.surface,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
         borderBottomWidth: 1,
         borderBottomColor: Colors.border,
-        // Petite ombre portée
+        paddingBottom: 8,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.03,
         shadowRadius: 4,
         elevation: 2,
+    },
+    viewToggle: {
+        flexDirection: 'row',
+        backgroundColor: Colors.background,
+        marginHorizontal: 16,
+        marginTop: 12,
+        marginBottom: 8,
+        borderRadius: 12,
+        padding: 4,
+        gap: 4,
+    },
+    toggleBtn: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 8,
+        borderRadius: 8,
+        gap: 6,
+    },
+    toggleBtnActive: {
+        backgroundColor: Colors.primary,
+        // Shadow for active button
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    toggleBtnText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: Colors.text.secondary,
+    },
+    toggleBtnTextActive: {
+        color: '#FFF',
+    },
+    weekNav: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 4,
     },
     navArrow: {
         padding: 8,
@@ -211,18 +328,22 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.background,
     },
     dateDisplay: {
+        flex: 1,
+        marginHorizontal: 12,
         backgroundColor: Colors.background,
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 12,
         borderWidth: 1,
         borderColor: Colors.border,
+        alignItems: 'center',
     },
     dateRangeText: {
         fontSize: 14,
         fontWeight: '600',
         color: Colors.text.primary,
         textTransform: 'capitalize',
+        textAlign: 'center',
     },
     listContent: {
         padding: 16,
