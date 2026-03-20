@@ -159,8 +159,6 @@ export async function saveStructureToCache(structure: any) {
 }
 
 export async function loadStructureFromCache(): Promise<typeof configDefault> {
-  if (isWeb) return configDefault;
- 
   const cachedString = await getStorageItem(structureName);
 
   if (cachedString) {

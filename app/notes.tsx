@@ -25,6 +25,7 @@ import {
 
 import { getNotes } from "@/services/isenApi";
 import { getId, loadLastUpdateNotes, loadStructureFromCache } from "@/services/storage";
+import { updateStructureConfig } from "@/services/configApi";
 import { Note } from "@/types/note";
 import getDonneesAvecNotes from "@/utils/notes";
 import UeCard from '../components/ui/notes/UeList';
@@ -88,14 +89,14 @@ export default function NotesScreen() {
             try {
                 const id = await getId();
                 setUserId(id);
-            } catch (error) {
+            } catch {
                 setError("Impossible de récupérer vos identifiants.");
             }
         };
         fetchUser();
     }, []);
 
-    const fetchNote = async () => {
+    const fetchNote = useCallback(async () => {
         if (!userId) return;
         setError(null);
         try {
@@ -110,11 +111,21 @@ export default function NotesScreen() {
         } catch (err: any) {
             setError(err.message || "Une erreur est survenue lors de la récupération des notes.");
         }
-    };
+    }, [userId]);
 
     useEffect(() => {
         fetchNote();
-    }, [userId]);
+    }, [fetchNote]);
+
+    useEffect(() => {
+        const updateConfig = async () => {
+            const newConfig = await updateStructureConfig();
+            if (newConfig) {
+                setConfigActuelle(newConfig);
+            }
+        };
+        updateConfig();
+    }, []);
 
     useEffect(() => {
         const loadConfig = async () => {

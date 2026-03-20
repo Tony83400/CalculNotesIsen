@@ -22,6 +22,7 @@ import { Colors } from "@/constants/Colors";
 import { getAgendaIsen } from "@/services/agendaApi";
 import { getNotes } from "@/services/isenApi";
 import { clearAllStorage, getId } from "@/services/storage";
+import { updateStructureConfig } from "@/services/configApi";
 
 export default function SelectionScreen() {
     const [userId, setUserId] = useState<string | null>(null);
@@ -32,6 +33,7 @@ export default function SelectionScreen() {
             setUserId(id);
         };
         fetchId();
+        updateStructureConfig();
     }, []);
 
     useEffect(() => {
