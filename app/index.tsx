@@ -184,11 +184,11 @@ export default function LoginScreen() {
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>En vous connectant, vous acceptez l'utilisation de vos données ISEN à des fins d'affichage uniquement.</Text>
                 </View>
-            </KeyboardAvoidingView>
-            <Analytics />
-        </SafeAreaView>
-    );
-}
+                </KeyboardAvoidingView>
+                {Platform.OS === 'web' && <Analytics />}
+                </SafeAreaView>
+                );
+                }
 
 const styles = StyleSheet.create({
     container: {

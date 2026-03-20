@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { getAgendaIsen } from "@/services/agendaApi";
 import { AgendaEvent } from "@/types/agenda";
-import programmerNotifications from "@/utils/notifiations";
+import { programmerNotifications } from "@/utils/notifications";
 
 export function useAgenda() {
     const [allEvents, setAllEvents] = useState<AgendaEvent[]>([]);
@@ -11,10 +11,13 @@ export function useAgenda() {
     
     // État du Lundi de la semaine affichée
     const [currentDay, setCurrentDay] = useState<Date>(() => {
-        const startweek = new Date();
-        const day = startweek.getDay();
-        const diff = startweek.getDate() - day + (day === 0 ? -6 : 1);
-        const monday = new Date(startweek);
+        const now = new Date();
+        const day = now.getDay();
+        // Calcul du décalage pour atteindre le lundi (1)
+        // Si on est dimanche (0), on recule de 6 jours, sinon on recule de (day - 1)
+        const diff = now.getDate() - (day === 0 ? 6 : day - 1);
+        const monday = new Date(now);
+        monday.setDate(diff);
         monday.setHours(0, 0, 0, 0);
         return monday; 
     });
@@ -41,31 +44,15 @@ export function useAgenda() {
             const data = await getAgendaIsen();
             setAllEvents(data);
             
-            // Notification logic (optionnel : peut être déplacé ailleurs si besoin)
-            const startWeek = new Date(currentDay);
-            const endWeek = new Date(currentDay);
-            endWeek.setDate(endWeek.getDate() + 6);
-            endWeek.setHours(23, 59, 59, 999);
-
-            const filteredForNotif = data.filter(event => 
-                event.start >= startWeek && event.start <= endWeek
-            );
-
-            const tempAgenda: {day: string, events: AgendaEvent[]}[] = [];
-            for (let i = 0; i < 6; i++) {
-                const d = new Date(currentDay);
-                d.setDate(d.getDate() + i);
-                const dayEvents = filteredForNotif.filter(e => e.start.toDateString() === d.toDateString());
-                tempAgenda.push({ day: d.toDateString(), events: dayEvents });
-            }
-            programmerNotifications(tempAgenda);
+            // Programmation des notifications (30 min avant, 4 prochains jours)
+            programmerNotifications(data);
         } catch (err) {
             console.error("Erreur useAgenda:", err);
             setError("Impossible de charger l'agenda.");
         } finally {
             setLoading(false);
         }
-    }, [currentDay]);
+    }, []);
 
     useEffect(() => {
         fetchAgenda();

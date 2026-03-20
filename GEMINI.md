@@ -1,15 +1,17 @@
 # 🚀 CalculNotesIsen - Documentation Technique & Développement
 
-Ce document centralise les connaissances techniques, les règles métier et les standards du projet pour guider le développement.
+> [!IMPORTANT]
+> Ce fichier **DOIT** être régulièrement mis à jour après chaque changement architectural, modification des règles métier ou mise à jour du système de design. Il sert de boussole technique pour Gemini.
 
 ## 🛠️ Stack Technique
-- **Framework :** Expo (SDK 54) avec React Native.
-- **Navigation :** Expo Router (File-based routing).
+- **Framework :** Expo (SDK 54) avec React Native (0.81).
+- **Navigation :** Expo Router (File-based routing, v6).
 - **Langage :** TypeScript (Strict mode).
-- **Styles :** StyleSheet standard avec un système de constantes (`constants/Colors.ts`).
+- **Styles :** StyleSheet standard avec un système de constantes évolué (`constants/Colors.ts`).
 - **Icônes :** `lucide-react-native`.
-- **Animations :** `react-native-reanimated` et API `Animated` native.
+- **Animations :** `react-native-reanimated` (v4) et `expo-haptics` pour les retours tactiles.
 - **Stockage :** `@react-native-async-storage/async-storage` et `expo-secure-store`.
+- **Utilitaires :** `ical.js` (Agenda), `Supabase` (Config distante), `Vercel Analytics`.
 
 ## 📏 Règles Métier (ISEN)
 
@@ -18,19 +20,21 @@ Pour qu'une Unité d'Enseignement (UE) soit validée, deux conditions sont néce
 1. **Moyenne de l'UE ≥ 10/20**.
 2. **Aucune matière constitutive de l'UE n'a une moyenne < 6/20** (Note éliminatoire).
 
-### Calcul des Moyennes
+### Calcul des Moyennes & Rattrapages
 - **Matière :** Moyenne pondérée des évaluations selon leurs coefficients respectifs.
 - **UE :** Moyenne pondérée des matières selon les coefficients de matière.
 - **Semestre :** Moyenne pondérée des UE selon leurs ECTS.
+- **Logique de Rattrapage :** 
+  - Si la moyenne initiale de l'UE est `< 10`, la nouvelle moyenne (après rattrapage) est **plafonnée à 10**.
+  - Si la moyenne initiale de l'UE est `≥ 10`, la moyenne initiale est conservée (le rattrapage sert uniquement à lever une note éliminatoire `< 6`).
 
 ## 🎨 Système de Design (Premium v2)
 - **Primary :** `#2563EB` (Bleu Royal moderne).
+- **Background :** `#F1F5F9` (Gris ardoise très clair pour le contraste).
 - **Success :** `#10B981` (Vert émeraude).
 - **Error :** `#F43F5E` (Rose-rouge corail).
-- **Warning :** `#F59E0B` (Ambre).
-- **Neutral :** `#F8FAFC` (Gris très clair pour les fonds).
 - **Rayons de courbure (Border Radius) :** 
-  - `24px` pour les grandes cartes principales.
+  - `24px` pour les grandes cartes principales (`UeCard`).
   - `16px` pour les sous-sections et éléments internes.
   - `12px` pour les boutons et badges.
 - **Ombres (Shadows) :** Opacité très faible (`0.02` à `0.04`) avec un rayon de diffusion large pour un effet premium et léger.
@@ -38,21 +42,23 @@ Pour qu'une Unité d'Enseignement (UE) soit validée, deux conditions sont néce
 
 ## 📂 Structure du Code
 - `app/` : Routes de l'application (Navigation).
-- `components/ui/` : Composants atomiques et cartes complexes.
-- `services/` : Appels API (isenApi, agendaApi) et gestion du stockage.
-- `utils/` : Logique pure de traitement de données (calculs de notes).
+- `components/ui/` : Composants atomiques et cartes complexes (`agenda/`, `notes/`).
+- `services/` : Appels API (`isenApi`, `agendaApi`, `configApi`) et gestion du stockage.
+- `utils/` : Logique pure de traitement de données (`notes.ts`, `agenda.ts`, `notifications.ts`).
+- `hooks/` : Hooks personnalisés (`useAgenda.ts`).
 - `types/` : Définitions TypeScript globales.
 
 ## ⌨️ Standards de Code pour Gemini
 1. **Typage :** Toujours définir des interfaces dans `types/` avant d'implémenter une nouvelle fonctionnalité.
 2. **Surgical Updates :** Utiliser `replace` avec un contexte suffisant pour éviter les erreurs de duplication.
 3. **Validation :** Après chaque changement de logique de calcul, vérifier l'impact dans `utils/notes.ts`.
-4. **Performance :** Utiliser `useCallback` et `useMemo` pour les calculs lourds dans les listes de notes.
-5. **Animations :** Favoriser les animations fluides pour les états de chargement et les transitions.
-6. **UI Premium :** Toujours respecter le système de design v2 (arrondis généreux, ombres douces, bleu royal).
+4. **Performance :** Utiliser `useCallback` et `useMemo` pour les calculs lourds et les listes.
+5. **UI Premium :** Toujours respecter le système de design v2 (arrondis généreux, ombres douces).
 
 ## 🔄 Flux de Données
-1. Récupération des notes brutes via `isenApi.ts`.
-2. Chargement de la structure de la filière (`structure_note.json`).
-3. Fusion et calcul via `getDonneesAvecNotes` (`utils/notes.ts`).
-4. Affichage via `UeCard` et `MatiereCard`.
+1. **Notes :** Récupération via `isenApi.ts` -> Cache (`storage.ts`) -> Fusion avec la structure (`utils/notes.ts`) -> Affichage.
+2. **Config :** La structure de la filière est récupérée dynamiquement via GitHub RAW (`configApi.ts`).
+3. **Agenda :** Récupération via `agendaApi.ts` -> Parsing `ical.js` (`utils/agenda.ts`) -> Hook `useAgenda.ts`.
+4. **Notifications :** Programmées via `notifications.ts` (30 min avant le cours, limité aux 4 prochains jours, build natif uniquement).
+5. **Simulations :** Les notes simulées par l'utilisateur sont stockées localement et fusionnées en temps réel dans `getDonneesAvecNotes`.
+
