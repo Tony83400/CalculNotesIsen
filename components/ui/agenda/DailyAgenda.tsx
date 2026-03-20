@@ -4,13 +4,13 @@ import {
     View, 
     Text, 
     FlatList, 
-    TouchableOpacity, 
-    Modal, 
-    Pressable 
+    TouchableOpacity
 } from "react-native";
 import { Colors } from "@/constants/Colors";
 import { AgendaEvent } from "@/types/agenda";
-import { Clock, MapPin, X, Calendar as CalendarIcon, AlertCircle } from "lucide-react-native";
+import { MapPin, Calendar as CalendarIcon, AlertCircle } from "lucide-react-native";
+import { formatTime } from "@/utils/agenda";
+import EventDetailModal from "./EventDetailModal";
 
 interface DailyAgendaProps {
     events: AgendaEvent[];
@@ -27,18 +27,6 @@ export default function DailyAgenda({ events, selectedDate }: DailyAgendaProps) 
             return eventDate.toDateString() === selectedDate.toDateString();
         })
         .sort((a, b) => a.start.getTime() - b.start.getTime());
-
-    const formatTime = (date: Date) => {
-        const hours = date.getHours();
-        const minutes = date.getMinutes();
-        return `${hours}h${minutes.toString().padStart(2, '0')}`;
-    };
-
-    const formatFullDate = (date: Date) => {
-        const dayNames = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-        const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
-        return `${dayNames[date.getDay()]} ${date.getDate()} ${monthNames[date.getMonth()]}`;
-    };
 
     const renderEventItem = ({ item }: { item: AgendaEvent }) => {
         const isExam = item.isExam;
@@ -101,59 +89,11 @@ export default function DailyAgenda({ events, selectedDate }: DailyAgendaProps) 
                 showsVerticalScrollIndicator={false}
             />
 
-            {/* Modal de Détails (Réutilisé de AgendaGrid pour la cohérence) */}
-            <Modal
-                transparent
+            <EventDetailModal 
+                event={selectedEvent}
                 visible={!!selectedEvent}
-                animationType="fade"
-                onRequestClose={() => setSelectedEvent(null)}
-            >
-                <Pressable 
-                    style={styles.modalOverlay} 
-                    onPress={() => setSelectedEvent(null)}
-                >
-                    <View style={styles.modalContent}>
-                        <View style={[
-                            styles.modalHeader,
-                            selectedEvent?.isExam ? styles.examModalHeader : styles.regularModalHeader
-                        ]}>
-                            <View style={{ flex: 1 }}>
-                                {selectedEvent?.isExam && <Text style={styles.examLabelModal}>EXAMEN</Text>}
-                                <Text style={styles.modalTitle}>{selectedEvent?.title}</Text>
-                            </View>
-                            <TouchableOpacity 
-                                onPress={() => setSelectedEvent(null)}
-                                style={styles.closeButton}
-                            >
-                                <X size={24} color={Colors.text.secondary} />
-                            </TouchableOpacity>
-                        </View>
-
-                        <View style={styles.modalBody}>
-                            <View style={styles.detailItem}>
-                                <Clock size={20} color={Colors.primary} style={styles.detailIcon} />
-                                <View>
-                                    <Text style={styles.detailLabel}>Horaire</Text>
-                                    <Text style={styles.detailValue}>
-                                        {selectedEvent && formatFullDate(selectedEvent.start)}
-                                    </Text>
-                                    <Text style={styles.detailSubValue}>
-                                        {selectedEvent && formatTime(selectedEvent.start)} - {selectedEvent && formatTime(selectedEvent.end)}
-                                    </Text>
-                                </View>
-                            </View>
-
-                            <View style={styles.detailItem}>
-                                <MapPin size={20} color={Colors.primary} style={styles.detailIcon} />
-                                <View>
-                                    <Text style={styles.detailLabel}>Lieu</Text>
-                                    <Text style={styles.detailValue}>{selectedEvent?.location}</Text>
-                                </View>
-                            </View>
-                        </View>
-                    </View>
-                </Pressable>
-            </Modal>
+                onClose={() => setSelectedEvent(null)}
+            />
         </View>
     );
 }
@@ -283,89 +223,5 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '500',
         color: Colors.text.tertiary,
-    },
-    // Modal Styles (Consistency)
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 24,
-    },
-    modalContent: {
-        width: '100%',
-        backgroundColor: Colors.surface,
-        borderRadius: 24,
-        overflow: 'hidden',
-        elevation: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.1,
-        shadowRadius: 20,
-    },
-    modalHeader: {
-        padding: 24,
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.divider,
-    },
-    regularModalHeader: {
-        borderLeftWidth: 6,
-        borderLeftColor: Colors.primary,
-    },
-    examModalHeader: {
-        borderLeftWidth: 6,
-        borderLeftColor: Colors.status.error,
-        backgroundColor: Colors.status.error + '05',
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: '800',
-        color: Colors.text.primary,
-        lineHeight: 26,
-        letterSpacing: -0.5,
-    },
-    examLabelModal: {
-        fontSize: 10,
-        fontWeight: '900',
-        color: Colors.status.error,
-        marginBottom: 6,
-        letterSpacing: 1,
-    },
-    closeButton: {
-        padding: 4,
-        marginLeft: 12,
-    },
-    modalBody: {
-        padding: 24,
-        gap: 24,
-    },
-    detailItem: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-    },
-    detailIcon: {
-        marginTop: 2,
-        marginRight: 16,
-    },
-    detailLabel: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: Colors.text.tertiary,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-        marginBottom: 4,
-    },
-    detailValue: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: Colors.text.primary,
-    },
-    detailSubValue: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: Colors.primary,
-        marginTop: 2,
     }
 });

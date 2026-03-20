@@ -41,3 +41,21 @@ export const parseAgenda = (icsRawData: string): AgendaEvent[] => {
     return [];
   }
 };
+
+/**
+ * Formate une date en heure lisible (ex: 8h30)
+ */
+export const formatTime = (date: Date): string => {
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  return `${hours}h${minutes.toString().padStart(2, '0')}`;
+};
+
+/**
+ * Formate une date en texte complet (ex: Lundi 20 Mars)
+ */
+export const formatFullDate = (date: Date): string => {
+  const dayNames = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+  const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+  return `${dayNames[date.getDay()]} ${date.getDate()} ${monthNames[date.getMonth()]}`;
+};

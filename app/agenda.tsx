@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
-    FlatList,
     SafeAreaView,
     StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
-    ActivityIndicator
 } from "react-native";
 import { router } from "expo-router";
 import { 
@@ -15,133 +13,32 @@ import {
     ChevronRight, 
     Calendar, 
     ArrowLeft,
-    Clock,
     LayoutDashboard,
     Loader2,
     CalendarDays,
-    CalendarRange
+    CalendarRange,
+    RefreshCw
 } from "lucide-react-native";
 
-import CourseCard from "@/components/ui/notes/CourseCard";
 import AgendaGrid from "@/components/ui/agenda/AgendaGrid";
 import DailyAgenda from "@/components/ui/agenda/DailyAgenda";
 import { Colors } from "@/constants/Colors";
-import { getAgendaIsen } from "@/services/agendaApi";
-import { AgendaEvent } from "@/types/agenda";
-import programmerNotifications from "@/utils/notifiations";
+import { useAgenda } from "@/hooks/useAgenda";
 
 export default function AgendaScreen() {
-    const [allEvents, setAllEvents] = useState<AgendaEvent[]>([]);
-    const [filteredEvents, setFilteredEvents] = useState<AgendaEvent[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [viewMode, setViewMode] = useState<'week' | 'day'>('week');
-    
-    // Initialisation au Lundi de la semaine courante
-    const [currentDay, setCurrentDay] = useState<Date>(() => {
-        const startweek = new Date();
-        const day = startweek.getDay();
-        const diff = startweek.getDate() - day + (day === 0 ? -6 : 1); // Ajuste pour obtenir le lundi
-        startweek.setDate(diff);
-        startweek.setHours(0, 0, 0, 0);
-        return startweek; 
-    });
-
-    const [selectedDate, setSelectedDate] = useState<Date>(() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return today;
-    });
-
-    const endOfWeek = new Date(currentDay);
-    endOfWeek.setDate(currentDay.getDate() + 5); // Samedi inclus
-
-    const getAgenda = async () => {
-        setLoading(true);
-        try {
-            const rep = await getAgendaIsen();
-            setAllEvents(rep);
-            
-            // Filtrer les événements pour la semaine sélectionnée (pour AgendaGrid)
-            const startWeek = new Date(currentDay);
-            const endWeek = new Date(currentDay);
-            endWeek.setDate(endWeek.getDate() + 6);
-            endWeek.setHours(23, 59, 59, 999);
-
-            const filtered = rep.filter(event => {
-                return event.start >= startWeek && event.start <= endWeek;
-            });
-
-            setFilteredEvents(filtered);
-            
-            // Format pour les notifications si nécessaire
-            const tempAgenda: {day: string, events: AgendaEvent[]}[] = [];
-            for (let i = 0; i < 6; i++) {
-                const d = new Date(currentDay);
-                d.setDate(d.getDate() + i);
-                const dayEvents = filtered.filter(e => e.start.toDateString() === d.toDateString());
-                tempAgenda.push({ day: d.toDateString(), events: dayEvents });
-            }
-            programmerNotifications(tempAgenda);
-        } catch (error) {
-            console.error("Erreur Agenda:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        getAgenda();
-    }, [currentDay]);
-
-    const changeDate = (offset: number) => {
-        if (viewMode === 'week') {
-            setCurrentDay(prev => {
-                const newDate = new Date(prev);
-                newDate.setDate(newDate.getDate() + offset);
-                return newDate;
-            });
-        } else {
-            setSelectedDate(prev => {
-                const newDate = new Date(prev);
-                newDate.setDate(newDate.getDate() + offset);
-                
-                // Mettre à jour currentDay si on change de semaine
-                const day = newDate.getDay();
-                const diff = newDate.getDate() - day + (day === 0 ? -6 : 1);
-                const monday = new Date(newDate);
-                monday.setDate(diff);
-                monday.setHours(0, 0, 0, 0);
-                
-                if (monday.getTime() !== currentDay.getTime()) {
-                    setCurrentDay(monday);
-                }
-                
-                return newDate;
-            });
-        }
-    };
-
-    const toggleViewMode = () => {
-        const newMode = viewMode === 'week' ? 'day' : 'week';
-        setViewMode(newMode);
-        
-        // Si on passe en mode jour, s'assurer que selectedDate est dans la semaine courante
-        // ou réinitialiser à aujourd'hui si aujourd'hui est dans la semaine.
-        if (newMode === 'day') {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            const startWeek = new Date(currentDay);
-            const endWeek = new Date(currentDay);
-            endWeek.setDate(endWeek.getDate() + 6);
-            
-            if (today >= startWeek && today <= endWeek) {
-                setSelectedDate(today);
-            } else {
-                setSelectedDate(new Date(currentDay));
-            }
-        }
-    };
+    const {
+        allEvents,
+        weekEvents,
+        loading,
+        error,
+        viewMode,
+        currentDay,
+        selectedDate,
+        endOfWeek,
+        changeDate,
+        toggleViewMode,
+        refresh
+    } = useAgenda();
 
     return (
         <SafeAreaView style={styles.container}>
@@ -209,9 +106,17 @@ export default function AgendaScreen() {
                     <Loader2 size={40} color={Colors.primary} style={styles.spinner} />
                     <Text style={styles.loaderText}>Chargement de votre planning...</Text>
                 </View>
+            ) : error ? (
+                <View style={styles.loaderContainer}>
+                    <Text style={styles.errorText}>{error}</Text>
+                    <TouchableOpacity style={styles.refreshBtn} onPress={refresh}>
+                        <RefreshCw size={20} color="#FFF" />
+                        <Text style={styles.refreshBtnText}>Réessayer</Text>
+                    </TouchableOpacity>
+                </View>
             ) : (
                 viewMode === 'week' ? (
-                    <AgendaGrid events={filteredEvents} startDay={currentDay} />
+                    <AgendaGrid events={weekEvents} startDay={currentDay} />
                 ) : (
                     <DailyAgenda events={allEvents} selectedDate={selectedDate} />
                 )
@@ -300,7 +205,6 @@ const styles = StyleSheet.create({
     },
     toggleBtnActive: {
         backgroundColor: Colors.primary,
-        // Shadow for active button
         shadowColor: Colors.primary,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
@@ -345,59 +249,6 @@ const styles = StyleSheet.create({
         textTransform: 'capitalize',
         textAlign: 'center',
     },
-    listContent: {
-        padding: 16,
-        paddingBottom: 40,
-    },
-    daySection: {
-        marginBottom: 24,
-    },
-    dayHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 12,
-        gap: 8,
-    },
-    dayTitle: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: Colors.text.secondary,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    todayTitle: {
-        color: Colors.primary,
-    },
-    todayBadge: {
-        backgroundColor: Colors.primary,
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-    },
-    todayBadgeText: {
-        color: '#FFF',
-        fontSize: 9,
-        fontWeight: '800',
-    },
-    dayLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: Colors.divider,
-    },
-    eventsContainer: {
-        gap: 0,
-    },
-    emptyContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        paddingLeft: 4,
-    },
-    noClassText: {
-        fontStyle: 'italic',
-        color: Colors.text.tertiary,
-        fontSize: 14,
-    },
     loaderContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -411,5 +262,26 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: Colors.text.secondary,
         fontWeight: '500',
+    },
+    errorText: {
+        fontSize: 15,
+        color: Colors.status.error,
+        fontWeight: '600',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    refreshBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.primary,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderRadius: 12,
+        gap: 8,
+    },
+    refreshBtnText: {
+        color: '#FFF',
+        fontWeight: '700',
+        fontSize: 15,
     }
 });
