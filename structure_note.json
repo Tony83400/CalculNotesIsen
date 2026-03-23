@@ -824,8 +824,8 @@
           { "name": "Design UX et Innovation Entrepreneuriale", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
           { "name": "IA et recherches", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
           { "name": "L'ingénieur face à l'Anthropocène", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
-          { "name": "DD-RSE", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
-          { "name": "Start up challenge : Serious Game", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "CACAC", "coeff": 1 }] },
+          { "name": "DD-RSE", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "25_ISEN_MED_ISEN3_S6_SHES_DD_RSE_NP", "coeff": 1 }] },
+          { "name": "Start up challenge : Serious Game", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
           { "name": "LV2 * + anglais renforcé", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
         ]
       },
