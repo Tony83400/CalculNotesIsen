@@ -69,7 +69,7 @@ export default function LoginScreen() {
             if (keepLogin) {
                 await setPasswordStorage(passwordLogin);
             }
-            router.replace("/selection");
+            router.replace("/selectionAnnee");
         } catch (error) {
             setErrorText((error as Error).message);
         } finally {

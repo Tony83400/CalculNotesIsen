@@ -14,7 +14,8 @@ import {
     CalendarDays, 
     ChevronRight, 
     LogOut, 
-    Heart
+    Heart,
+    Settings
 } from "lucide-react-native";
 
 import RefreshButton from "@/components/ui/notes/RefreshButton";
@@ -49,8 +50,18 @@ export default function SelectionScreen() {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 {/* HEADER : Bienvenue */}
                 <View style={styles.header}>
-                    <Text style={styles.welcomeText}>Bonjour,</Text>
-                    <Text style={styles.title}>Tableau de bord</Text>
+                    <View style={styles.headerTopRow}>
+                        <View>
+                            <Text style={styles.welcomeText}>Bonjour,</Text>
+                            <Text style={styles.title}>Tableau de bord</Text>
+                        </View>
+                        <TouchableOpacity 
+                            style={styles.settingsIconBtn}
+                            onPress={() => router.push("/selectionAnnee")}
+                        >
+                            <Settings size={24} color={Colors.text.secondary} />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {/* CORPS : Fonctionnalités principales */}
@@ -134,6 +145,21 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
         paddingTop: 40,
         paddingBottom: 32,
+    },
+    headerTopRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    settingsIconBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 14,
+        backgroundColor: Colors.surface,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: Colors.border,
     },
     welcomeText: {
         fontSize: 16,

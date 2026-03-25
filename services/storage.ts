@@ -7,6 +7,9 @@ const isWeb = Platform.OS === 'web';
 import configDefault from '../structure_note.json';
 
 const structureName = "StructureConfig";
+const selectedYearName = "SelectedYear";
+const selectedMajorsName = "SelectedMajors";
+const selectedMajorsUrlsName = "SelectedMajorsUrls";
 const tokenName = "Token";
 const userName = "User";
 const passwordName = "Password";
@@ -27,6 +30,32 @@ const setStorageItem = async (key: string, value: string) => {
     await AsyncStorage.setItem(key, value);
   }
 };
+
+export async function getSelectedYear(): Promise<string | null> {
+  return await getStorageItem(selectedYearName);
+}
+
+export async function setSelectedYear(value: string) {
+  await setStorageItem(selectedYearName, value);
+}
+
+export async function getSelectedMajors(): Promise<Record<string, string> | null> {
+  const data = await getStorageItem(selectedMajorsName);
+  return data ? JSON.parse(data) : null;
+}
+
+export async function setSelectedMajors(value: Record<string, string>) {
+  await setStorageItem(selectedMajorsName, JSON.stringify(value));
+}
+
+export async function getSelectedMajorsUrls(): Promise<Record<string, string> | null> {
+  const data = await getStorageItem(selectedMajorsUrlsName);
+  return data ? JSON.parse(data) : null;
+}
+
+export async function setSelectedMajorsUrls(value: Record<string, string>) {
+  await setStorageItem(selectedMajorsUrlsName, JSON.stringify(value));
+}
 export async function getToken(): Promise<string | null> {
   return await getStorageItem(tokenName);
 }
@@ -158,6 +187,14 @@ export async function saveStructureToCache(structure: any) {
   }
 }
 
+export async function saveSemesterStructureToCache(semester: string, structure: any) {
+  try {
+    await setStorageItem(`${structureName}_${semester}`, JSON.stringify(structure));
+  } catch (e) {
+    console.error(`Erreur sauvegarde structure ${semester}`, e);
+  }
+}
+
 export async function loadStructureFromCache(): Promise<typeof configDefault> {
   const cachedString = await getStorageItem(structureName);
 
@@ -170,4 +207,16 @@ export async function loadStructureFromCache(): Promise<typeof configDefault> {
   }
   
   return configDefault; 
+}
+
+export async function loadSemesterStructureFromCache(semester: string): Promise<any | null> {
+  const cachedString = await getStorageItem(`${structureName}_${semester}`);
+  if (cachedString) {
+    try {
+      return JSON.parse(cachedString);
+    } catch (e) {
+      console.error(`Erreur parsing structure ${semester}`, e);
+    }
+  }
+  return null;
 }

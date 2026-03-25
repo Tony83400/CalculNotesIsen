@@ -9,9 +9,9 @@
 - **Langage :** TypeScript (Strict mode).
 - **Styles :** StyleSheet standard avec un système de constantes évolué (`constants/Colors.ts`).
 - **Icônes :** `lucide-react-native`.
-- **Animations :** `react-native-reanimated` (v4) et `expo-haptics` pour les retours tactiles.
+- **Animations :** `react-native-reanimated` (v4) et `expo-haptics` pour les retours tactiles. 
 - **Stockage :** `@react-native-async-storage/async-storage` et `expo-secure-store`.
-- **Utilitaires :** `ical.js` (Agenda), `Supabase` (Config distante), `Vercel Analytics`.
+- **Utilitaires :** `ical.js` (Agenda), `Vercel Analytics`.
 
 ## 📏 Règles Métier (ISEN)
 
@@ -43,10 +43,11 @@ Pour qu'une Unité d'Enseignement (UE) soit validée, deux conditions sont néce
 ## 📂 Structure du Code
 - `app/` : Routes de l'application (Navigation).
 - `components/ui/` : Composants atomiques et cartes complexes (`agenda/`, `notes/`).
-- `services/` : Appels API (`isenApi`, `agendaApi`, `configApi`) et gestion du stockage.
+- `services/` : Appels API (`isenApi`, `agendaApi`, `configApi`) et gestion du stockage (`storage.ts`).
 - `utils/` : Logique pure de traitement de données (`notes.ts`, `agenda.ts`, `notifications.ts`).
 - `hooks/` : Hooks personnalisés (`useAgenda.ts`).
 - `types/` : Définitions TypeScript globales.
+- `structures_notes/` : Fichiers JSON de structure par année/semestre et `localMapping.ts` pour le fallback local.
 
 ## ⌨️ Standards de Code pour Gemini
 1. **Typage :** Toujours définir des interfaces dans `types/` avant d'implémenter une nouvelle fonctionnalité.
@@ -57,8 +58,8 @@ Pour qu'une Unité d'Enseignement (UE) soit validée, deux conditions sont néce
 
 ## 🔄 Flux de Données
 1. **Notes :** Récupération via `isenApi.ts` -> Cache (`storage.ts`) -> Fusion avec la structure (`utils/notes.ts`) -> Affichage.
-2. **Config :** La structure de la filière est récupérée dynamiquement via GitHub RAW (`configApi.ts`).
-3. **Agenda :** Récupération via `agendaApi.ts` -> Parsing `ical.js` (`utils/agenda.ts`) -> Hook `useAgenda.ts`.
-4. **Notifications :** Programmées via `notifications.ts` (30 min avant le cours, limité aux 4 prochains jours, build natif uniquement).
-5. **Simulations :** Les notes simulées par l'utilisateur sont stockées localement et fusionnées en temps réel dans `getDonneesAvecNotes`.
-
+2. **Config Globale :** Chargée depuis `structures_notes/structure.json` pour définir les années et semestres disponibles.
+3. **Config Semestre :** L'utilisateur sélectionne une année et une filière par semestre (`selectionAnnee.tsx`). Les structures (`.json`) sont téléchargées depuis GitHub RAW ou récupérées via `localMapping.ts` en développement, puis mises en cache individuellement.
+4. **Agenda :** Récupération via `agendaApi.ts` -> Parsing `ical.js` (`utils/agenda.ts`) -> Hook `useAgenda.ts`.
+5. **Notifications :** Programmées via `notifications.ts` (30 min avant le cours, limité aux 4 prochains jours, build natif uniquement).
+6. **Simulations :** Les notes simulées par l'utilisateur sont stockées localement et fusionnées en temps réel dans `getDonneesAvecNotes`.

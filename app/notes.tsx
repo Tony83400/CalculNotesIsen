@@ -24,8 +24,16 @@ import {
 } from "lucide-react-native";
 
 import { getNotes } from "@/services/isenApi";
-import { getId, loadLastUpdateNotes, loadStructureFromCache } from "@/services/storage";
-import { updateStructureConfig } from "@/services/configApi";
+import { 
+    getId, 
+    loadLastUpdateNotes, 
+    loadStructureFromCache, 
+    getSelectedMajorsUrls,
+    getSelectedMajors,
+    saveStructureToCache,
+    loadSemesterStructureFromCache
+} from "@/services/storage";
+import { updateStructureConfig, fetchSemesterStructure } from "@/services/configApi";
 import { Note } from "@/types/note";
 import getDonneesAvecNotes from "@/utils/notes";
 import UeCard from '../components/ui/notes/UeList';
@@ -35,17 +43,64 @@ import { Colors } from "@/constants/Colors";
 export default function NotesScreen() {
     const [notes, setNotes] = useState<Note[]>();
     const [selectedFiliere, setSelectedFiliere] = useState<string | null>(null);
-    const [configActuelle, setConfigActuelle] = useState(configDefault);
+    const [configActuelle, setConfigActuelle] = useState<any>(null);
+    const [selectedMajors, setSelectedMajorsState] = useState<Record<string, string>>({});
+    const [majorUrls, setMajorUrls] = useState<Record<string, string>>({});
     const [userId, setUserId] = useState<string | null>("");
     const [lastUpdate, setLastUpdate] = useState(new Date());
     const [error, setError] = useState<string | null>(null);
     const [simulatedNotes, setSimulatedNotes] = useState<Record<string, number | null>>({});
     const [isRattrapageMode, setIsRattrapageMode] = useState(false);
+    const [isLoadingConfig, setIsLoadingConfig] = useState(false);
 
     const spinValue = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
+        const loadInitialData = async () => {
+            const urls = await getSelectedMajorsUrls();
+            const majors = await getSelectedMajors();
+            if (urls) setMajorUrls(urls);
+            if (majors) setSelectedMajorsState(majors);
+        };
+        loadInitialData();
+    }, []);
+
+    const handleFiliereSelect = async (filiere: string) => {
+        setIsLoadingConfig(true);
+        try {
+            // Check cache first
+            let structure = await loadSemesterStructureFromCache(filiere);
+            
+            if (!structure) {
+                const url = majorUrls[filiere];
+                if (url) {
+                    structure = await fetchSemesterStructure(filiere, url);
+                }
+            }
+
+            if (structure) {
+                // Compatibility wrap
+                const wrappedConfig = {
+                    version: "1.1",
+                    filieres: {
+                        [filiere]: Array.isArray(structure) ? structure : (structure.filieres ? structure.filieres[filiere] : [])
+                    }
+                };
+                setConfigActuelle(wrappedConfig);
+                setSelectedFiliere(filiere);
+            } else {
+                Alert.alert("Erreur", "Impossible de charger la structure. Vérifiez votre connexion.");
+            }
+        } catch (e) {
+            console.error("Error selecting filiere:", e);
+        } finally {
+            setIsLoadingConfig(false);
+        }
+    };
+
+    useEffect(() => {
         let isCancelled = false;
+
         
         const runAnimation = () => {
             if (isCancelled) return;
@@ -78,7 +133,7 @@ export default function NotesScreen() {
         outputRange: ['0deg', '360deg']
     });
 
-    const filieresDisponibles = Object.keys(configActuelle.filieres);
+    const filieresDisponibles = Object.keys(selectedMajors);
 
     const updateSimulation = useCallback((id: string, val: number | null) => {
         setSimulatedNotes(prev => ({ ...prev, [id]: val }));
@@ -118,23 +173,12 @@ export default function NotesScreen() {
     }, [fetchNote]);
 
     useEffect(() => {
-        const updateConfig = async () => {
-            const newConfig = await updateStructureConfig();
-            if (newConfig) {
-                setConfigActuelle(newConfig);
-            }
-        };
-        updateConfig();
+        updateStructureConfig();
     }, []);
 
     useEffect(() => {
-        const loadConfig = async () => {
-            const cachedConfig = await loadStructureFromCache();
-            if (cachedConfig) {
-                setConfigActuelle(cachedConfig);
-            }
-        };
-        loadConfig();
+        // We don't want to load the global structure into configActuelle anymore
+        // as it now holds a specific semester structure.
     }, [lastUpdate]);
 
     // Écran de sélection de filière
@@ -152,13 +196,21 @@ export default function NotesScreen() {
                     renderItem={({ item }) => (
                         <TouchableOpacity
                             style={styles.filiereCard}
-                            onPress={() => setSelectedFiliere(item)}
+                            onPress={() => handleFiliereSelect(item)}
                             activeOpacity={0.7}
+                            disabled={isLoadingConfig}
                         >
                             <View style={styles.filiereIconBox}>
-                                <LayoutGrid size={24} color={Colors.primary} />
+                                {isLoadingConfig ? (
+                                    <Loader2 size={24} color={Colors.primary} />
+                                ) : (
+                                    <LayoutGrid size={24} color={Colors.primary} />
+                                )}
                             </View>
-                            <Text style={styles.filiereText}>{item}</Text>
+                            <View>
+                                <Text style={styles.filiereText}>{item}</Text>
+                                <Text style={styles.filiereSubtext}>{selectedMajors[item]}</Text>
+                            </View>
                         </TouchableOpacity>
                     )}
                     contentContainerStyle={styles.selectionList}
@@ -538,6 +590,11 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: Colors.text.primary,
         letterSpacing: -0.3,
+    },
+    filiereSubtext: {
+        fontSize: 13,
+        color: Colors.text.secondary,
+        fontWeight: '500',
     },
     backButtonLarge: {
         flexDirection: 'row',

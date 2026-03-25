@@ -148,4 +148,3 @@ dist/
 .env*.local
 /android
 *.png
-GEMINI.md
