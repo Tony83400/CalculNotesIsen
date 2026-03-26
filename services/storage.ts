@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from "react-native";
 const isWeb = Platform.OS === 'web';
-import configDefault from '../structure_note.json';
+import configDefault from '../structures_notes/structure.json';
 
 const structureName = "StructureConfig";
 const selectedYearName = "SelectedYear";

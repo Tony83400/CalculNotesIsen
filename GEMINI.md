@@ -46,20 +46,21 @@ Pour qu'une Unité d'Enseignement (UE) soit validée, deux conditions sont néce
 - `services/` : Appels API (`isenApi`, `agendaApi`, `configApi`) et gestion du stockage (`storage.ts`).
 - `utils/` : Logique pure de traitement de données (`notes.ts`, `agenda.ts`, `notifications.ts`).
 - `hooks/` : Hooks personnalisés (`useAgenda.ts`).
-- `types/` : Définitions TypeScript globales.
-- `structures_notes/` : Fichiers JSON de structure par année/semestre et `localMapping.ts` pour le fallback local.
+- `types/` : Definitions TypeScript globales.
+- `structures_notes/` : **Source de vérité pour la configuration.** Contient `structure.json` (global), les fichiers par semestre, et `localMapping.ts`.
 
 ## ⌨️ Standards de Code pour Gemini
 1. **Typage :** Toujours définir des interfaces dans `types/` avant d'implémenter une nouvelle fonctionnalité.
 2. **Surgical Updates :** Utiliser `replace` avec un contexte suffisant pour éviter les erreurs de duplication.
-3. **Validation :** Après chaque changement de logique de calcul, vérifier l'impact dans `utils/notes.ts`.
-4. **Performance :** Utiliser `useCallback` et `useMemo` pour les calculs lourds et les listes.
-5. **UI Premium :** Toujours respecter le système de design v2 (arrondis généreux, ombres douces).
+3. **Architecture Config :** **NE JAMAIS** utiliser `structure_note.json` (legacy supprimé). Toujours utiliser `structures_notes/structure.json` via `configApi.ts`.
+4. **Validation :** Après chaque changement de logique de calcul, vérifier l'impact dans `utils/notes.ts`.
+5. **Performance :** Utiliser `useCallback` et `useMemo` pour les calculs lourds et les listes.
+6. **UI Premium :** Toujours respecter le système de design v2 (arrondis généreux, ombres douces).
 
 ## 🔄 Flux de Données
 1. **Notes :** Récupération via `isenApi.ts` -> Cache (`storage.ts`) -> Fusion avec la structure (`utils/notes.ts`) -> Affichage.
-2. **Config Globale :** Chargée depuis `structures_notes/structure.json` pour définir les années et semestres disponibles.
-3. **Config Semestre :** L'utilisateur sélectionne une année et une filière par semestre (`selectionAnnee.tsx`). Les structures (`.json`) sont téléchargées depuis GitHub RAW ou récupérées via `localMapping.ts` en développement, puis mises en cache individuellement.
+2. **Config Globale :** Chargée depuis `structures_notes/structure.json` via `configApi.ts` pour définir les années et semestres disponibles.
+3. **Config Semestre :** L'utilisateur sélectionne une année et une filière par semestre (`selectionAnnee.tsx`). Les structures (`.json`) sont téléchargées dynamiquement (GitHub RAW) ou récupérées via `localMapping.ts` (dev), puis mises en cache via `storage.ts` avec le préfixe `StructureConfig_`.
 4. **Agenda :** Récupération via `agendaApi.ts` -> Parsing `ical.js` (`utils/agenda.ts`) -> Hook `useAgenda.ts`.
 5. **Notifications :** Programmées via `notifications.ts` (30 min avant le cours, limité aux 4 prochains jours, build natif uniquement).
 6. **Simulations :** Les notes simulées par l'utilisateur sont stockées localement et fusionnées en temps réel dans `getDonneesAvecNotes`.

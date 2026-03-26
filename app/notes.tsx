@@ -27,7 +27,6 @@ import { getNotes } from "@/services/isenApi";
 import { 
     getId, 
     loadLastUpdateNotes, 
-    loadStructureFromCache, 
     getSelectedMajorsUrls,
     getSelectedMajors,
     saveStructureToCache,
@@ -37,7 +36,6 @@ import { updateStructureConfig, fetchSemesterStructure } from "@/services/config
 import { Note } from "@/types/note";
 import getDonneesAvecNotes from "@/utils/notes";
 import UeCard from '../components/ui/notes/UeList';
-import configDefault from '../structure_note.json';
 import { Colors } from "@/constants/Colors";
 
 export default function NotesScreen() {
