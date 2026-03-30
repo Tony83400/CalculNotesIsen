@@ -12,8 +12,8 @@ import {
     ChevronLeft, 
     ChevronRight, 
     Calendar, 
-    ArrowLeft,
-    LayoutDashboard,
+    Home,
+    GraduationCap,
     Loader2,
     CalendarDays,
     CalendarRange,
@@ -47,7 +47,7 @@ export default function AgendaScreen() {
             {/* Header Moderne */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.push("/selection")} style={styles.iconBtn}>
-                    <ArrowLeft size={22} color={Colors.text.primary} />
+                    <Home size={22} color={Colors.text.primary} />
                 </TouchableOpacity>
                 <View style={styles.headerTitleContainer}>
                     <Text style={styles.headerTitle}>Emploi du temps</Text>
@@ -57,7 +57,7 @@ export default function AgendaScreen() {
                     </View>
                 </View>
                 <TouchableOpacity onPress={() => router.push("/notes")} style={styles.iconBtn}>
-                    <LayoutDashboard size={20} color={Colors.text.primary} />
+                    <GraduationCap size={22} color={Colors.text.primary} />
                 </TouchableOpacity>
             </View>
 

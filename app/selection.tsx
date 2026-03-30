@@ -14,25 +14,37 @@ import {
     CalendarDays, 
     ChevronRight, 
     LogOut, 
-    Heart
+    Heart,
+    Settings,
+    ArrowRight
 } from "lucide-react-native";
 
 import RefreshButton from "@/components/ui/notes/RefreshButton";
 import { Colors } from "@/constants/Colors";
 import { getAgendaIsen } from "@/services/agendaApi";
 import { getNotes } from "@/services/isenApi";
-import { clearAllStorage, getId } from "@/services/storage";
+import { 
+    clearAllStorage, 
+    getId, 
+    getSelectedMajors, 
+    getSelectedYear,
+    setSelectedSemester 
+} from "@/services/storage";
 import { updateStructureConfig } from "@/services/configApi";
 
 export default function SelectionScreen() {
     const [userId, setUserId] = useState<string | null>(null);
+    const [selectedYear, setSelectedYear] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchId = async () => {
+        const fetchConfig = async () => {
             const id = await getId();
+            const year = await getSelectedYear();
+            
             setUserId(id);
+            setSelectedYear(year);
         };
-        fetchId();
+        fetchConfig();
         updateStructureConfig();
     }, []);
 
@@ -49,8 +61,23 @@ export default function SelectionScreen() {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 {/* HEADER : Bienvenue */}
                 <View style={styles.header}>
-                    <Text style={styles.welcomeText}>Bonjour,</Text>
-                    <Text style={styles.title}>Tableau de bord</Text>
+                    <View style={styles.headerTopRow}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.welcomeText}>Bonjour,</Text>
+                            <Text style={styles.title}>Tableau de bord</Text>
+                            {selectedYear && <Text style={styles.yearText}>{selectedYear}</Text>}
+                        </View>
+                        <TouchableOpacity 
+                            style={styles.settingsBtn}
+                            onPress={() => router.push("/selectionAnnee")}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.settingsIconCircle}>
+                                <Settings size={18} color={Colors.primary} />
+                            </View>
+                            <Text style={styles.settingsBtnText}>Configurer mon cursus</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {/* CORPS : Fonctionnalités principales */}
@@ -60,15 +87,15 @@ export default function SelectionScreen() {
                     {/* Carte NOTES */}
                     <TouchableOpacity
                         style={styles.card}
-                        onPress={() => router.push("/notes")}
+                        onPress={() => router.push("/selectionSemestre")}
                         activeOpacity={0.7}
                     >
                         <View style={[styles.iconBox, { backgroundColor: Colors.primary + '10' }]}>
                             <GraduationCap size={32} color={Colors.primary} />
                         </View>
                         <View style={styles.cardTextContainer}>
-                            <Text style={styles.cardTitle}>Mes Notes</Text>
-                            <Text style={styles.cardDescription}>Moyennes, ECTS et simulations</Text>
+                            <Text style={styles.cardTitle}>Consulter mes notes</Text>
+                            <Text style={styles.cardDescription}>Choix du semestre, ECTS et moyennes</Text>
                         </View>
                         <View style={styles.arrowContainer}>
                             <ChevronRight size={20} color={Colors.text.tertiary} />
@@ -108,7 +135,7 @@ export default function SelectionScreen() {
                     </View>
 
                     <View style={styles.creditsContainer}>
-                        <Text style={styles.versionText}>CalculNotesISEN v2.0</Text>
+                        <Text style={styles.versionText}>CalculNotesISEN v2.5</Text>
                         <View style={styles.authorRow}>
                             <Text style={styles.creditsText}>Fait avec </Text>
                             <Heart size={10} color={Colors.status.error} fill={Colors.status.error} />
@@ -135,6 +162,41 @@ const styles = StyleSheet.create({
         paddingTop: 40,
         paddingBottom: 32,
     },
+    headerTopRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    settingsBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.surface,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        gap: 10,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.03,
+        shadowRadius: 6,
+        elevation: 1,
+    },
+    settingsIconCircle: {
+        width: 32,
+        height: 32,
+        borderRadius: 10,
+        backgroundColor: Colors.primary + '10',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    settingsBtnText: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: Colors.text.primary,
+        letterSpacing: -0.2,
+    },
     welcomeText: {
         fontSize: 16,
         color: Colors.text.secondary,
@@ -148,10 +210,20 @@ const styles = StyleSheet.create({
         letterSpacing: -1,
         marginTop: 4,
     },
+    yearText: {
+        fontSize: 15,
+        color: Colors.primary,
+        fontWeight: '700',
+        marginTop: 4,
+        backgroundColor: Colors.primary + '10',
+        alignSelf: 'flex-start',
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 10,
+    },
     // Main Content
     mainContent: {
         paddingHorizontal: 16,
-        gap: 16,
     },
     sectionTitle: {
         fontSize: 13,
@@ -160,7 +232,7 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
         letterSpacing: 1.5,
         marginLeft: 8,
-        marginBottom: 4,
+        marginBottom: 16,
     },
     card: {
         flexDirection: 'row',
@@ -170,17 +242,17 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         borderWidth: 1,
         borderColor: Colors.border,
-        // Ombre portée très douce
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.04,
-        shadowRadius: 16,
-        elevation: 3,
+        shadowOpacity: 0.03,
+        shadowRadius: 12,
+        elevation: 2,
+        marginBottom: 12,
     },
     iconBox: {
-        width: 68,
-        height: 68,
-        borderRadius: 20,
+        width: 60,
+        height: 60,
+        borderRadius: 18,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 16,
@@ -189,7 +261,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     cardTitle: {
-        fontSize: 19,
+        fontSize: 17,
         fontWeight: '800',
         color: Colors.text.primary,
         letterSpacing: -0.5,
@@ -201,9 +273,9 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     arrowContainer: {
-        width: 36,
-        height: 36,
-        borderRadius: 12,
+        width: 32,
+        height: 32,
+        borderRadius: 10,
         backgroundColor: Colors.background,
         alignItems: 'center',
         justifyContent: 'center',

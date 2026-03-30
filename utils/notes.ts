@@ -1,15 +1,23 @@
-import { Ue } from "../types/note";
+import { Ue, Note } from "../types/note";
 
+/**
+ * Calcule les moyennes et fusionne les notes de l'API avec la structure de la filière.
+ * Gère les simulations et le mode rattrapage spécifique à l'ISEN.
+ */
 const getDonneesAvecNotes = (
-  dataFiliere: Ue[],
-  notes: any[],
-  simulatedNotes: any,
+  dataFiliere: Ue[] = [],
+  notes: Note[] = [],
+  simulatedNotes: Record<string, number | null> = {},
   showRattrapages: boolean = false
 ) => {
+  // Sécurité : évite l'erreur JSON.parse("undefined")
+  if (!dataFiliere) dataFiliere = [];
+  
+  // Copie profonde pour ne pas muter l'original
   const structureCopie: Ue[] = JSON.parse(JSON.stringify(dataFiliere));
   const usedNoteCodes = new Set<string>();
 
-  // 0. Prétraitement des rattrapages
+  // Prétraitement des notes
   const rattrapageNotes = notes.filter(n => n.code.includes("_RATTRAPAGE_"));
   const normalNotes = notes.filter(n => !n.code.includes("_RATTRAPAGE_"));
 
@@ -29,43 +37,33 @@ const getDonneesAvecNotes = (
       let sommePointsMat = 0;
       let totalCoeffMat = 0;
 
-      // On traite d'abord les évaluations normalement
+      // 1. Attribution des notes aux évaluations
       matiere.evaluations.forEach((evaluation, indexEval) => {
-        const uniqueId =
-          evaluation.code && evaluation.code.length > 0
-            ? evaluation.code
-            : `${matiere.name}_${evaluation.name}_${indexEval}`;
-
+        const uniqueId = evaluation.code || `${matiere.name}_${evaluation.name}_${indexEval}`;
         evaluation.uniqueId = uniqueId;
 
         let noteFromApi = null;
         if (evaluation.code) {
-          noteFromApi = normalNotes.find((n) => n.code === evaluation.code);
-          if (!noteFromApi) {
-            noteFromApi = normalNotes.find((n) => n.code.startsWith(evaluation.code));
-          }
-
-          if (noteFromApi) {
-            usedNoteCodes.add(noteFromApi.code);
-          }
+          noteFromApi = normalNotes.find((n) => n.code === evaluation.code) || 
+                        normalNotes.find((n) => n.code.startsWith(evaluation.code));
+          
+          if (noteFromApi) usedNoteCodes.add(noteFromApi.code);
         }
 
         const simu = simulatedNotes[uniqueId];
-        let finalNote: number | null = null;
-        let isFromApi = false;
-
         if (simu !== undefined && simu !== null) {
-          finalNote = simu;
+          evaluation.noteReelle = simu;
+          evaluation.hasApiNote = false;
         } else if (noteFromApi) {
-          finalNote = noteFromApi.note;
-          isFromApi = true;
+          evaluation.noteReelle = noteFromApi.note;
+          evaluation.hasApiNote = true;
+        } else {
+          evaluation.noteReelle = null;
+          evaluation.hasApiNote = false;
         }
-
-        evaluation.noteReelle = finalNote;
-        evaluation.hasApiNote = isFromApi;
       });
 
-      // --- CALCUL MOYENNE INITIALE (SANS RATTRAPAGES) ---
+      // 2. Calcul Moyenne Initiale (pour règle rattrapage ISEN)
       let pointsMatiereSansRat = 0;
       let coeffMatiereSansRat = 0;
       matiere.evaluations.forEach(ev => {
@@ -74,44 +72,39 @@ const getDonneesAvecNotes = (
           coeffMatiereSansRat += ev.coeff;
         }
       });
+      
       const moyenneMatiereSansRat = coeffMatiereSansRat > 0 ? pointsMatiereSansRat / coeffMatiereSansRat : null;
       if (moyenneMatiereSansRat !== null) {
         sommePointsUE_Initial += moyenneMatiereSansRat * matiere.coeff_matiere;
         totalCoeffUE_Initial += matiere.coeff_matiere;
       }
 
-      // Logique de Rattrapage (si activé)
+      // 3. Application des Rattrapages (si activé)
       if (showRattrapages) {
         const matiereNameUpper = matiere.name.toUpperCase().replace(/\s+/g, '_');
-        
         const applicableRattrapages = rattrapageNotes.filter(r => {
-          const rattrapageSubject = r.code.split('_RATTRAPAGE_')[1] || "";
-          const matchMatiere = matiereNameUpper.includes(rattrapageSubject) || rattrapageSubject.includes(matiereNameUpper);
-          const matchEval = matiere.evaluations.some(ev => {
-            const evalSuffix = ev.code?.split('_').pop() || "";
-            return (evalSuffix && evalSuffix.includes(rattrapageSubject)) || (rattrapageSubject && rattrapageSubject.includes(evalSuffix));
-          });
-          return matchMatiere || matchEval;
+          const ratSubject = r.code.split('_RATTRAPAGE_')[1] || "";
+          return matiereNameUpper.includes(ratSubject) || ratSubject.includes(matiereNameUpper) ||
+                 matiere.evaluations.some(ev => ev.code?.split('_').pop()?.includes(ratSubject));
         });
 
         if (applicableRattrapages.length > 0) {
           const bestRattrapage = [...applicableRattrapages].sort((a, b) => b.note - a.note)[0];
           usedNoteCodes.add(bestRattrapage.code);
-          matiere.evaluations.forEach((evaluation) => {
-            const currentNote = evaluation.noteReelle ?? -1;
-            if (bestRattrapage.note > currentNote) {
-              evaluation.noteReelle = bestRattrapage.note;
-              evaluation.hasApiNote = true;
+          matiere.evaluations.forEach(ev => {
+            if (bestRattrapage.note > (ev.noteReelle ?? -1)) {
+              ev.noteReelle = bestRattrapage.note;
+              ev.hasApiNote = true;
             }
           });
         }
       }
 
-      // Calcul de la moyenne de la matière avec les notes potentiellement modifiées
-      matiere.evaluations.forEach((evaluation) => {
-        if (evaluation.noteReelle !== null) {
-          sommePointsMat += evaluation.noteReelle * evaluation.coeff;
-          totalCoeffMat += evaluation.coeff;
+      // 4. Calcul Moyenne Finale Matière
+      matiere.evaluations.forEach((ev) => {
+        if (ev.noteReelle !== null) {
+          sommePointsMat += ev.noteReelle * ev.coeff;
+          totalCoeffMat += ev.coeff;
         } else {
           ueEstComplete = false;
         }
@@ -128,31 +121,22 @@ const getDonneesAvecNotes = (
       }
     });
 
+    // 5. Calcul Moyenne UE & Validation
     if (totalCoeffUE > 0) {
       const moyenneInitiale = totalCoeffUE_Initial > 0 ? sommePointsUE_Initial / totalCoeffUE_Initial : 0;
-      const moyenneAvecRattrapages = sommePointsUE / totalCoeffUE;
+      const moyenneApresCalcul = sommePointsUE / totalCoeffUE;
 
       if (showRattrapages) {
-        // RÈGLE ISEN :
-        // 1. Si moyenneInitiale < 10 : on plafonne à 10
-        if (moyenneInitiale < 10) {
-          ue.moyenne = Math.min(moyenneAvecRattrapages, 10);
-        } 
-        // 2. Si moyenneInitiale >= 10 : on garde la moyenne initiale (le rattrapage ne sert qu'à lever le < 6)
-        else {
-          ue.moyenne = moyenneInitiale;
-        }
+        // RÈGLE ISEN : Plafonnement à 10 si moyenne initiale < 10
+        ue.moyenne = moyenneInitiale < 10 ? Math.min(moyenneApresCalcul, 10) : moyenneInitiale;
       } else {
-        ue.moyenne = moyenneAvecRattrapages;
+        ue.moyenne = moyenneApresCalcul;
       }
 
-      const estValide =
-        ueEstComplete && ue.moyenne >= 10 && pasDeNoteEliminatoire;
-      ue.isValidated = estValide;
+      ue.isValidated = ueEstComplete && ue.moyenne >= 10 && pasDeNoteEliminatoire;
       ue.hasEliminatoryNote = !pasDeNoteEliminatoire;
 
-      if (estValide) ectsValides += ue.ects;
-
+      if (ue.isValidated) ectsValides += ue.ects;
       totalPointsSemestre += ue.moyenne * ue.ects;
       totalEctsSemestre += ue.ects;
     } else {
@@ -161,76 +145,43 @@ const getDonneesAvecNotes = (
     }
   });
 
-  // 1. Extraire le semestre de la filière (ex: "CIN UI S5" -> "S5")
-  const filiereName = structureCopie.length > 0 ? "" : ""; // On ne peut pas facilement via structureCopie
-  // En fait, on peut regarder les codes des évaluations déjà présentes dans la structure pour deviner le semestre cible
+  // 6. Gestion des notes "orphelines" (non présentes dans la structure)
   let currentSemester = "";
-  for (const ue of structureCopie) {
-    for (const mat of ue.matieres) {
-      for (const ev of mat.evaluations) {
-        if (ev.code) {
-          const match = ev.code.match(/_S(\d)_/);
-          if (match) {
-            currentSemester = `S${match[1]}`;
-            break;
-          }
-        }
-      }
-      if (currentSemester) break;
-    }
-    if (currentSemester) break;
-  }
+  structureCopie.some(ue => ue.matieres.some(m => m.evaluations.some(e => {
+    const match = e.code?.match(/_S(\d)_/);
+    if (match) currentSemester = `S${match[1]}`;
+    return !!currentSemester;
+  })));
 
-  // Gestion des notes "orphelines" (qui ne sont pas dans la structure)
-  const unusedNotes = notes.filter((n) => {
-    const isUnused = !usedNoteCodes.has(n.code);
-    if (!isUnused) return false;
-    
-    // Si on a identifié un semestre (S5, S6...), on ne garde que les notes de ce semestre
-    if (currentSemester) {
-      return n.code.includes(`_${currentSemester}_`);
-    }
-    return true;
-  });
+  const unusedNotes = notes.filter(n => !usedNoteCodes.has(n.code) && (!currentSemester || n.code.includes(`_${currentSemester}_`)));
 
   if (unusedNotes.length > 0) {
-    // Tri des notes par date (la plus récente en premier)
     const sortedUnused = [...unusedNotes].sort((a, b) => {
       const dateA = a.date ? new Date(a.date.split('/').reverse().join('-')) : new Date(0);
       const dateB = b.date ? new Date(b.date.split('/').reverse().join('-')) : new Date(0);
       return dateB.getTime() - dateA.getTime();
     });
 
-    const otherUe: Ue = {
+    structureCopie.push({
       ue: "Autres notes (Hors Moyenne)",
       ects: 0,
-      matieres: sortedUnused.map((n) => ({
+      matieres: sortedUnused.map(n => ({
         name: n.name,
         coeff_matiere: 1,
-        evaluations: [
-          {
-            name: n.name,
-            code: n.code,
-            coeff: 1,
-            noteReelle: n.note,
-            hasApiNote: true,
-            uniqueId: n.code,
-          },
-        ],
+        evaluations: [{ name: n.name, code: n.code, coeff: 1, noteReelle: n.note, hasApiNote: true, uniqueId: n.code }],
         moyenne: n.note,
       })),
       moyenne: sortedUnused.reduce((acc, n) => acc + n.note, 0) / sortedUnused.length,
       isValidated: false,
-    };
-    structureCopie.push(otherUe);
+    });
   }
-
-  const moyGen =
-    totalEctsSemestre > 0 ? totalPointsSemestre / totalEctsSemestre : 0;
 
   return {
     structure: structureCopie,
-    stats: { ects: ectsValides, moyenne: moyGen },
+    stats: {
+      ects: ectsValides,
+      moyenne: totalEctsSemestre > 0 ? totalPointsSemestre / totalEctsSemestre : 0
+    },
   };
 };
 
