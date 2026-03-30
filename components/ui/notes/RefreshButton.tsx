@@ -18,7 +18,7 @@ export default function RefreshButton() {
             await Promise.all([
                 getAgendaIsen(), 
                 getNotes(),
-                updateStructureConfig()
+                updateStructureConfig(true)
             ]);
         } catch (error) {
             console.error("Erreur lors du refresh", error);

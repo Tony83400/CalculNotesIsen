@@ -51,7 +51,7 @@
         "ects": 5,
         "matieres": [
           { "name": "Réseaux 2", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
-          { "name": "Linux", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+          { "name": "Linux", "coeff_matiere": 1, "evaluations": [{ "name": "Cotrole continu", "code": "25_ISEN_MED_ISEN3_S6_LINUX_CC", "coeff": 1 },{ "name": "Examen", "code": "", "coeff": 1 }] }
         ]
       },
       {

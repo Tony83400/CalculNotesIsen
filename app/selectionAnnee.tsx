@@ -8,14 +8,17 @@ import {
     View,
     ScrollView,
     ActivityIndicator,
-    Alert
+    Alert,
+    Dimensions
 } from "react-native";
 import { router } from "expo-router";
 import { 
     Check,
     Calendar,
     Layers,
-    Save
+    Save,
+    ChevronRight,
+    ArrowRight
 } from "lucide-react-native";
 
 import { Colors } from "@/constants/Colors";
@@ -25,21 +28,28 @@ import {
     getSelectedMajors, 
     setSelectedMajors,
     setSelectedMajorsUrls,
-    saveStructureToCache
+    setSelectedSemester
 } from "@/services/storage";
-import { fetchSemesterStructure } from "@/services/configApi";
-import structureData from "@/structures_notes/structure.json";
+import { updateStructureConfig, fetchSemesterStructure } from "@/services/configApi";
+import bundledStructure from "@/structures_notes/structure.json";
+
+const { width } = Dimensions.get('window');
 
 export default function SelectionAnneeScreen() {
     const [loading, setLoading] = useState(true);
     const [loadingSaving, setLoadingSaving] = useState(false);
+    const [structure, setStructure] = useState<any>(bundledStructure);
     const [selectedYear, setSelectedYearState] = useState<string | null>(null);
     const [selectedMajors, setSelectedMajorsState] = useState<Record<string, string>>({});
 
-    const years = Object.keys(structureData.annee);
+    const years = Object.keys(structure.annee);
 
     useEffect(() => {
         const loadInitialData = async () => {
+            // Tente de récupérer la version la plus fraîche du catalogue
+            const freshStructure = await updateStructureConfig();
+            if (freshStructure) setStructure(freshStructure);
+
             const year = await getSelectedYear();
             const majors = await getSelectedMajors();
             
@@ -53,9 +63,10 @@ export default function SelectionAnneeScreen() {
 
     const handleYearSelect = (year: string) => {
         setSelectedYearState(year);
-        const currentYearData = (structureData.annee as any)[year];
+        const currentYearData = structure.annee[year];
         const semesters = Object.keys(currentYearData);
         
+        // Reset majors but keep those that match in the new year
         const newMajors: Record<string, string> = {};
         semesters.forEach(s => {
             const availableMajors = Object.keys(currentYearData[s]);
@@ -67,10 +78,20 @@ export default function SelectionAnneeScreen() {
     };
 
     const handleMajorSelect = (semester: string, major: string) => {
-        setSelectedMajorsState(prev => ({
-            ...prev,
-            [semester]: major
-        }));
+        const newMajors = { ...selectedMajors, [semester]: major };
+        
+        // "Sélectionner une seule fois" : 
+        // Si la même filière existe dans d'autres semestres de l'année choisie, on l'applique aussi
+        if (selectedYear) {
+            const currentYearData = structure.annee[selectedYear];
+            Object.keys(currentYearData).forEach(s => {
+                if (s !== semester && currentYearData[s][major]) {
+                    newMajors[s] = major;
+                }
+            });
+        }
+        
+        setSelectedMajorsState(newMajors);
     };
 
     const handleSave = async () => {
@@ -78,11 +99,11 @@ export default function SelectionAnneeScreen() {
         
         setLoadingSaving(true);
         try {
-            const currentYearData = (structureData.annee as any)[selectedYear];
+            const currentYearData = structure.annee[selectedYear];
             const semesters = Object.keys(currentYearData);
             const urls: Record<string, string> = {};
             
-            // Validate all semesters have a major selected
+            // Validation
             const missing = semesters.find(s => !selectedMajors[s]);
             if (missing) {
                 Alert.alert("Configuration incomplète", `Veuillez sélectionner une filière pour le semestre ${missing}.`);
@@ -90,30 +111,45 @@ export default function SelectionAnneeScreen() {
                 return;
             }
 
-            // Collect URLs and Fetch/Cache structures
+            // Téléchargement et mise en cache de toutes les structures nécessaires
             for (const s of semesters) {
                 const major = selectedMajors[s];
                 const url = currentYearData[s][major];
                 urls[s] = url;
                 
-                // Fetch and Cache
-                const structure = await fetchSemesterStructure(s, url);
-                if (!structure) {
-                    throw new Error(`Impossible de charger la structure pour ${s} (${major})`);
+                // Fetch et Cache hybride (via configApi)
+                const data = await fetchSemesterStructure(s, url);
+                if (!data) {
+                    throw new Error(`Erreur lors du téléchargement de la structure pour ${s} (${major})`);
                 }
             }
 
-            // Save basic config
+            // Sauvegarde de la configuration globale
             await setSelectedYear(selectedYear);
             await setSelectedMajors(selectedMajors);
             await setSelectedMajorsUrls(urls);
+            
+            // Auto-sélection du semestre par défaut basé sur la date
+            const month = new Date().getMonth(); // 0-11
+            const defaultSemester = (month >= 8 || month <= 0) ? semesters[0] : (semesters[1] || semesters[0]);
+            await setSelectedSemester(defaultSemester);
 
             router.replace("/selection");
         } catch (error: any) {
             console.error("Save error:", error);
-            Alert.alert("Erreur", error.message || "Impossible d'enregistrer la configuration.");
+            Alert.alert("Erreur", error.message || "Une erreur est survenue lors de la sauvegarde.");
         } finally {
             setLoadingSaving(false);
+        }
+    };
+
+    const handleCancel = async () => {
+        const year = await getSelectedYear();
+        const majors = await getSelectedMajors();
+        if (year && majors) {
+            router.replace("/selection");
+        } else {
+            Alert.alert("Configuration requise", "Veuillez configurer votre cursus pour continuer.");
         }
     };
 
@@ -121,11 +157,12 @@ export default function SelectionAnneeScreen() {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={Colors.primary} />
+                <Text style={styles.loadingText}>Mise à jour du catalogue...</Text>
             </View>
         );
     }
 
-    const currentYearData = selectedYear ? (structureData.annee as any)[selectedYear] : null;
+    const currentYearData = selectedYear ? structure.annee[selectedYear] : null;
     const semesters = currentYearData ? Object.keys(currentYearData) : [];
 
     return (
@@ -134,14 +171,19 @@ export default function SelectionAnneeScreen() {
             
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
-                    <Text style={styles.welcomeText}>Configuration</Text>
-                    <Text style={styles.title}>Votre cursus</Text>
-                    <Text style={styles.description}>Sélectionnez votre année et votre filière pour chaque semestre.</Text>
+                    <Text style={styles.welcomeText}>CalculNotes ISEN</Text>
+                    <Text style={styles.title}>Configuration</Text>
+                    <Text style={styles.description}>
+                        Personnalisez votre application pour n'avoir qu'à consulter vos notes par la suite.
+                    </Text>
                 </View>
 
+                {/* Section Année */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Calendar size={18} color={Colors.primary} />
+                        <View style={styles.iconCircle}>
+                            <Calendar size={18} color={Colors.primary} />
+                        </View>
                         <Text style={styles.sectionTitle}>Année d'étude</Text>
                     </View>
                     <View style={styles.yearGrid}>
@@ -164,7 +206,7 @@ export default function SelectionAnneeScreen() {
                                 </Text>
                                 {selectedYear === year && (
                                     <View style={styles.checkBadge}>
-                                        <Check size={12} color={Colors.surface} strokeWidth={3} />
+                                        <Check size={10} color={Colors.surface} strokeWidth={4} />
                                     </View>
                                 )}
                             </TouchableOpacity>
@@ -172,18 +214,27 @@ export default function SelectionAnneeScreen() {
                     </View>
                 </View>
 
+                {/* Section Filières */}
                 {selectedYear && (
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
-                            <Layers size={18} color={Colors.primary} />
-                            <Text style={styles.sectionTitle}>Filières par semestre</Text>
+                            <View style={styles.iconCircle}>
+                                <Layers size={18} color={Colors.primary} />
+                            </View>
+                            <Text style={styles.sectionTitle}>Vos filières</Text>
                         </View>
                         
                         {semesters.map((sem) => (
                             <View key={sem} style={styles.semesterCard}>
                                 <View style={styles.semesterHeader}>
-                                    <Text style={styles.semesterTitle}>{sem}</Text>
+                                    <View style={styles.semesterBadge}>
+                                        <Text style={styles.semesterBadgeText}>{sem}</Text>
+                                    </View>
+                                    <Text style={styles.semesterSubtitle}>
+                                        {selectedMajors[sem] ? 'Filière sélectionnée' : 'Sélectionnez votre filière'}
+                                    </Text>
                                 </View>
+                                
                                 <View style={styles.majorList}>
                                     {Object.keys(currentYearData[sem]).map((major: string) => (
                                         <TouchableOpacity
@@ -196,14 +247,20 @@ export default function SelectionAnneeScreen() {
                                             activeOpacity={0.7}
                                             disabled={loadingSaving}
                                         >
-                                            <Text style={[
-                                                styles.majorText,
-                                                selectedMajors[sem] === major && styles.majorTextSelected
-                                            ]}>
-                                                {major}
-                                            </Text>
-                                            {selectedMajors[sem] === major && (
-                                                <Check size={16} color={Colors.primary} strokeWidth={3} />
+                                            <View style={styles.majorContent}>
+                                                <Text style={[
+                                                    styles.majorText,
+                                                    selectedMajors[sem] === major && styles.majorTextSelected
+                                                ]}>
+                                                    {major}
+                                                </Text>
+                                            </View>
+                                            {selectedMajors[sem] === major ? (
+                                                <View style={styles.majorCheck}>
+                                                    <Check size={14} color={Colors.surface} strokeWidth={3} />
+                                                </View>
+                                            ) : (
+                                                <ChevronRight size={18} color={Colors.text.tertiary} />
                                             )}
                                         </TouchableOpacity>
                                     ))}
@@ -224,11 +281,14 @@ export default function SelectionAnneeScreen() {
                         activeOpacity={0.8}
                     >
                         {loadingSaving ? (
-                            <ActivityIndicator color={Colors.surface} />
+                            <View style={styles.saveLoadingRow}>
+                                <ActivityIndicator size="small" color={Colors.surface} />
+                                <Text style={styles.saveButtonText}>Synchronisation...</Text>
+                            </View>
                         ) : (
                             <>
-                                <Save size={20} color={Colors.surface} />
-                                <Text style={styles.saveButtonText}>Enregistrer la configuration</Text>
+                                <Text style={styles.saveButtonText}>Confirmer mon cursus</Text>
+                                <ArrowRight size={20} color={Colors.surface} />
                             </>
                         )}
                     </TouchableOpacity>
@@ -236,9 +296,9 @@ export default function SelectionAnneeScreen() {
                     {!loadingSaving && (
                         <TouchableOpacity 
                             style={styles.cancelButton}
-                            onPress={() => router.back()}
+                            onPress={handleCancel}
                         >
-                            <Text style={styles.cancelButtonText}>Annuler</Text>
+                            <Text style={styles.cancelButtonText}>Plus tard</Text>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -257,6 +317,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: Colors.background,
+        gap: 16,
+    },
+    loadingText: {
+        fontSize: 15,
+        color: Colors.text.secondary,
+        fontWeight: '600',
     },
     scrollContent: {
         flexGrow: 1,
@@ -268,14 +334,14 @@ const styles = StyleSheet.create({
         paddingBottom: 24,
     },
     welcomeText: {
-        fontSize: 14,
+        fontSize: 13,
         color: Colors.primary,
         fontWeight: '800',
         textTransform: 'uppercase',
-        letterSpacing: 1.5,
+        letterSpacing: 2,
     },
     title: {
-        fontSize: 32,
+        fontSize: 34,
         fontWeight: '800',
         color: Colors.text.primary,
         letterSpacing: -1,
@@ -285,24 +351,33 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: Colors.text.secondary,
         fontWeight: '500',
-        marginTop: 8,
+        marginTop: 10,
         lineHeight: 22,
     },
     section: {
         paddingHorizontal: 20,
-        marginBottom: 24,
+        marginBottom: 28,
     },
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
-        marginBottom: 16,
+        gap: 12,
+        marginBottom: 18,
         marginLeft: 4,
     },
+    iconCircle: {
+        width: 36,
+        height: 36,
+        borderRadius: 12,
+        backgroundColor: Colors.primary + '10',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     sectionTitle: {
-        fontSize: 16,
-        fontWeight: '700',
+        fontSize: 17,
+        fontWeight: '800',
         color: Colors.text.primary,
+        letterSpacing: -0.2,
     },
     yearGrid: {
         flexDirection: 'row',
@@ -311,35 +386,44 @@ const styles = StyleSheet.create({
     },
     yearButton: {
         backgroundColor: Colors.surface,
-        paddingVertical: 14,
-        paddingHorizontal: 20,
-        borderRadius: 16,
+        paddingVertical: 16,
+        paddingHorizontal: 24,
+        borderRadius: 20,
         borderWidth: 1,
         borderColor: Colors.border,
-        minWidth: 70,
+        minWidth: width * 0.22,
         alignItems: 'center',
         position: 'relative',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.02,
+        shadowRadius: 4,
+        elevation: 1,
     },
     yearButtonSelected: {
         borderColor: Colors.primary,
-        backgroundColor: Colors.primary + '08',
+        backgroundColor: Colors.primary,
+        shadowColor: Colors.primary,
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 4,
     },
     yearButtonText: {
-        fontSize: 16,
+        fontSize: 17,
         fontWeight: '700',
         color: Colors.text.secondary,
     },
     yearButtonTextSelected: {
-        color: Colors.primary,
+        color: Colors.surface,
     },
     checkBadge: {
         position: 'absolute',
-        top: -6,
-        right: -6,
-        backgroundColor: Colors.primary,
-        width: 20,
-        height: 20,
-        borderRadius: 10,
+        top: -4,
+        right: -4,
+        backgroundColor: Colors.status.success,
+        width: 18,
+        height: 18,
+        borderRadius: 9,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 2,
@@ -347,7 +431,7 @@ const styles = StyleSheet.create({
     },
     semesterCard: {
         backgroundColor: Colors.surface,
-        borderRadius: 24,
+        borderRadius: 28,
         padding: 20,
         marginBottom: 16,
         borderWidth: 1,
@@ -359,16 +443,31 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     semesterHeader: {
-        marginBottom: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 18,
+        paddingBottom: 14,
         borderBottomWidth: 1,
         borderBottomColor: Colors.divider,
-        paddingBottom: 12,
     },
-    semesterTitle: {
-        fontSize: 18,
+    semesterBadge: {
+        backgroundColor: Colors.background,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+    semesterBadgeText: {
+        fontSize: 14,
         fontWeight: '800',
         color: Colors.text.primary,
-        letterSpacing: -0.5,
+    },
+    semesterSubtitle: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: Colors.text.tertiary,
     },
     majorList: {
         gap: 10,
@@ -377,26 +476,41 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderRadius: 12,
+        paddingVertical: 14,
+        paddingHorizontal: 18,
+        borderRadius: 18,
         backgroundColor: Colors.background,
+        borderWidth: 1,
+        borderColor: 'transparent',
     },
     majorItemSelected: {
-        backgroundColor: Colors.primary + '10',
+        backgroundColor: Colors.primary + '08',
+        borderColor: Colors.primary + '20',
+    },
+    majorContent: {
+        flex: 1,
     },
     majorText: {
-        fontSize: 15,
+        fontSize: 16,
         fontWeight: '600',
         color: Colors.text.secondary,
+        letterSpacing: -0.2,
     },
     majorTextSelected: {
-        color: Colors.text.primary,
+        color: Colors.primary,
         fontWeight: '700',
+    },
+    majorCheck: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: Colors.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     footer: {
         paddingHorizontal: 24,
-        marginTop: 12,
+        marginTop: 16,
         gap: 12,
     },
     saveButton: {
@@ -404,14 +518,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: Colors.primary,
-        paddingVertical: 18,
-        borderRadius: 16,
-        gap: 10,
+        paddingVertical: 20,
+        borderRadius: 20,
+        gap: 12,
         shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.2,
-        shadowRadius: 12,
-        elevation: 4,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.25,
+        shadowRadius: 15,
+        elevation: 6,
     },
     saveButtonDisabled: {
         backgroundColor: Colors.text.tertiary,
@@ -420,16 +534,22 @@ const styles = StyleSheet.create({
     },
     saveButtonText: {
         color: Colors.surface,
-        fontSize: 16,
+        fontSize: 17,
         fontWeight: '800',
+        letterSpacing: -0.2,
+    },
+    saveLoadingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
     },
     cancelButton: {
         alignItems: 'center',
-        paddingVertical: 12,
+        paddingVertical: 14,
     },
     cancelButtonText: {
-        color: Colors.text.secondary,
+        color: Colors.text.tertiary,
         fontSize: 15,
-        fontWeight: '600',
+        fontWeight: '700',
     },
 });

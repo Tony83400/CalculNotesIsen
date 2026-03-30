@@ -8,6 +8,8 @@ import configDefault from '../structures_notes/structure.json';
 
 const structureName = "StructureConfig";
 const selectedYearName = "SelectedYear";
+const selectedSemesterName = "SelectedSemester";
+const selectedFiliereName = "SelectedFiliere";
 const selectedMajorsName = "SelectedMajors";
 const selectedMajorsUrlsName = "SelectedMajorsUrls";
 const tokenName = "Token";
@@ -39,9 +41,30 @@ export async function setSelectedYear(value: string) {
   await setStorageItem(selectedYearName, value);
 }
 
+export async function getSelectedSemester(): Promise<string | null> {
+  return await getStorageItem(selectedSemesterName);
+}
+
+export async function setSelectedSemester(value: string) {
+  await setStorageItem(selectedSemesterName, value);
+}
+
+export async function getSelectedFiliere(): Promise<string | null> {
+  return await getStorageItem(selectedFiliereName);
+}
+
+export async function setSelectedFiliere(value: string) {
+  await setStorageItem(selectedFiliereName, value);
+}
+
 export async function getSelectedMajors(): Promise<Record<string, string> | null> {
   const data = await getStorageItem(selectedMajorsName);
-  return data ? JSON.parse(data) : null;
+  if (!data || data === "undefined") return null;
+  try {
+    return JSON.parse(data);
+  } catch (e) {
+    return null;
+  }
 }
 
 export async function setSelectedMajors(value: Record<string, string>) {
@@ -50,7 +73,12 @@ export async function setSelectedMajors(value: Record<string, string>) {
 
 export async function getSelectedMajorsUrls(): Promise<Record<string, string> | null> {
   const data = await getStorageItem(selectedMajorsUrlsName);
-  return data ? JSON.parse(data) : null;
+  if (!data || data === "undefined") return null;
+  try {
+    return JSON.parse(data);
+  } catch (e) {
+    return null;
+  }
 }
 
 export async function setSelectedMajorsUrls(value: Record<string, string>) {
@@ -158,10 +186,33 @@ export async function clearNotesFromStorage() {
   ]);
 }
 
+export async function clearStructureCache() {
+  if (isWeb) {
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (key.startsWith(structureName)) {
+        localStorage.removeItem(key);
+      }
+    });
+    return;
+  }
+
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const structureKeys = keys.filter(key => key.startsWith(structureName));
+    if (structureKeys.length > 0) {
+      await AsyncStorage.multiRemove(structureKeys);
+    }
+  } catch (e) {
+    console.error("Erreur clearStructureCache", e);
+  }
+}
+
 export async function clearAppCache() {
   await Promise.all([
     clearAgendaFromStorage(),
-    clearNotesFromStorage()
+    clearNotesFromStorage(),
+    clearStructureCache()
   ]);
 }
 
@@ -195,7 +246,7 @@ export async function saveSemesterStructureToCache(semester: string, structure: 
   }
 }
 
-export async function loadStructureFromCache(): Promise<typeof configDefault> {
+export async function loadStructureFromCache(): Promise<any | null> {
   const cachedString = await getStorageItem(structureName);
 
   if (cachedString) {
@@ -206,7 +257,7 @@ export async function loadStructureFromCache(): Promise<typeof configDefault> {
     }
   }
   
-  return configDefault; 
+  return null; 
 }
 
 export async function loadSemesterStructureFromCache(semester: string): Promise<any | null> {

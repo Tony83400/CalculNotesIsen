@@ -59,8 +59,14 @@ Pour qu'une Unité d'Enseignement (UE) soit validée, deux conditions sont néce
 
 ## 🔄 Flux de Données
 1. **Notes :** Récupération via `isenApi.ts` -> Cache (`storage.ts`) -> Fusion avec la structure (`utils/notes.ts`) -> Affichage.
-2. **Config Globale :** Chargée depuis `structures_notes/structure.json` via `configApi.ts` pour définir les années et semestres disponibles.
-3. **Config Semestre :** L'utilisateur sélectionne une année et une filière par semestre (`selectionAnnee.tsx`). Les structures (`.json`) sont téléchargées dynamiquement (GitHub RAW) ou récupérées via `localMapping.ts` (dev), puis mises en cache via `storage.ts` avec le préfixe `StructureConfig_`.
+2. **Config Globale (`structure.json`) :** Chargée via `updateStructureConfig` (configApi.ts).
+    - **Web :** Mapping local par défaut.
+    - **Native :** Cache (`storage.ts`) -> GitHub RAW -> Fallback Local.
+    - **Actualisation :** Le bouton "Actualiser" force le téléchargement GitHub et met à jour le cache.
+3. **Config Semestre :** Chargée via `fetchSemesterStructure` (configApi.ts) après sélection de l'année/filière.
+    - **Web :** Mapping local (bundled).
+    - **Native :** Cache (`StructureConfig_` prefix) -> GitHub RAW -> Fallback Local.
 4. **Agenda :** Récupération via `agendaApi.ts` -> Parsing `ical.js` (`utils/agenda.ts`) -> Hook `useAgenda.ts`.
 5. **Notifications :** Programmées via `notifications.ts` (30 min avant le cours, limité aux 4 prochains jours, build natif uniquement).
 6. **Simulations :** Les notes simulées par l'utilisateur sont stockées localement et fusionnées en temps réel dans `getDonneesAvecNotes`.
+7. **Cache & Refresh :** `clearAppCache` (storage.ts) vide l'agenda, les notes et toutes les structures configurées (globales et semestres) pour garantir une fraîcheur totale lors d'un refresh manuel.

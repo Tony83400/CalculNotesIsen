@@ -23,7 +23,7 @@ import {
 } from "lucide-react-native";
 import { Analytics } from "@vercel/analytics/react";
 
-import { getId, getPasswordStorage, setId, setPasswordStorage, setToken } from "@/services/storage";
+import { getId, getPasswordStorage, setId, setPasswordStorage, setToken, getSelectedYear, getSelectedMajors } from "@/services/storage";
 import { login } from "../services/isenApi";
 import { Colors } from "@/constants/Colors";
 
@@ -36,15 +36,21 @@ export default function LoginScreen() {
 
     useEffect(() => {
         const fetchUser = async () => {
-            const Fetchemail = await getId();
-            if (Fetchemail) setEmail(Fetchemail);
-            
+            const year = await getSelectedYear();
+            const majors = await getSelectedMajors();
             const Fetchpassword = await getPasswordStorage();
+            const Fetchemail = await getId();
+
+            // Si déjà configuré, on va au dashboard
+            if (Fetchemail && Fetchpassword && year && majors) {
+                router.replace("/selection");
+                return;
+            }
+
+            if (Fetchemail) setEmail(Fetchemail);
             if (Fetchpassword) {
                 setPassword(Fetchpassword);
-                if (Fetchemail) {
-                    onPressLogin(Fetchemail, Fetchpassword);
-                }
+                onPressLogin(Fetchemail, Fetchpassword);
             }
         };
         fetchUser();
@@ -69,7 +75,15 @@ export default function LoginScreen() {
             if (keepLogin) {
                 await setPasswordStorage(passwordLogin);
             }
-            router.replace("/selectionAnnee");
+
+            // Vérifier si on doit aller à la sélection ou au dashboard
+            const year = await getSelectedYear();
+            const majors = await getSelectedMajors();
+            if (year && majors) {
+                router.replace("/selection");
+            } else {
+                router.replace("/selectionAnnee");
+            }
         } catch (error) {
             setErrorText((error as Error).message);
         } finally {
