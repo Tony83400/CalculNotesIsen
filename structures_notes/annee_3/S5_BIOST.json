@@ -88,6 +88,11 @@
             "name": "TP",
             "code": "25_ISEN_MED_ISEN3_S5_RESEAUX_CPGE_UE_BIOST",
             "coeff": 1
+          },
+           {
+            "name": "CC",
+            "code": "25_ISEN_MED_ISEN3_S5_RESEAUX_CC_CPGE_UE_BIOST",
+            "coeff": 1
           }
         ]
       }

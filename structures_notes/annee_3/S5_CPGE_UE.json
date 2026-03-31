@@ -88,6 +88,11 @@
             "name": "TP",
             "code": "25_ISEN_MED_ISEN3_S5_RESEAUX_CPGE_UE_BIOST",
             "coeff": 1
+          },
+           {
+            "name": "CC",
+            "code": "25_ISEN_MED_ISEN3_S5_RESEAUX_CC_CPGE_UE_BIOST",
+            "coeff": 1
           }
         ]
       }
@@ -146,7 +151,12 @@
           },
           {
             "name": "Partiel Algo",
-            "code": "",
+            "code": "25_ISEN_MED_ISEN3_S5_ALGO_PROG_EX_Final",
+            "coeff": 2
+          },
+           {
+            "name": "Contrôle Continu",
+            "code": "25_ISEN_MED_ISEN3_S5_ALGO_PROG_CC",
             "coeff": 2
           }
         ]
@@ -157,7 +167,7 @@
         "evaluations": [
           {
             "name": "Projet Algo",
-            "code": "",
+            "code": "25_ISEN_MED_ISEN3_S5_ALGO_PROG_EX_Final",
             "coeff": 1
           }
         ]
