@@ -87,7 +87,7 @@
           {
             "name": "Partiel Reseau",
             "code": "25_ISEN_MED_ISEN3_S5_RESEAUX_RASB",
-            "coeff": 2
+            "coeff": 1
           },
           {
             "name": "Contrôle continu reseau",
@@ -169,12 +169,12 @@
           {
             "name": "Partiel",
             "code": "25_ISEN_MED_ISEN3_S5_DevMobile",
-            "coeff": 7
+            "coeff": 1
           },
           {
             "name": "Projet",
             "code": "25_ISEN_MED_ISEN3_S5_DevMobile_Projet",
-            "coeff": 3
+            "coeff": 1
           }
         ]
       }
