@@ -254,10 +254,10 @@ export default function NotesScreen() {
             
             {/* Header Dynamique avec sélecteur de semestre */}
             <View style={styles.topHeader}>
-                <TouchableOpacity onPress={() => router.replace("/agenda")} style={styles.iconBtn}>
-                    <CalendarDays size={22} color={Colors.text.primary} />
+                <TouchableOpacity onPress={() => router.push("/selection")} style={styles.iconBtn}>
+                    <Home size={22} color={Colors.text.primary} />
                 </TouchableOpacity>
-
+                
                 <View style={styles.headerTitleContainer}>
                     <TouchableOpacity 
                         style={styles.semesterToggle} 
@@ -271,10 +271,11 @@ export default function NotesScreen() {
                         Mis à jour : {lastUpdate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                     </Text>
                 </View>
-
-                <TouchableOpacity onPress={() => router.push("/selection")} style={styles.iconBtn}>
-                    <Home size={22} color={Colors.text.primary} />
+<TouchableOpacity onPress={() => router.replace("/agenda")} style={styles.iconBtn}>
+                    <CalendarDays size={22} color={Colors.text.primary} />
                 </TouchableOpacity>
+
+                
             </View>
 
             {/* Menu déroulant des semestres */}
