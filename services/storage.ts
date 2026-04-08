@@ -20,6 +20,17 @@ const notesName = "Notes";
 
 const getStorageItem = async (key: string): Promise<string | null> => {
   if (isWeb) {
+    const secureKeys = [tokenName, userName, passwordName];
+    if (secureKeys.includes(key)) {
+      const name = key + "=";
+      const decodedCookie = decodeURIComponent(document.cookie);
+      const ca = decodedCookie.split(';');
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1);
+        if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+      }
+    }
     return localStorage.getItem(key);
   }
   return await AsyncStorage.getItem(key);
@@ -27,6 +38,12 @@ const getStorageItem = async (key: string): Promise<string | null> => {
 
 const setStorageItem = async (key: string, value: string) => {
   if (isWeb) {
+    const secureKeys = [tokenName, userName, passwordName];
+    if (secureKeys.includes(key)) {
+      const expires = new Date();
+      expires.setTime(expires.getTime() + (365 * 24 * 60 * 60 * 1000));
+      document.cookie = `${key}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict;Secure`;
+    }
     localStorage.setItem(key, value);
   } else {
     await AsyncStorage.setItem(key, value);
@@ -166,6 +183,10 @@ export async function loadLastUpdateAgenda() : Promise<Date>{
 // Remove
 async function removeStorageItem(key: string) {
   if (isWeb) {
+    const secureKeys = [tokenName, userName, passwordName];
+    if (secureKeys.includes(key)) {
+      document.cookie = `${key}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Strict;Secure`;
+    }
     localStorage.removeItem(key);
   } else {
     await AsyncStorage.removeItem(key);

@@ -5,6 +5,7 @@
     "matieres": [
       {
         "name": "Electronique Analog",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_ELEC_ANALOG",
         "coeff_matiere": 2,
         "evaluations": [
           {
@@ -44,6 +45,7 @@
       {
         "name": "Logique",
         "coeff_matiere": 2,
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_LOGIQUE",
         "evaluations": [
           {
             "name": "Partiel",
@@ -55,6 +57,7 @@
       {
         "name": "Architecture des ordis",
         "coeff_matiere": 1,
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_ARCHI",
         "evaluations": [
           {
             "name": "Partiel",
@@ -71,6 +74,7 @@
     "matieres": [
       {
         "name": "JAVA (cours et projet)",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_JAVA",
         "coeff_matiere": 1,
         "evaluations": [
           {
@@ -83,6 +87,7 @@
       {
         "name": "Réseaux Rasberry",
         "coeff_matiere": 2,
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_RESEAUX_RASB",
         "evaluations": [
           {
             "name": "Partiel Reseau",
@@ -104,6 +109,7 @@
     "matieres": [
       {
         "name": "Base De Données",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_BDD",
         "coeff_matiere": 2,
         "evaluations": [
           {
@@ -120,6 +126,7 @@
       },
       {
         "name": "Maths Proba/Stats",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_MATHS_PROBA_STAT",
         "coeff_matiere": 2,
         "evaluations": [
           {
@@ -142,6 +149,7 @@
     "matieres": [
       {
         "name": "Algorithmie Avancée",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_ALGO_AVANCE",
         "coeff_matiere": 2,
         "evaluations": [
           {
@@ -153,6 +161,7 @@
       },
       {
         "name": "Automatique",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_AUTOMATIQUE",
         "coeff_matiere": 1,
         "evaluations": [
           {
@@ -164,6 +173,7 @@
       },
       {
         "name": "Développement mobile",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_DEVMOBILE",
         "coeff_matiere": 1,
         "evaluations": [
           {
@@ -247,6 +257,7 @@
     "matieres": [
       {
         "name": "Anglais",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_ANGLAIS",
         "coeff_matiere": 1,
         "evaluations": [
           {

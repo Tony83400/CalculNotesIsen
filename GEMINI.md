@@ -63,9 +63,10 @@ Pour qu'une Unité d'Enseignement (UE) soit validée, deux conditions sont néce
     - **Web :** Mapping local par défaut.
     - **Native :** Cache (`storage.ts`) -> GitHub RAW -> Fallback Local.
     - **Actualisation :** Le bouton "Actualiser" force le téléchargement GitHub et met à jour le cache.
-3. **Config Semestre :** Chargée via `fetchSemesterStructure` (configApi.ts) après sélection de l'année/filière.
+- **Config Semestre :** Chargée via `fetchSemesterStructure` (configApi.ts) après sélection de l'année/filière.
     - **Web :** Mapping local (bundled).
     - **Native :** Cache (`StructureConfig_` prefix) -> GitHub RAW -> Fallback Local.
+- **Gestion des Rattrapages :** Chaque matière (`Matiere`) peut posséder un `code_rattrapage` dans le JSON. S'il est présent, toute note de l'API contenant ce code ET `_RATTRAPAGE_` sera considérée comme un rattrapage pour cette matière.
 4. **Agenda :** Récupération via `agendaApi.ts` -> Parsing `ical.js` (`utils/agenda.ts`) -> Hook `useAgenda.ts`.
 5. **Notifications :** Programmées via `notifications.ts` (30 min avant le cours, limité aux 4 prochains jours, build natif uniquement).
 6. **Simulations :** Les notes simulées par l'utilisateur sont stockées localement et fusionnées en temps réel dans `getDonneesAvecNotes`.

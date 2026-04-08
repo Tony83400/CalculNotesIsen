@@ -45,7 +45,7 @@
         "ue": "UE6 Developpement",
         "ects": 5,
         "matieres": [
-          { "name": "Réseaux 2", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
+          { "name": "Réseaux 2", "coeff_matiere": 1, "evaluations": [{ "name": "Examen", "code": "25_ISEN_MED_ISEN3_S6_LINUX_examen", "coeff": 1 }] },
           { "name": "Linux", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
         ]
       },

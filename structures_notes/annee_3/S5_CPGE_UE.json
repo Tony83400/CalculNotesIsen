@@ -5,6 +5,7 @@
     "matieres": [
       {
         "name": "Electronique Analog",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_ELEC_ANALOG",
         "coeff_matiere": 2,
         "evaluations": [
           {
@@ -43,6 +44,7 @@
     "matieres": [
       {
         "name": "Logique",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_LOGIQUE",
         "coeff_matiere": 2,
         "evaluations": [
           {
@@ -54,6 +56,7 @@
       },
       {
         "name": "Architecture des ordis",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_ARCHI",
         "coeff_matiere": 1,
         "evaluations": [
           {
@@ -71,6 +74,7 @@
     "matieres": [
       {
         "name": "Webdev",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_WEBDEV",
         "coeff_matiere": 1,
         "evaluations": [
           {
@@ -82,6 +86,7 @@
       },
       {
         "name": "Réseaux level 1",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_RESEAUX",
         "coeff_matiere": 2,
         "evaluations": [
           {
@@ -104,6 +109,7 @@
     "matieres": [
       {
         "name": "Base De Données",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_BDD",
         "coeff_matiere": 2,
         "evaluations": [
           {
@@ -120,6 +126,7 @@
       },
       {
         "name": "Maths Proba/Stats",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_MATHS_PROBA_STAT",
         "coeff_matiere": 2,
         "evaluations": [
           {
@@ -142,6 +149,7 @@
     "matieres": [
       {
         "name": "Algorithmie et Programmation",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_ALGO_PROG",
         "coeff_matiere": 3,
         "evaluations": [
           {
@@ -163,6 +171,7 @@
       },
       {
         "name": "Projet Algorithmique",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_ALGO_PROG",
         "coeff_matiere": 2,
         "evaluations": [
           {
@@ -241,6 +250,7 @@
     "matieres": [
       {
         "name": "Anglais",
+        "code_rattrapage": "25_ISEN_MED_ISEN3_S5_RATTRAPAGE_ANGLAIS",
         "coeff_matiere": 1,
         "evaluations": [
           {

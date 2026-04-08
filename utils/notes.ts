@@ -33,11 +33,14 @@ const getDonneesAvecNotes = (
     let ueEstComplete = true;
     let pasDeNoteEliminatoire = true;
 
+    let ueAUtiliseRattrapage = false;
+
     ue.matieres.forEach((matiere) => {
       let sommePointsMat = 0;
       let totalCoeffMat = 0;
 
       // 1. Attribution des notes aux évaluations
+      // ... (code inchangé pour l'attribution des notes)
       matiere.evaluations.forEach((evaluation, indexEval) => {
         const uniqueId = evaluation.code || `${matiere.name}_${evaluation.name}_${indexEval}`;
         evaluation.uniqueId = uniqueId;
@@ -63,29 +66,10 @@ const getDonneesAvecNotes = (
         }
       });
 
-      // 2. Calcul Moyenne Initiale (pour règle rattrapage ISEN)
-      let pointsMatiereSansRat = 0;
-      let coeffMatiereSansRat = 0;
-      matiere.evaluations.forEach(ev => {
-        if (ev.noteReelle !== null) {
-          pointsMatiereSansRat += ev.noteReelle * ev.coeff;
-          coeffMatiereSansRat += ev.coeff;
-        }
-      });
-      
-      const moyenneMatiereSansRat = coeffMatiereSansRat > 0 ? pointsMatiereSansRat / coeffMatiereSansRat : null;
-      if (moyenneMatiereSansRat !== null) {
-        sommePointsUE_Initial += moyenneMatiereSansRat * matiere.coeff_matiere;
-        totalCoeffUE_Initial += matiere.coeff_matiere;
-      }
-
-      // 3. Application des Rattrapages (si activé)
+      // 2. Application des Rattrapages (si activé)
       if (showRattrapages) {
-        const matiereNameUpper = matiere.name.toUpperCase().replace(/\s+/g, '_');
         const applicableRattrapages = rattrapageNotes.filter(r => {
-          const ratSubject = r.code.split('_RATTRAPAGE_')[1] || "";
-          return matiereNameUpper.includes(ratSubject) || ratSubject.includes(matiereNameUpper) ||
-                 matiere.evaluations.some(ev => ev.code?.split('_').pop()?.includes(ratSubject));
+          return matiere.code_rattrapage && r.code.includes(matiere.code_rattrapage);
         });
 
         if (applicableRattrapages.length > 0) {
@@ -95,12 +79,13 @@ const getDonneesAvecNotes = (
             if (bestRattrapage.note > (ev.noteReelle ?? -1)) {
               ev.noteReelle = bestRattrapage.note;
               ev.hasApiNote = true;
+              ueAUtiliseRattrapage = true; // Marqueur : l'UE a au moins une note de rattrapage appliquée
             }
           });
         }
       }
 
-      // 4. Calcul Moyenne Finale Matière
+      // 3. Calcul Moyenne Finale Matière
       matiere.evaluations.forEach((ev) => {
         if (ev.noteReelle !== null) {
           sommePointsMat += ev.noteReelle * ev.coeff;
@@ -121,16 +106,15 @@ const getDonneesAvecNotes = (
       }
     });
 
-    // 5. Calcul Moyenne UE & Validation
+    // 4. Calcul Moyenne UE & Validation
     if (totalCoeffUE > 0) {
-      const moyenneInitiale = totalCoeffUE_Initial > 0 ? sommePointsUE_Initial / totalCoeffUE_Initial : 0;
-      const moyenneApresCalcul = sommePointsUE / totalCoeffUE;
+      const moyenneCalculee = sommePointsUE / totalCoeffUE;
 
-      if (showRattrapages) {
-        // RÈGLE ISEN : Plafonnement à 10 si moyenne initiale < 10
-        ue.moyenne = moyenneInitiale < 10 ? Math.min(moyenneApresCalcul, 10) : moyenneInitiale;
+      if (showRattrapages && ueAUtiliseRattrapage) {
+        // RÈGLE : Si un rattrapage est utilisé, l'UE est plafonnée à 10
+        ue.moyenne = Math.min(moyenneCalculee, 10);
       } else {
-        ue.moyenne = moyenneApresCalcul;
+        ue.moyenne = moyenneCalculee;
       }
 
       ue.isValidated = ueEstComplete && ue.moyenne >= 10 && pasDeNoteEliminatoire;

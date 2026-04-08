@@ -157,6 +157,13 @@ export default function NotesScreen() {
                 }
             }
         } catch (err: any) {
+            if (err.message === "Session expirée") {
+                Alert.alert("Session expirée", "Votre session a expiré. Reconnexion automatique...", [
+                    { text: "OK", onPress: () => router.replace("/") }
+                ]);
+                router.replace("/");
+                return;
+            }
             setError(err.message || "Une erreur est survenue lors de la récupération des notes.");
         }
     }, [userId]);

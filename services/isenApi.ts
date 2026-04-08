@@ -50,6 +50,9 @@ export async function getNotes() {
     });
 
     if (!res.ok) {
+      if (res.status === 401) {
+        throw new Error("Session expirée");
+      }
       const errorText = await res.text();
       throw new Error(errorText || `Erreur serveur (${res.status})`);
     }

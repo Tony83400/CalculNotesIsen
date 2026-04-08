@@ -21,6 +21,7 @@ export interface Matiere {
   coeff_matiere: number; 
   evaluations: Evaluations[];
   moyenne?: number | null; 
+  code_rattrapage?: string; // Code utilisé pour identifier les notes de rattrapage liées à cette matière
 }
 
 export interface Ue {
