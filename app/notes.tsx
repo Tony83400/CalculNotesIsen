@@ -14,7 +14,6 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { 
-    ChevronLeft, 
     Home, 
     RotateCcw, 
     AlertCircle, 
@@ -30,13 +29,12 @@ import {
 import { getNotes } from "@/services/isenApi";
 import { 
     getId, 
-    loadLastUpdateNotes, 
     getSelectedMajorsUrls,
     getSelectedMajors,
     getSelectedYear,
     getSelectedSemester,
     setSelectedSemester,
-    loadSemesterStructureFromCache
+    loadNotesFromCache,
 } from "@/services/storage";
 import { fetchSemesterStructure } from "@/services/configApi";
 import { Note } from "@/types/note";
@@ -44,105 +42,126 @@ import getDonneesAvecNotes from "@/utils/notes";
 import UeCard from '../components/ui/notes/UeList';
 import { Colors } from "@/constants/Colors";
 
+// CACHE SESSION (Hors composant pour persister entre les navigations Agenda <-> Notes)
+let sessionNotes: Note[] | undefined = undefined;
+let sessionConfigs: Record<string, any> = {};
+let sessionUserId: string | null = "";
+let sessionUserParams: any = null;
+
 export default function NotesScreen() {
-    const [notes, setNotes] = useState<Note[]>();
-    const [selectedYear, setSelectedYear] = useState<string | null>(null);
-    const [selectedSemester, setSelectedSemesterState] = useState<string | null>(null);
-    const [selectedMajors, setSelectedMajors] = useState<Record<string, string>>({});
-    const [majorUrls, setMajorUrls] = useState<Record<string, string>>({});
+    const [notes, setNotes] = useState<Note[] | undefined>(sessionNotes);
+    const [selectedYear, setSelectedYear] = useState<string | null>(sessionUserParams?.year || null);
+    const [selectedSemester, setSelectedSemesterState] = useState<string | null>(sessionUserParams?.semester || null);
+    const [selectedMajors, setSelectedMajors] = useState<Record<string, string>>(sessionUserParams?.majors || {});
+    const [majorUrls, setMajorUrls] = useState<Record<string, string>>(sessionUserParams?.urls || {});
     
-    const [configActuelle, setConfigActuelle] = useState<any>(null);
-    const [userId, setUserId] = useState<string | null>("");
-    const [lastUpdate, setLastUpdate] = useState(new Date());
+    // Stockage de toutes les structures en mémoire pour switch instantané
+    const [allConfigs, setAllConfigs] = useState<Record<string, any>>(sessionConfigs);
+    
+    const [userId, setUserId] = useState<string | null>(sessionUserId);
     const [error, setError] = useState<string | null>(null);
     const [simulatedNotes, setSimulatedNotes] = useState<Record<string, number | null>>({});
     const [isRattrapageMode, setIsRattrapageMode] = useState(false);
-    const [isLoadingConfig, setIsLoadingConfig] = useState(false);
+    
+    // On n'affiche le chargement QUE si on n'a absolument rien en mémoire
+    const [isLoading, setIsLoading] = useState(!sessionNotes || Object.keys(sessionConfigs).length === 0);
     const [showSemesterPicker, setShowSemesterPicker] = useState(false);
 
     const spinValue = useRef(new Animated.Value(0)).current;
 
-    // 1. Chargement de la configuration utilisateur
+    // 1. Chargement initial : Config + TOUTES les structures + Notes
     useEffect(() => {
-        const loadUserConfig = async () => {
-            setIsLoadingConfig(true);
+        const loadInitialData = async () => {
+            // Si on a déjà tout en session, on peut quand même rafraîchir en tâche de fond
+            const hasData = sessionNotes && Object.keys(sessionConfigs).length > 0;
+            if (!hasData) setIsLoading(true);
+
             try {
-                const year = await getSelectedYear();
-                const majors = await getSelectedMajors();
-                const urls = await getSelectedMajorsUrls();
-                const semester = await getSelectedSemester();
+                // Récupération des paramètres utilisateur
+                const [year, majors, urls, semester, id] = await Promise.all([
+                    getSelectedYear(),
+                    getSelectedMajors(),
+                    getSelectedMajorsUrls(),
+                    getSelectedSemester(),
+                    getId()
+                ]);
 
                 if (!year || !majors || !urls || !semester) {
-                    // Pas de config, redirection vers la sélection d'année
                     router.replace("/selectionAnnee");
                     return;
                 }
 
+                // Mise à jour des états et du cache session
+                const userParams = { year, majors, urls, semester };
+                sessionUserParams = userParams;
+                sessionUserId = id;
+                
                 setSelectedYear(year);
                 setSelectedMajors(majors);
                 setMajorUrls(urls);
                 setSelectedSemesterState(semester);
+                setUserId(id);
 
-                // Charger la structure du semestre actif
-                await loadStructure(semester, urls[semester], majors[semester]);
-            } catch (e) {
-                console.error("Error loading config:", e);
-                setError("Erreur de configuration.");
+                // Tentative de chargement des notes depuis le cache disque si la session est vide
+                if (!sessionNotes) {
+                    const cached = await loadNotesFromCache();
+                    if (cached) {
+                        sessionNotes = cached;
+                        setNotes(cached);
+                        setIsLoading(false); // On peut déjà afficher
+                    }
+                }
+
+                // Chargement de TOUTES les structures des semestres disponibles en parallèle
+                const configPromises = Object.entries(urls).map(async ([sem, url]) => {
+                    const data = await fetchSemesterStructure(sem, url);
+                    const majorName = majors[sem] || "Filière";
+                    return {
+                        sem,
+                        config: {
+                            filieres: {
+                                [majorName]: Array.isArray(data) ? data : (data.filieres ? data.filieres[majorName] : [])
+                            }
+                        }
+                    };
+                });
+
+                const loadedConfigs = await Promise.all(configPromises);
+                const configsObj: Record<string, any> = {};
+                loadedConfigs.forEach(item => {
+                    configsObj[item.sem] = item.config;
+                });
+                
+                sessionConfigs = configsObj;
+                setAllConfigs(configsObj);
+
+                // Chargement des notes depuis l'API
+                if (id) {
+                    const rep = await getNotes();
+                    if (rep) {
+                        sessionNotes = rep;
+                        setNotes(rep);
+                    }
+                }
+            } catch (e: any) {
+                console.error("Error loading notes screen:", e);
+                // On ne bloque que si on n'a vraiment rien à afficher
+                if (!sessionNotes) setError(e.message || "Erreur de chargement.");
             } finally {
-                setIsLoadingConfig(false);
+                setIsLoading(false);
             }
         };
-        loadUserConfig();
+        loadInitialData();
     }, []);
 
-    // 2. Fonction de chargement de structure (Cache -> Local/Remote)
-    const loadStructure = async (semester: string, url: string, majorNameOverride?: string) => {
-        setIsLoadingConfig(true);
-        try {
-            const data = await fetchSemesterStructure(semester, url);
-            if (data) {
-                // Wrap pour compatibilité avec getDonneesAvecNotes
-                const majorName = majorNameOverride || selectedMajors[semester] || "Filière";
-                const wrappedConfig = {
-                    version: "1.1",
-                    filieres: {
-                        [majorName]: Array.isArray(data) ? data : (data.filieres ? data.filieres[majorName] : [])
-                    }
-                };
-                setConfigActuelle(wrappedConfig);
-            } else {
-                Alert.alert("Erreur", "Impossible de charger la structure du semestre.");
-            }
-        } catch (e) {
-            console.error("Load structure error:", e);
-        } finally {
-            setIsLoadingConfig(false);
-        }
-    };
-
-    // 3. Changement de semestre
+    // 2. Changement de semestre (Instantané car config déjà en mémoire)
     const handleSemesterChange = async (sem: string) => {
         if (sem === selectedSemester) return;
-        
         setShowSemesterPicker(false);
         setSelectedSemesterState(sem);
+        sessionUserParams.semester = sem;
         await setSelectedSemester(sem);
-        await loadStructure(sem, majorUrls[sem], selectedMajors[sem]);
     };
-
-    // --- Logique Notes & Animation ---
-    
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const id = await getId();
-                setUserId(id);
-            } catch {
-                setError("Impossible de récupérer vos identifiants.");
-            }
-        };
-        fetchUser();
-    }, []);
 
     const fetchNote = useCallback(async () => {
         if (!userId) return;
@@ -150,11 +169,8 @@ export default function NotesScreen() {
         try {
             const rep = await getNotes();
             if (rep) {
+                sessionNotes = rep;
                 setNotes(rep);
-                const date = await loadLastUpdateNotes();
-                if (date.getTime() !== 0) {
-                    setLastUpdate(date);
-                }
             }
         } catch (err: any) {
             if (err.message === "Session expirée") {
@@ -164,35 +180,28 @@ export default function NotesScreen() {
                 router.replace("/");
                 return;
             }
-            setError(err.message || "Une erreur est survenue lors de la récupération des notes.");
+            setError(err.message || "Une erreur est survenue.");
         }
     }, [userId]);
 
-    useEffect(() => {
-        fetchNote();
-    }, [fetchNote]);
-
+    // --- Animation ---
     useEffect(() => {
         let isCancelled = false;
         const runAnimation = () => {
             if (isCancelled) return;
             spinValue.setValue(0);
             Animated.timing(spinValue, {
-                toValue: 1,
-                duration: 1200,
-                easing: Easing.linear,
-                useNativeDriver: true,
+                toValue: 1, duration: 1200, easing: Easing.linear, useNativeDriver: true,
             }).start(({ finished }) => {
                 if (finished && !isCancelled) runAnimation();
             });
         };
-        if (!notes && userId !== "") runAnimation();
+        if (isLoading) runAnimation();
         return () => { isCancelled = true; spinValue.stopAnimation(); };
-    }, [notes === undefined, userId]);
+    }, [isLoading]);
 
     const spin = spinValue.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '360deg']
+        inputRange: [0, 1], outputRange: ['0deg', '360deg']
     });
 
     const updateSimulation = useCallback((id: string, val: number | null) => {
@@ -201,54 +210,39 @@ export default function NotesScreen() {
 
     // --- Rendu ---
 
-    if (isLoadingConfig && !configActuelle) {
+    if (error && !notes) {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.centerContainer}>
-                    <ActivityIndicator size="large" color={Colors.primary} />
-                    <Text style={styles.loadingTitle}>Chargement de la configuration...</Text>
-                </View>
-            </SafeAreaView>
-        );
-    }
-
-    if (error) {
-        return (
-            <SafeAreaView style={styles.container}>
-                <View style={styles.centerContainer}>
-                    <View style={styles.errorIconContainer}>
-                        <AlertCircle size={48} color={Colors.status.error} />
-                    </View>
-                    <Text style={styles.errorTitle}>Oups ! Une erreur est survenue</Text>
+                    <AlertCircle size={48} color={Colors.status.error} />
+                    <Text style={styles.errorTitle}>Erreur de chargement</Text>
                     <Text style={styles.errorMessage}>{error}</Text>
-                    <TouchableOpacity style={styles.primaryButton} onPress={fetchNote}>
-                        <RotateCcw size={20} color="#FFF" />
-                        <Text style={styles.primaryButtonText}>Réessayer</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push("/")}>
-                        <Home size={20} color={Colors.text.primary} />
-                        <Text style={styles.secondaryButtonText}>Se reconnecter</Text>
+                    <TouchableOpacity style={styles.primaryButton} onPress={() => router.push("/")}>
+                        <Home size={20} color="#FFF" />
+                        <Text style={styles.primaryButtonText}>Retour à l'accueil</Text>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>
         );
     }
 
-    if (!notes && userId !== "") {
+    // On n'affiche le loader que s'il n'y a STRICTEMENT rien à montrer
+    if (isLoading && !notes) {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.centerContainer}>
-                    <Animated.View style={[styles.spinner, { transform: [{ rotate: spin }] }]}>
+                    <Animated.View style={{ transform: [{ rotate: spin }] }}>
                         <Loader2 size={48} color={Colors.primary} />
                     </Animated.View>
                     <Text style={styles.loadingTitle}>Récupération de vos notes...</Text>
-                    <Text style={styles.loadingSubtitle}>L'API de l'ISEN prend parfois un peu de temps...</Text>
+                    <Text style={styles.loadingSubtitle}>Initialisation de votre cursus en cours</Text>
                 </View>
             </SafeAreaView>
         );
     }
 
     const currentMajor = selectedSemester ? selectedMajors[selectedSemester] : null;
+    const configActuelle = selectedSemester ? allConfigs[selectedSemester] : null;
     const dataFiliere = (configActuelle?.filieres && currentMajor) ? (configActuelle.filieres[currentMajor] || []) : [];
     const resultats = getDonneesAvecNotes(dataFiliere, notes || [], simulatedNotes, isRattrapageMode);
     const donneesAffichables = resultats.structure;
@@ -259,7 +253,6 @@ export default function NotesScreen() {
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" />
             
-            {/* Header Dynamique avec sélecteur de semestre */}
             <View style={styles.topHeader}>
                 <TouchableOpacity onPress={() => router.push("/selection")} style={styles.iconBtn}>
                     <Home size={22} color={Colors.text.primary} />
@@ -274,18 +267,12 @@ export default function NotesScreen() {
                         <Text style={styles.headerTitle}>{selectedSemester} - {currentMajor}</Text>
                         <ChevronDown size={16} color={Colors.text.tertiary} />
                     </TouchableOpacity>
-                    <Text style={styles.headerDate}>
-                        Mis à jour : {lastUpdate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
                 </View>
-<TouchableOpacity onPress={() => router.replace("/agenda")} style={styles.iconBtn}>
+                <TouchableOpacity onPress={() => router.replace("/agenda")} style={styles.iconBtn}>
                     <CalendarDays size={22} color={Colors.text.primary} />
                 </TouchableOpacity>
-
-                
             </View>
 
-            {/* Menu déroulant des semestres */}
             {showSemesterPicker && (
                 <View style={styles.semesterPickerMenu}>
                     {availableSemesters.map(sem => (
@@ -393,7 +380,6 @@ const styles = StyleSheet.create({
     headerTitleContainer: { flex: 1, alignItems: 'center', paddingHorizontal: 12 },
     semesterToggle: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     headerTitle: { fontSize: 15, fontWeight: '800', color: Colors.text.primary, letterSpacing: -0.3 },
-    headerDate: { fontSize: 10, fontWeight: '500', color: Colors.text.tertiary, marginTop: 2 },
     semesterPickerMenu: {
         position: 'absolute', top: 70, left: 16, right: 16,
         backgroundColor: Colors.surface, borderRadius: 20,
@@ -425,14 +411,10 @@ const styles = StyleSheet.create({
     statValue: { fontSize: 28, fontWeight: '800', letterSpacing: -1 },
     statMax: { fontSize: 14, color: Colors.text.tertiary, fontWeight: '600', marginLeft: 2 },
     centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-    spinner: { marginBottom: 24 },
-    loadingTitle: { fontSize: 20, fontWeight: '800', color: Colors.text.primary, textAlign: 'center' },
+    loadingTitle: { fontSize: 20, fontWeight: '800', color: Colors.text.primary, textAlign: 'center', marginTop: 24 },
     loadingSubtitle: { fontSize: 14, color: Colors.text.secondary, textAlign: 'center', marginTop: 8 },
-    errorIconContainer: { width: 80, height: 80, borderRadius: 24, backgroundColor: Colors.status.error + '10', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
-    errorTitle: { fontSize: 22, fontWeight: '800', color: Colors.text.primary, textAlign: 'center' },
+    errorTitle: { fontSize: 22, fontWeight: '800', color: Colors.text.primary, textAlign: 'center', marginTop: 24 },
     errorMessage: { fontSize: 15, color: Colors.text.secondary, textAlign: 'center', marginTop: 12, marginBottom: 32 },
     primaryButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.primary, paddingVertical: 16, paddingHorizontal: 24, borderRadius: 16, gap: 10, width: '100%', justifyContent: 'center' },
     primaryButtonText: { color: 'white', fontSize: 16, fontWeight: '800' },
-    secondaryButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, paddingVertical: 16, paddingHorizontal: 24, borderRadius: 16, borderWidth: 1, borderColor: Colors.border, gap: 10, width: '100%', justifyContent: 'center', marginTop: 12 },
-    secondaryButtonText: { color: Colors.text.primary, fontSize: 16, fontWeight: '700' }
 });

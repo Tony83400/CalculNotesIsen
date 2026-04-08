@@ -126,7 +126,7 @@ export default function SelectionScreen() {
                     <View style={styles.actionRow}>
                         <RefreshButton />
                         <TouchableOpacity
-                            onPress={() => { clearAllStorage(); router.replace("/") }}
+                            onPress={async () => { await clearAllStorage(); router.replace("/") }}
                             style={styles.logoutBtn}
                         >
                             <LogOut size={18} color={Colors.status.error} />

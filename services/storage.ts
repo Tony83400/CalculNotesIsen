@@ -4,7 +4,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from "react-native";
 const isWeb = Platform.OS === 'web';
-import configDefault from '../structures_notes/structure.json';
 
 const structureName = "StructureConfig";
 const selectedYearName = "SelectedYear";
@@ -18,9 +17,10 @@ const passwordName = "Password";
 const agendaName = "Agenda";
 const notesName = "Notes";
 
+const secureKeys = [tokenName, userName, passwordName];
+
 const getStorageItem = async (key: string): Promise<string | null> => {
   if (isWeb) {
-    const secureKeys = [tokenName, userName, passwordName];
     if (secureKeys.includes(key)) {
       const name = key + "=";
       const decodedCookie = decodeURIComponent(document.cookie);
@@ -30,23 +30,32 @@ const getStorageItem = async (key: string): Promise<string | null> => {
         while (c.charAt(0) === ' ') c = c.substring(1);
         if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
       }
+      return null; 
     }
     return localStorage.getItem(key);
+  } else {
+    if (secureKeys.includes(key)) {
+      return await SecureStore.getItemAsync(key);
+    }
+    return await AsyncStorage.getItem(key);
   }
-  return await AsyncStorage.getItem(key);
 };
 
 const setStorageItem = async (key: string, value: string) => {
   if (isWeb) {
-    const secureKeys = [tokenName, userName, passwordName];
     if (secureKeys.includes(key)) {
       const expires = new Date();
       expires.setTime(expires.getTime() + (365 * 24 * 60 * 60 * 1000));
       document.cookie = `${key}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict;Secure`;
+    } else {
+      localStorage.setItem(key, value);
     }
-    localStorage.setItem(key, value);
   } else {
-    await AsyncStorage.setItem(key, value);
+    if (secureKeys.includes(key)) {
+      await SecureStore.setItemAsync(key, value);
+    } else {
+      await AsyncStorage.setItem(key, value);
+    }
   }
 };
 
@@ -123,88 +132,60 @@ export async function setPasswordStorage(value: string) {
 }
 
 export async function saveAgendaToCache(parsedEvents: AgendaEvent[]) {
-
   try {
-    setStorageItem(agendaName, JSON.stringify(parsedEvents));
-    setStorageItem(agendaName + "Date", Date.now().toString());
+    await setStorageItem(agendaName, JSON.stringify(parsedEvents));
   } catch (e) {
-    console.error("Quota localStorage dépassé", e);
+    console.error("Quota storage dépassé", e);
   }
 };
 
 export async function loadAgendaFromCache(): Promise<AgendaEvent[] | null> {
   const cachedString = await getStorageItem(agendaName);
-
   if (!cachedString) return null;
-
-  // On transforme le texte en objet JSON
   const rawEvents = JSON.parse(cachedString);
-
-  // ⚠️ CRUCIAL : On réhydrate les dates (car JSON les a transformées en string)
   const fixedEvents = rawEvents.map((event: any) => ({
     ...event,
     start: new Date(event.start),
     end: new Date(event.end),
   }));
-
   return fixedEvents;
-
 };
 
 export async function saveNotesToCache(notes: Note[]) {
   try {
     await setStorageItem(notesName, JSON.stringify(notes));
-    await setStorageItem(notesName + "Date", Date.now().toString());
   } catch (e) {
-    console.error("Quota localStorage dépassé", e);
+    console.error("Quota storage dépassé", e);
   }
 };
 
 export async function loadNotesFromCache(): Promise<Note[] | null> {
   const cachedString = await getStorageItem(notesName);
-
   if (!cachedString) return null;
-
-  // On transforme le texte en objet JSON
-  const rawNotes = JSON.parse(cachedString);
-  return rawNotes;
+  return JSON.parse(cachedString);
 };
-export async function loadLastUpdateNotes() : Promise<Date>{
-  const date = await getStorageItem(notesName + "Date");
-  if (!date) return new Date(0);
-  return new Date(parseInt(date));
-}
-export async function loadLastUpdateAgenda() : Promise<Date>{
-  const date = await getStorageItem(agendaName + "Date");
-  if (!date) return new Date(0);
-  return new Date(parseInt(date));
-}
 
-// Remove
 async function removeStorageItem(key: string) {
   if (isWeb) {
-    const secureKeys = [tokenName, userName, passwordName];
     if (secureKeys.includes(key)) {
       document.cookie = `${key}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Strict;Secure`;
     }
     localStorage.removeItem(key);
   } else {
-    await AsyncStorage.removeItem(key);
+    if (secureKeys.includes(key)) {
+      await SecureStore.deleteItemAsync(key);
+    } else {
+      await AsyncStorage.removeItem(key);
+    }
   }
 }
 
 export async function clearAgendaFromStorage() {
-  await Promise.all([
-    removeStorageItem(agendaName),
-    removeStorageItem(agendaName + "Date")
-  ]);
+  await removeStorageItem(agendaName);
 }
 
 export async function clearNotesFromStorage() {
-  await Promise.all([
-    removeStorageItem(notesName),
-    removeStorageItem(notesName + "Date")
-  ]);
+  await removeStorageItem(notesName);
 }
 
 export async function clearStructureCache() {
@@ -217,7 +198,6 @@ export async function clearStructureCache() {
     });
     return;
   }
-
   try {
     const keys = await AsyncStorage.getAllKeys();
     const structureKeys = keys.filter(key => key.startsWith(structureName));
@@ -240,55 +220,54 @@ export async function clearAppCache() {
 export async function clearAllStorage() {
   if (isWeb) {
     localStorage.clear();
+    secureKeys.forEach(key => {
+      document.cookie = `${key}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Strict;Secure`;
+    });
     return;
   }
-
   await AsyncStorage.clear();
-  await Promise.all([
-    SecureStore.deleteItemAsync(tokenName),
-    SecureStore.deleteItemAsync(userName)
-  ]);
+  await Promise.all(secureKeys.map(key => SecureStore.deleteItemAsync(key)));
 }
 
+// Réactivation des fonctions de cache JSON pour Mobile
 export async function saveStructureToCache(structure: any) {
   try {
     await setStorageItem(structureName, JSON.stringify(structure));
-    await setStorageItem(structureName + "Date", Date.now().toString());
   } catch (e) {
     console.error("Erreur sauvegarde structure", e);
   }
 }
 
-export async function saveSemesterStructureToCache(semester: string, structure: any) {
+export async function loadStructureFromCache(): Promise<any | null> {
+  const cachedString = await getStorageItem(structureName);
+  if (cachedString) {
+    try {
+      return JSON.parse(cachedString);
+    } catch (e) {
+      console.error("Erreur parsing structure", e);
+    }
+  }
+  return null; 
+}
+
+export async function saveSemesterStructureToCache(semester: string, url: string, structure: any) {
   try {
-    await setStorageItem(`${structureName}_${semester}`, JSON.stringify(structure));
+    const urlId = url.split('/').pop()?.replace('.json', '') || 'unknown';
+    await setStorageItem(`${structureName}_${semester}_${urlId}`, JSON.stringify(structure));
   } catch (e) {
     console.error(`Erreur sauvegarde structure ${semester}`, e);
   }
 }
 
-export async function loadStructureFromCache(): Promise<any | null> {
-  const cachedString = await getStorageItem(structureName);
-
-  if (cachedString) {
-    try {
+export async function loadSemesterStructureFromCache(semester: string, url: string): Promise<any | null> {
+  try {
+    const urlId = url.split('/').pop()?.replace('.json', '') || 'unknown';
+    const cachedString = await getStorageItem(`${structureName}_${semester}_${urlId}`);
+    if (cachedString) {
       return JSON.parse(cachedString);
-    } catch (e) {
-      console.error("Erreur parsing structure, retour au défaut", e);
     }
-  }
-  
-  return null; 
-}
-
-export async function loadSemesterStructureFromCache(semester: string): Promise<any | null> {
-  const cachedString = await getStorageItem(`${structureName}_${semester}`);
-  if (cachedString) {
-    try {
-      return JSON.parse(cachedString);
-    } catch (e) {
-      console.error(`Erreur parsing structure ${semester}`, e);
-    }
+  } catch (e) {
+    console.error(`Erreur parsing structure ${semester}`, e);
   }
   return null;
 }

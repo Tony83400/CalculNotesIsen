@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { TouchableOpacity, ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { TouchableOpacity, ActivityIndicator, StyleSheet, Text, View, Platform } from "react-native";
 import { RefreshCw } from "lucide-react-native";
 
 import { Colors } from "@/constants/Colors";
 import { getAgendaIsen } from "@/services/agendaApi";
-import { updateStructureConfig } from "@/services/configApi";
+import { fetchSemesterStructure, updateStructureConfig } from "@/services/configApi";
 import { getNotes } from "@/services/isenApi";
-import { clearAppCache } from "@/services/storage";
+import { clearAppCache, getSelectedMajorsUrls } from "@/services/storage";
+
+const isWeb = Platform.OS === 'web';
 
 export default function RefreshButton() {
     const [refreshing, setRefreshing] = useState(false);
@@ -14,12 +16,31 @@ export default function RefreshButton() {
     const loadData = async () => {
         setRefreshing(true);
         try {
-            await clearAppCache();
-            await Promise.all([
-                getAgendaIsen(), 
-                getNotes(),
-                updateStructureConfig(true)
-            ]);
+            if (isWeb) {
+                // Sur WEB : On actualise juste les données dynamiques (Notes/Agenda)
+                // Pas besoin de toucher aux JSON car ils sont locaux et fixes
+                await Promise.all([
+                    getAgendaIsen(), 
+                    getNotes()
+                ]);
+            } else {
+                // Sur MOBILE : On vide tout et on re-télécharge tout
+                const urls = await getSelectedMajorsUrls();
+                await clearAppCache();
+                
+                const tasks: Promise<any>[] = [
+                    getAgendaIsen(), 
+                    getNotes(),
+                    updateStructureConfig(true)
+                ];
+
+                if (urls) {
+                    Object.entries(urls).forEach(([sem, url]) => {
+                        tasks.push(fetchSemesterStructure(sem, url, true));
+                    });
+                }
+                await Promise.all(tasks);
+            }
         } catch (error) {
             console.error("Erreur lors du refresh", error);
         } finally {

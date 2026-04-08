@@ -117,7 +117,7 @@ export default function SelectionAnneeScreen() {
                 const url = currentYearData[s][major];
                 urls[s] = url;
                 
-                // Fetch et Cache hybride (via configApi)
+                // Téléchargement en direct (configApi gère le fetch systématique sur mobile)
                 const data = await fetchSemesterStructure(s, url);
                 if (!data) {
                     throw new Error(`Erreur lors du téléchargement de la structure pour ${s} (${major})`);
