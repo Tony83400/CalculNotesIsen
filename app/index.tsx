@@ -193,11 +193,6 @@ export default function LoginScreen() {
                         ) : null}
                     </View>
                 </View>
-
-                {/* FOOTER */}
-                <View style={styles.footer}>
-                    <Text style={styles.footerText}>En vous connectant, vous acceptez l'utilisation de vos données ISEN à des fins d'affichage uniquement.</Text>
-                </View>
                 </KeyboardAvoidingView>
                 {Platform.OS === 'web' && <Analytics />}
                 </SafeAreaView>
