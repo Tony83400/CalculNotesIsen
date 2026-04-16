@@ -23,7 +23,7 @@ import {
 } from "lucide-react-native";
 import { Analytics } from "@vercel/analytics/react";
 
-import { getId, getPasswordStorage, setId, setPasswordStorage, setToken, getSelectedYear, getSelectedMajors } from "@/services/storage";
+import { getId, getPasswordStorage, setId, setPasswordStorage, setToken, getSelectedYear, getSelectedMajors, getToken, isTokenExpired } from "@/services/storage";
 import { login } from "../services/isenApi";
 import { Colors } from "@/constants/Colors";
 
@@ -40,9 +40,16 @@ export default function LoginScreen() {
             const majors = await getSelectedMajors();
             const Fetchpassword = await getPasswordStorage();
             const Fetchemail = await getId();
+            const token = await getToken();
+            const expired = await isTokenExpired();
 
-            // Si déjà configuré, on va au dashboard
-            if (Fetchemail && Fetchpassword && year && majors) {
+            // Si "Rester connecté" était coché au dernier login, on l'active par défaut
+            if (Fetchpassword) {
+                setKeepLogin(true);
+            }
+
+            // Si déjà configuré ET token valide, on va au dashboard
+            if (token && !expired && year && majors) {
                 router.replace("/selection");
                 return;
             }
@@ -50,6 +57,7 @@ export default function LoginScreen() {
             if (Fetchemail) setEmail(Fetchemail);
             if (Fetchpassword) {
                 setPassword(Fetchpassword);
+                // Si on a les identifiants mais que le token est expiré ou absent, re-login auto
                 onPressLogin(Fetchemail, Fetchpassword);
             }
         };

@@ -6,7 +6,9 @@ import { Colors } from "@/constants/Colors";
 import { getAgendaIsen } from "@/services/agendaApi";
 import { fetchSemesterStructure, updateStructureConfig } from "@/services/configApi";
 import { getNotes } from "@/services/isenApi";
-import { clearAppCache, getSelectedMajorsUrls } from "@/services/storage";
+import { clearAppCache, getSelectedMajorsUrls, isTokenExpired } from "@/services/storage";
+import { router } from "expo-router";
+import { Alert } from "react-native";
 
 const isWeb = Platform.OS === 'web';
 
@@ -18,7 +20,6 @@ export default function RefreshButton() {
         try {
             if (isWeb) {
                 // Sur WEB : On actualise juste les données dynamiques (Notes/Agenda)
-                // Pas besoin de toucher aux JSON car ils sont locaux et fixes
                 await Promise.all([
                     getAgendaIsen(), 
                     getNotes()
@@ -41,8 +42,11 @@ export default function RefreshButton() {
                 }
                 await Promise.all(tasks);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Erreur lors du refresh", error);
+            if (error.message === "Session expirée") {
+                router.replace("/");
+            }
         } finally {
             setRefreshing(false);
         }

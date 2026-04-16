@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { getAgendaIsen } from "@/services/agendaApi";
 import { AgendaEvent } from "@/types/agenda";
 import { programmerNotifications } from "@/utils/notifications";
+import { router } from "expo-router";
+import { Alert } from "react-native";
 
 export function useAgenda() {
     const [allEvents, setAllEvents] = useState<AgendaEvent[]>([]);
@@ -46,8 +48,12 @@ export function useAgenda() {
             
             // Programmation des notifications (30 min avant, 4 prochains jours)
             programmerNotifications(data);
-        } catch (err) {
+        } catch (err: any) {
             console.error("Erreur useAgenda:", err);
+            if (err.message === "Session expirée") {
+                router.replace("/");
+                return;
+            }
             setError("Impossible de charger l'agenda.");
         } finally {
             setLoading(false);

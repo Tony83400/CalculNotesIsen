@@ -8,7 +8,7 @@ import {
     View,
     ScrollView
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { 
     GraduationCap, 
     CalendarDays, 
@@ -18,6 +18,7 @@ import {
     Settings,
     ArrowRight
 } from "lucide-react-native";
+import { Alert } from "react-native";
 
 import RefreshButton from "@/components/ui/notes/RefreshButton";
 import { Colors } from "@/constants/Colors";
@@ -28,13 +29,29 @@ import {
     getId, 
     getSelectedMajors, 
     getSelectedYear,
-    setSelectedSemester 
+    setSelectedSemester,
+    isTokenExpired,
+    canSilentLogin
 } from "@/services/storage";
 import { updateStructureConfig } from "@/services/configApi";
 
 export default function SelectionScreen() {
     const [userId, setUserId] = useState<string | null>(null);
     const [selectedYear, setSelectedYear] = useState<string | null>(null);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const checkSession = async () => {
+                const expired = await isTokenExpired();
+                const canSilent = await canSilentLogin();
+                // On ne redirige que si on n'a plus de session ET pas de moyen de se reconnecter
+                if (expired && !canSilent) {
+                    router.replace("/");
+                }
+            };
+            checkSession();
+        }, [])
+    );
 
     useEffect(() => {
         const fetchConfig = async () => {

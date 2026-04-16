@@ -12,7 +12,7 @@ import {
     Alert,
     ActivityIndicator
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { 
     Home, 
     RotateCcw, 
@@ -35,6 +35,8 @@ import {
     getSelectedSemester,
     setSelectedSemester,
     loadNotesFromCache,
+    isTokenExpired,
+    canSilentLogin,
 } from "@/services/storage";
 import { fetchSemesterStructure } from "@/services/configApi";
 import { Note } from "@/types/note";
@@ -68,6 +70,19 @@ export default function NotesScreen() {
     const [showSemesterPicker, setShowSemesterPicker] = useState(false);
 
     const spinValue = useRef(new Animated.Value(0)).current;
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const checkSession = async () => {
+                const expired = await isTokenExpired();
+                const canSilent = await canSilentLogin();
+                if (expired && !canSilent) {
+                    router.replace("/");
+                }
+            };
+            checkSession();
+        }, [])
+    );
 
     // 1. Chargement initial : Config + TOUTES les structures + Notes
     useEffect(() => {
@@ -174,9 +189,6 @@ export default function NotesScreen() {
             }
         } catch (err: any) {
             if (err.message === "Session expirée") {
-                Alert.alert("Session expirée", "Votre session a expiré. Reconnexion automatique...", [
-                    { text: "OK", onPress: () => router.replace("/") }
-                ]);
                 router.replace("/");
                 return;
             }

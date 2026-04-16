@@ -26,8 +26,6 @@ Pour qu'une Unité d'Enseignement (UE) soit validée, deux conditions sont néce
 - **Semestre :** Moyenne pondérée des UE selon leurs ECTS.
 - **Logique de Rattrapage :** 
   - Si la moyenne initiale de l'UE est `< 10`, la nouvelle moyenne (après rattrapage) est **plafonnée à 10**.
-  - Si la moyenne initiale de l'UE est `≥ 10`, la moyenne initiale est conservée (le rattrapage sert uniquement à lever une note éliminatoire `< 6`).
-
 ## 🎨 Système de Design (Premium v2)
 - **Primary :** `#2563EB` (Bleu Royal moderne).
 - **Background :** `#F1F5F9` (Gris ardoise très clair pour le contraste).

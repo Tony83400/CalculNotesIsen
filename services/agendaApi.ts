@@ -3,14 +3,11 @@ import { parseAgenda } from "@/utils/agenda";
 
 export async function getAgendaIsen() {
   const cachedData = await loadAgendaFromCache();
-  if (cachedData) {
-    return cachedData;
-  }
 
   try {
-    const id =await getId();
+    const id = await getId();
     if (!id) {
-      throw new Error("Utilisateur non connecté (Token manquant)");
+      throw new Error("Utilisateur non connecté (Identifiant manquant)");
     }
     const prenom = id.split(".")[0];
     const nom = id.split(".")[1];
@@ -35,8 +32,11 @@ export async function getAgendaIsen() {
     const data = parseAgenda(icsString);
     await saveAgendaToCache(data);
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erreur dans getAgendaIsen :", error);
+    if (cachedData) {
+      return cachedData;
+    }
     throw error;
   }
 }

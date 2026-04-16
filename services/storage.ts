@@ -12,12 +12,13 @@ const selectedFiliereName = "SelectedFiliere";
 const selectedMajorsName = "SelectedMajors";
 const selectedMajorsUrlsName = "SelectedMajorsUrls";
 const tokenName = "Token";
+const tokenExpirationName = "TokenExpiration";
 const userName = "User";
 const passwordName = "Password";
 const agendaName = "Agenda";
 const notesName = "Notes";
 
-const secureKeys = [tokenName, userName, passwordName];
+const secureKeys = [tokenName, tokenExpirationName, userName, passwordName];
 
 const getStorageItem = async (key: string): Promise<string | null> => {
   if (isWeb) {
@@ -115,6 +116,21 @@ export async function getToken(): Promise<string | null> {
 }
 export async function setToken(value: string) {
   await setStorageItem(tokenName, value);
+  // Définir l'expiration à 1 heure (3600000 ms)
+  const expirationTime = Date.now() + 3600000;
+  await setStorageItem(tokenExpirationName, expirationTime.toString());
+}
+
+export async function isTokenExpired(): Promise<boolean> {
+  const expiration = await getStorageItem(tokenExpirationName);
+  if (!expiration) return true;
+  return Date.now() > parseInt(expiration);
+}
+
+export async function canSilentLogin(): Promise<boolean> {
+  const user = await getStorageItem(userName);
+  const pass = await getStorageItem(passwordName);
+  return !!(user && pass);
 }
 
 export async function getId(): Promise<string | null> {

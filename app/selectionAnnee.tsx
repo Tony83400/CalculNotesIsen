@@ -11,7 +11,7 @@ import {
     Alert,
     Dimensions
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { 
     Check,
     Calendar,
@@ -28,7 +28,9 @@ import {
     getSelectedMajors, 
     setSelectedMajors,
     setSelectedMajorsUrls,
-    setSelectedSemester
+    setSelectedSemester,
+    isTokenExpired,
+    canSilentLogin
 } from "@/services/storage";
 import { updateStructureConfig, fetchSemesterStructure } from "@/services/configApi";
 import bundledStructure from "@/structures_notes/structure.json";
@@ -43,6 +45,19 @@ export default function SelectionAnneeScreen() {
     const [selectedMajors, setSelectedMajorsState] = useState<Record<string, string>>({});
 
     const years = Object.keys(structure.annee);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const checkSession = async () => {
+                const expired = await isTokenExpired();
+                const canSilent = await canSilentLogin();
+                if (expired && !canSilent) {
+                    router.replace("/");
+                }
+            };
+            checkSession();
+        }, [])
+    );
 
     useEffect(() => {
         const loadInitialData = async () => {

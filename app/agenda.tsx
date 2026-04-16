@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { 
     ChevronLeft, 
     ChevronRight, 
@@ -19,13 +19,27 @@ import {
     CalendarRange,
     RefreshCw
 } from "lucide-react-native";
+import { Alert } from "react-native";
 
 import AgendaGrid from "@/components/ui/agenda/AgendaGrid";
 import DailyAgenda from "@/components/ui/agenda/DailyAgenda";
 import { Colors } from "@/constants/Colors";
 import { useAgenda } from "@/hooks/useAgenda";
+import { isTokenExpired, canSilentLogin } from "@/services/storage";
 
 export default function AgendaScreen() {
+    useFocusEffect(
+        React.useCallback(() => {
+            const checkSession = async () => {
+                const expired = await isTokenExpired();
+                const canSilent = await canSilentLogin();
+                if (expired && !canSilent) {
+                    router.replace("/");
+                }
+            };
+            checkSession();
+        }, [])
+    );
     const {
         allEvents,
         weekEvents,

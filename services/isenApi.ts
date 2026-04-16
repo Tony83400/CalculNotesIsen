@@ -1,6 +1,31 @@
 import { API_URL } from "@/constants/Config";
-import { getToken, loadNotesFromCache, saveNotesToCache } from "./storage";
+import { getToken, loadNotesFromCache, saveNotesToCache, isTokenExpired, getId, getPasswordStorage, setToken } from "./storage";
 import { Note } from "@/types/note";
+
+/**
+ * Tente une reconnexion silencieuse avec les identifiants en cache
+ */
+async function silentLogin() {
+    const username = await getId();
+    const password = await getPasswordStorage();
+    if (username && password) {
+        try {
+            const res = await fetch(`${API_URL}/token`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password }),
+            });
+            if (res.ok) {
+                const newToken = await res.text();
+                await setToken(newToken);
+                return newToken;
+            }
+        } catch (e) {
+            console.error("Échec silent login", e);
+        }
+    }
+    return null;
+}
 
 export async function login(loginData: { username: string; password: string }) {
   try {
@@ -15,7 +40,7 @@ export async function login(loginData: { username: string; password: string }) {
 
     if (!res.ok) {
       if (res.status === 401 || res.status === 400) {
-        throw new Error("Identifiants incorrects ou session expirée");
+        throw new Error("Identifiants incorrects");
       }
       const errorText = await res.text();
       throw new Error(errorText || `Erreur de connexion (${res.status})`);
@@ -31,15 +56,20 @@ export async function login(loginData: { username: string; password: string }) {
 
 export async function getNotes() {
   const cachedData = await loadNotesFromCache();
-  if (cachedData) {
-    return cachedData;
-  }
-
+  
   try {
-    const token = await getToken();
-    if (!token) {
-      throw new Error("Utilisateur non connecté (Token manquant)");
+    let token = await getToken();
+    const expired = await isTokenExpired();
+    
+    // Tentative de reconnexion automatique si expiré
+    if (!token || expired) {
+      token = await silentLogin();
     }
+
+    if (!token) {
+      throw new Error("Session expirée");
+    }
+
     const res = await fetch(`${API_URL}/notations`, {
       method: "GET",
       headers: {
@@ -51,6 +81,12 @@ export async function getNotes() {
 
     if (!res.ok) {
       if (res.status === 401) {
+        // Si 401 après fetch, on tente une dernière fois le silent login
+        const freshToken = await silentLogin();
+        if (freshToken) {
+            // On retente l'appel avec le nouveau token
+            return await getNotes(); 
+        }
         throw new Error("Session expirée");
       }
       const errorText = await res.text();
@@ -67,6 +103,9 @@ export async function getNotes() {
     return formattedNotes;
   } catch (error: any) {
     console.error("Erreur dans getNotes :", error);
+    if (cachedData && error.message !== "Session expirée") {
+        return cachedData;
+    }
     throw error;
   }
 }
