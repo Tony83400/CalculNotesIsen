@@ -1,6 +1,7 @@
 import { API_URL } from "@/constants/Config";
 import { getToken, loadNotesFromCache, saveNotesToCache, isTokenExpired, getId, getPasswordStorage, setToken, setLastUpdate } from "./storage";
 import { Note } from "@/types/note";
+import { EventDetails } from "@/types/agenda";
 
 /**
  * Tente une reconnexion silencieuse avec les identifiants en cache
@@ -115,4 +116,79 @@ export async function getNotes() {
     }
     throw error;
   }
+}
+
+/**
+ * Récupère l'ID d'un événement à partir de son timestamp de début et fin
+ */
+export async function getEventIdByTime(startTs: number, endTs: number): Promise<string | null> {
+    try {
+        let token = await getToken();
+        if (await isTokenExpired()) token = await silentLogin();
+        if (!token) return null;
+
+        // On élargit légèrement la recherche (+/- 5 min) pour être robuste aux arrondis
+        const searchStart = startTs - (5 * 60 * 1000);
+        const searchEnd = endTs + (5 * 60 * 1000);
+
+        const res = await fetch(`${API_URL}/agenda?start=${searchStart}&end=${searchEnd}`, {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+                Token: token,
+            },
+        });
+
+        if (!res.ok) return null;
+        const data = await res.json();
+        
+        if (Array.isArray(data) && data.length > 0) {
+            // Filtrage des événements avec des dates valides uniquement
+            const validEvents = data.filter(e => e.id && e.start && !isNaN(new Date(e.start).getTime()));
+            
+            if (validEvents.length === 0) return null;
+
+            // On cherche celui dont le début est le plus proche du startTs demandé
+            const bestMatch = validEvents.reduce((prev, curr) => {
+                const prevDiff = Math.abs(new Date(prev.start).getTime() - startTs);
+                const currDiff = Math.abs(new Date(curr.start).getTime() - startTs);
+                return currDiff < prevDiff ? curr : prev;
+            });
+
+            // Si le décalage est trop grand (> 15 min), c'est probablement un autre cours
+            const finalDiff = Math.abs(new Date(bestMatch.start).getTime() - startTs);
+            if (finalDiff > 15 * 60 * 1000) return null;
+
+            return bestMatch.id;
+        }
+        return null;
+    } catch (e) {
+        console.error("Erreur getEventIdByTime", e);
+        return null;
+    }
+}
+
+/**
+ * Récupère les détails avancés d'un événement par son ID
+ */
+export async function getEventDetails(eventId: string): Promise<EventDetails | null> {
+    try {
+        let token = await getToken();
+        if (await isTokenExpired()) token = await silentLogin();
+        if (!token) return null;
+
+        const res = await fetch(`${API_URL}/agenda/event/${eventId}`, {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+                Token: token,
+            },
+        });
+
+        if (!res.ok) return null;
+        return await res.json();
+    } catch (e) {
+        console.error("Erreur getEventDetails", e);
+        return null;
+    }
 }

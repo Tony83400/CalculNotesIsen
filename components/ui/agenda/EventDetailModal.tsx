@@ -1,16 +1,19 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { 
     StyleSheet, 
     View, 
     Text, 
     TouchableOpacity, 
     Modal, 
-    Pressable 
+    Pressable,
+    ActivityIndicator,
+    ScrollView
 } from "react-native";
-import { Clock, MapPin, X } from "lucide-react-native";
+import { Clock, MapPin, X, Users, BookOpen, Tag, Info } from "lucide-react-native";
 import { Colors } from "@/constants/Colors";
-import { AgendaEvent } from "@/types/agenda";
+import { AgendaEvent, EventDetails } from "@/types/agenda";
 import { formatTime, formatFullDate } from "@/utils/agenda";
+import { getEventIdByTime, getEventDetails } from "@/services/isenApi";
 
 interface EventDetailModalProps {
     event: AgendaEvent | null;
@@ -19,6 +22,36 @@ interface EventDetailModalProps {
 }
 
 export default function EventDetailModal({ event, visible, onClose }: EventDetailModalProps) {
+    const [loading, setLoading] = useState(false);
+    const [details, setDetails] = useState<EventDetails | null>(null);
+
+    useEffect(() => {
+        if (visible && event) {
+            loadDetails();
+        } else {
+            setDetails(null);
+        }
+    }, [visible, event]);
+
+    const loadDetails = async () => {
+        if (!event) return;
+        setLoading(true);
+        try {
+            const startTs = event.start.getTime();
+            const endTs = event.end.getTime();
+            const eventId = await getEventIdByTime(startTs, endTs);
+            
+            if (eventId) {
+                const detailedInfo = await getEventDetails(eventId);
+                setDetails(detailedInfo);
+            }
+        } catch (error) {
+            console.error("Erreur lors du chargement des détails :", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (!event) return null;
 
     return (
@@ -49,28 +82,100 @@ export default function EventDetailModal({ event, visible, onClose }: EventDetai
                         </TouchableOpacity>
                     </View>
 
-                    <View style={styles.modalBody}>
-                        <View style={styles.detailItem}>
-                            <Clock size={20} color={Colors.primary} style={styles.detailIcon} />
-                            <View>
-                                <Text style={styles.detailLabel}>Horaire</Text>
-                                <Text style={styles.detailValue}>
-                                    {formatFullDate(event.start)}
-                                </Text>
-                                <Text style={styles.detailSubValue}>
-                                    {formatTime(event.start)} - {formatTime(event.end)}
-                                </Text>
+                    <ScrollView bounces={false} contentContainerStyle={{ paddingBottom: 16 }}>
+                        <View style={styles.modalBody}>
+                            <View style={styles.detailItem}>
+                                <Clock size={20} color={Colors.primary} style={styles.detailIcon} />
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.detailLabel}>Horaire</Text>
+                                    <Text style={styles.detailValue}>
+                                        {formatFullDate(event.start)}
+                                    </Text>
+                                    <Text style={styles.detailSubValue}>
+                                        {formatTime(event.start)} - {formatTime(event.end)}
+                                    </Text>
+                                </View>
                             </View>
-                        </View>
 
-                        <View style={styles.detailItem}>
-                            <MapPin size={20} color={Colors.primary} style={styles.detailIcon} />
-                            <View>
-                                <Text style={styles.detailLabel}>Lieu</Text>
-                                <Text style={styles.detailValue}>{event.location}</Text>
+                            <View style={styles.detailItem}>
+                                <MapPin size={20} color={Colors.primary} style={styles.detailIcon} />
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.detailLabel}>Lieu</Text>
+                                    <Text style={styles.detailValue}>{event.location}</Text>
+                                </View>
                             </View>
+
+                            {loading ? (
+                                <View style={styles.loadingContainer}>
+                                    <ActivityIndicator color={Colors.primary} />
+                                    <Text style={styles.loadingText}>Chargement des détails...</Text>
+                                </View>
+                            ) : details ? (
+                                <>
+                                    <View style={styles.detailItem}>
+                                        <BookOpen size={20} color={Colors.primary} style={styles.detailIcon} />
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.detailLabel}>Module</Text>
+                                            <Text style={styles.detailValue}>{details.module || 'Non défini'}</Text>
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.detailItem}>
+                                        <Tag size={20} color={Colors.primary} style={styles.detailIcon} />
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.detailLabel}>Groupe</Text>
+                                            <Text style={styles.detailValue}>
+                                                {details.type || ''} {
+                                                    (details.groups?.length ?? 0) > 1 
+                                                    ? `- ${details.groups?.[1]}` 
+                                                    : ((details.groups?.length ?? 0) > 0 ? `- ${details.groups?.[0]}` : '')
+                                                }
+                                            </Text>
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.detailItem}>
+                                        <Info size={20} color={Colors.primary} style={styles.detailIcon} />
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.detailLabel}>Enseignants</Text>
+                                            <Text style={styles.detailValue}>
+                                                {(details.teachers?.length ?? 0) > 0 ? details.teachers?.join(', ') : 'Non défini'}
+                                            </Text>
+                                        </View>
+                                    </View>
+
+                                    <View style={styles.detailItem}>
+                                        <Users size={20} color={Colors.primary} style={styles.detailIcon} />
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.detailLabel}>Étudiants ({details.students?.length ?? 0})</Text>
+                                            <View style={[
+                                                styles.studentsListContainer,
+                                                { maxHeight: (details.students?.length ?? 0) > 5 ? 180 : undefined }
+                                            ]}>
+                                                <ScrollView 
+                                                    nestedScrollEnabled={true} 
+                                                    style={styles.studentsScrollView}
+                                                    showsVerticalScrollIndicator={(details.students?.length ?? 0) > 5}
+                                                >
+                                                    <View style={styles.studentsList}>
+                                                        {(details.students ?? []).map((student, index) => (
+                                                            <Text key={index} style={styles.studentName}>
+                                                                • {student}
+                                                            </Text>
+                                                        ))}
+                                                    </View>
+                                                </ScrollView>
+                                            </View>
+                                        </View>
+                                    </View>
+                                </>
+                            ) : !loading && (
+                                <View style={styles.noDetailsContainer}>
+                                    <Text style={styles.noDetailsText}>Détails non disponibles pour ce cours.</Text>
+                                </View>
+                            )}
                         </View>
-                    </View>
+                    </ScrollView>
                 </View>
             </Pressable>
         </Modal>
@@ -87,6 +192,9 @@ const styles = StyleSheet.create({
     },
     modalContent: {
         width: '100%',
+        maxWidth: 500,
+        maxHeight: '85%',
+        alignSelf: 'center',
         backgroundColor: Colors.surface,
         borderRadius: 24,
         overflow: 'hidden',
@@ -132,6 +240,7 @@ const styles = StyleSheet.create({
     },
     modalBody: {
         padding: 24,
+        paddingTop: 16,
         gap: 24,
     },
     detailItem: {
@@ -160,5 +269,43 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: Colors.primary,
         marginTop: 2,
+    },
+    loadingContainer: {
+        paddingVertical: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        gap: 12,
+    },
+    loadingText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: Colors.text.tertiary,
+    },
+    studentsListContainer: {
+        marginTop: 8,
+        backgroundColor: Colors.background,
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    studentsScrollView: {
+        padding: 12,
+    },
+    studentsList: {
+        gap: 4,
+    },
+    studentName: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: Colors.text.secondary,
+    },
+    noDetailsContainer: {
+        paddingVertical: 10,
+        alignItems: 'center',
+    },
+    noDetailsText: {
+        fontSize: 14,
+        color: Colors.text.tertiary,
+        fontStyle: 'italic',
     }
 });

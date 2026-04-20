@@ -7,3 +7,18 @@ export interface AgendaEvent {
   end: Date;
   isExam?: boolean; 
 }
+
+export interface EventDetails {
+  start: string;
+  end: string;
+  status: string;
+  subject: string;
+  type: string;
+  isPaper: boolean;
+  rooms: string[];
+  teachers: string[];
+  students: string[];
+  groups: string[];
+  courseName: string;
+  module: string;
+}
