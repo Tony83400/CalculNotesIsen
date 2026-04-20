@@ -35,6 +35,7 @@ import {
     getSelectedSemester,
     setSelectedSemester,
     loadNotesFromCache,
+    getLastUpdate,
     isTokenExpired,
     canSilentLogin,
 } from "@/services/storage";
@@ -49,9 +50,11 @@ let sessionNotes: Note[] | undefined = undefined;
 let sessionConfigs: Record<string, any> = {};
 let sessionUserId: string | null = "";
 let sessionUserParams: any = null;
+let sessionLastUpdate: string | null = null;
 
 export default function NotesScreen() {
     const [notes, setNotes] = useState<Note[] | undefined>(sessionNotes);
+    const [lastUpdate, setLastUpdate] = useState<string | null>(sessionLastUpdate);
     const [selectedYear, setSelectedYear] = useState<string | null>(sessionUserParams?.year || null);
     const [selectedSemester, setSelectedSemesterState] = useState<string | null>(sessionUserParams?.semester || null);
     const [selectedMajors, setSelectedMajors] = useState<Record<string, string>>(sessionUserParams?.majors || {});
@@ -67,9 +70,11 @@ export default function NotesScreen() {
     
     // On n'affiche le chargement QUE si on n'a absolument rien en mémoire
     const [isLoading, setIsLoading] = useState(!sessionNotes || Object.keys(sessionConfigs).length === 0);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [showSemesterPicker, setShowSemesterPicker] = useState(false);
 
     const spinValue = useRef(new Animated.Value(0)).current;
+    const refreshSpinValue = useRef(new Animated.Value(0)).current;
 
     useFocusEffect(
         React.useCallback(() => {
@@ -84,49 +89,87 @@ export default function NotesScreen() {
         }, [])
     );
 
+    // Animation pour le rafraîchissement en arrière-plan
+    useEffect(() => {
+        let animation: Animated.CompositeAnimation | null = null;
+        if (isRefreshing) {
+            refreshSpinValue.setValue(0);
+            animation = Animated.loop(
+                Animated.timing(refreshSpinValue, {
+                    toValue: 1,
+                    duration: 1000,
+                    easing: Easing.linear,
+                    useNativeDriver: true,
+                })
+            );
+            animation.start();
+        } else {
+            refreshSpinValue.setValue(0);
+        }
+        return () => animation?.stop();
+    }, [isRefreshing]);
+
+    const refreshSpin = refreshSpinValue.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '360deg']
+    });
+
     // 1. Chargement initial : Config + TOUTES les structures + Notes
     useEffect(() => {
         const loadInitialData = async () => {
-            // Si on a déjà tout en session, on peut quand même rafraîchir en tâche de fond
-            const hasData = sessionNotes && Object.keys(sessionConfigs).length > 0;
-            if (!hasData) setIsLoading(true);
+            // On récupère les paramètres de base
+            const [year, majors, urls, semester, id, lastUp] = await Promise.all([
+                getSelectedYear(),
+                getSelectedMajors(),
+                getSelectedMajorsUrls(),
+                getSelectedSemester(),
+                getId(),
+                getLastUpdate()
+            ]);
+
+            if (!year || !majors || !urls || !semester) {
+                router.replace("/selectionAnnee");
+                return;
+            }
+
+            // Détection de changement d'utilisateur pour vider la session mémoire
+            if (id && sessionUserId && id !== sessionUserId) {
+                sessionNotes = undefined;
+                sessionConfigs = {};
+                sessionUserParams = null;
+                sessionLastUpdate = null;
+            }
+
+            // Mise à jour des états locaux et session
+            const userParams = { year, majors, urls, semester };
+            sessionUserParams = userParams;
+            sessionUserId = id;
+            sessionLastUpdate = lastUp;
+            setSelectedYear(year);
+            setSelectedMajors(majors);
+            setMajorUrls(urls);
+            setSelectedSemesterState(semester);
+            setUserId(id);
+            setLastUpdate(lastUp);
+
+            // GESTION DU CHARGEMENT DISCRET
+            let currentNotes = sessionNotes;
+            if (!currentNotes) {
+                currentNotes = await loadNotesFromCache() || undefined;
+                if (currentNotes) {
+                    sessionNotes = currentNotes;
+                    setNotes(currentNotes);
+                }
+            }
+
+            // On ne met isLoading à true QUE si on n'a vraiment pas de notes
+            if (!currentNotes) {
+                setIsLoading(true);
+            } else {
+                setIsLoading(false);
+            }
 
             try {
-                // Récupération des paramètres utilisateur
-                const [year, majors, urls, semester, id] = await Promise.all([
-                    getSelectedYear(),
-                    getSelectedMajors(),
-                    getSelectedMajorsUrls(),
-                    getSelectedSemester(),
-                    getId()
-                ]);
-
-                if (!year || !majors || !urls || !semester) {
-                    router.replace("/selectionAnnee");
-                    return;
-                }
-
-                // Mise à jour des états et du cache session
-                const userParams = { year, majors, urls, semester };
-                sessionUserParams = userParams;
-                sessionUserId = id;
-                
-                setSelectedYear(year);
-                setSelectedMajors(majors);
-                setMajorUrls(urls);
-                setSelectedSemesterState(semester);
-                setUserId(id);
-
-                // Tentative de chargement des notes depuis le cache disque si la session est vide
-                if (!sessionNotes) {
-                    const cached = await loadNotesFromCache();
-                    if (cached) {
-                        sessionNotes = cached;
-                        setNotes(cached);
-                        setIsLoading(false); // On peut déjà afficher
-                    }
-                }
-
                 // Chargement de TOUTES les structures des semestres disponibles en parallèle
                 const configPromises = Object.entries(urls).map(async ([sem, url]) => {
                     const data = await fetchSemesterStructure(sem, url);
@@ -150,18 +193,26 @@ export default function NotesScreen() {
                 sessionConfigs = configsObj;
                 setAllConfigs(configsObj);
 
-                // Chargement des notes depuis l'API
+                // Chargement des notes depuis l'API (Refresh en arrière-plan)
                 if (id) {
+                    setIsRefreshing(true);
                     const rep = await getNotes();
                     if (rep) {
                         sessionNotes = rep;
                         setNotes(rep);
+                        const newLastUp = await getLastUpdate();
+                        sessionLastUpdate = newLastUp;
+                        setLastUpdate(newLastUp);
                     }
+                    setIsRefreshing(false);
                 }
             } catch (e: any) {
                 console.error("Error loading notes screen:", e);
-                // On ne bloque que si on n'a vraiment rien à afficher
-                if (!sessionNotes) setError(e.message || "Erreur de chargement.");
+                setIsRefreshing(false);
+                // On ne bloque que si on n'a vraiment rien à afficher (ni cache, ni session)
+                if (!sessionNotes && !currentNotes) {
+                    setError(e.message || "Erreur de chargement.");
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -181,20 +232,31 @@ export default function NotesScreen() {
     const fetchNote = useCallback(async () => {
         if (!userId) return;
         setError(null);
+        setIsRefreshing(true);
         try {
             const rep = await getNotes();
             if (rep) {
                 sessionNotes = rep;
                 setNotes(rep);
+                const newLastUp = await getLastUpdate();
+                sessionLastUpdate = newLastUp;
+                setLastUpdate(newLastUp);
             }
         } catch (err: any) {
             if (err.message === "Session expirée") {
                 router.replace("/");
                 return;
             }
-            setError(err.message || "Une erreur est survenue.");
+            // Si on a déjà des notes, on montre juste un message discret au lieu de bloquer l'écran
+            if (notes) {
+                Alert.alert("Erreur", err.message || "Impossible de mettre à jour les notes.");
+            } else {
+                setError(err.message || "Une erreur est survenue.");
+            }
+        } finally {
+            setIsRefreshing(false);
         }
-    }, [userId]);
+    }, [userId, notes]);
 
     // --- Animation ---
     useEffect(() => {
@@ -324,6 +386,27 @@ export default function NotesScreen() {
                 </View>
             </View>
 
+            <View style={styles.refreshIndicatorContainer}>
+                <View style={styles.refreshInfoLeft}>
+                    {isRefreshing ? (
+                        <View style={styles.refreshingRow}>
+                            <Animated.View style={{ transform: [{ rotate: refreshSpin }] }}>
+                                <Loader2 size={14} color={Colors.text.tertiary} />
+                            </Animated.View>
+                            <Text style={styles.refreshText}>Actualisation...</Text>
+                        </View>
+                    ) : (
+                        <View style={styles.refreshingRow}>
+                            <Check size={14} color={Colors.status.success} />
+                            <Text style={styles.refreshText}>À jour</Text>
+                        </View>
+                    )}
+                </View>
+                {lastUpdate && (
+                    <Text style={styles.lastUpdateText}>MàJ : {lastUpdate}</Text>
+                )}
+            </View>
+
             <FlatList
                 data={donneesAffichables}
                 keyExtractor={(item, index) => item.ue || index.toString()}
@@ -414,6 +497,35 @@ const styles = StyleSheet.create({
     activeModeTab: { backgroundColor: Colors.primary, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
     modeTabText: { fontSize: 14, fontWeight: '700', color: Colors.text.secondary },
     activeModeTabText: { color: '#FFFFFF' },
+    refreshIndicatorContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: 12,
+        paddingBottom: 4,
+    },
+    refreshInfoLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    refreshingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    refreshText: {
+        fontSize: 11,
+        fontWeight: '700',
+        color: Colors.text.tertiary,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    lastUpdateText: {
+        fontSize: 11,
+        fontWeight: '600',
+        color: Colors.text.tertiary,
+    },
     statsRow: { flexDirection: 'row', gap: 16, padding: 16, paddingBottom: 24 },
     statCard: { flex: 1, backgroundColor: Colors.surface, padding: 16, borderRadius: 24, borderWidth: 1, borderColor: Colors.border, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 12, elevation: 2 },
     statHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },

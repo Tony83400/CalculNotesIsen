@@ -55,7 +55,7 @@ export default function LoginScreen() {
             }
 
             if (Fetchemail) setEmail(Fetchemail);
-            if (Fetchpassword) {
+            if (Fetchemail && Fetchpassword) {
                 setPassword(Fetchpassword);
                 // Si on a les identifiants mais que le token est expiré ou absent, re-login auto
                 onPressLogin(Fetchemail, Fetchpassword);

@@ -17,6 +17,7 @@ const userName = "User";
 const passwordName = "Password";
 const agendaName = "Agenda";
 const notesName = "Notes";
+const lastUpdateName = "LastUpdate";
 
 const secureKeys = [tokenName, tokenExpirationName, userName, passwordName];
 
@@ -180,6 +181,14 @@ export async function loadNotesFromCache(): Promise<Note[] | null> {
   if (!cachedString) return null;
   return JSON.parse(cachedString);
 };
+
+export async function getLastUpdate(): Promise<string | null> {
+  return await getStorageItem(lastUpdateName);
+}
+
+export async function setLastUpdate(value: string) {
+  await setStorageItem(lastUpdateName, value);
+}
 
 async function removeStorageItem(key: string) {
   if (isWeb) {

@@ -3,7 +3,7 @@ import { getAgendaIsen } from "@/services/agendaApi";
 import { AgendaEvent } from "@/types/agenda";
 import { programmerNotifications } from "@/utils/notifications";
 import { router } from "expo-router";
-import { Alert } from "react-native";
+import { loadAgendaFromCache } from "@/services/storage";
 
 export function useAgenda() {
     const [allEvents, setAllEvents] = useState<AgendaEvent[]>([]);
@@ -40,21 +40,33 @@ export function useAgenda() {
 
     // Récupération des données
     const fetchAgenda = useCallback(async () => {
-        setLoading(true);
+        // 1. Chargement immédiat du cache
+        const cached = await loadAgendaFromCache();
+        if (cached && cached.length > 0) {
+            setAllEvents(cached);
+            setLoading(false); // On peut déjà afficher
+        } else {
+            setLoading(true);
+        }
+        
         setError(null);
         try {
+            // 2. Fetch en arrière-plan
             const data = await getAgendaIsen();
-            setAllEvents(data);
-            
-            // Programmation des notifications (30 min avant, 4 prochains jours)
-            programmerNotifications(data);
+            if (data) {
+                setAllEvents(data);
+                programmerNotifications(data);
+            }
         } catch (err: any) {
             console.error("Erreur useAgenda:", err);
             if (err.message === "Session expirée") {
                 router.replace("/");
                 return;
             }
-            setError("Impossible de charger l'agenda.");
+            // 3. Échec silencieux si on a déjà des données en cache
+            if (!cached || cached.length === 0) {
+                setError("Impossible de charger l'agenda.");
+            }
         } finally {
             setLoading(false);
         }

@@ -1,5 +1,5 @@
 import { API_URL } from "@/constants/Config";
-import { getToken, loadNotesFromCache, saveNotesToCache, isTokenExpired, getId, getPasswordStorage, setToken } from "./storage";
+import { getToken, loadNotesFromCache, saveNotesToCache, isTokenExpired, getId, getPasswordStorage, setToken, setLastUpdate } from "./storage";
 import { Note } from "@/types/note";
 
 /**
@@ -100,6 +100,13 @@ export async function getNotes() {
       date: elt.date,
     }));
     await saveNotesToCache(formattedNotes);
+    
+    // Sauvegarde de l'heure de mise à jour
+    const now = new Date();
+    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const dateStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+    await setLastUpdate(`${dateStr} à ${timeStr}`);
+    
     return formattedNotes;
   } catch (error: any) {
     console.error("Erreur dans getNotes :", error);

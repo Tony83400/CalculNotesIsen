@@ -87,7 +87,7 @@ const getDonneesAvecNotes = (
 
       // 3. Calcul Moyenne Finale Matière
       matiere.evaluations.forEach((ev) => {
-        if (ev.noteReelle !== null) {
+        if (ev.noteReelle !== null && typeof ev.noteReelle === 'number') {
           sommePointsMat += ev.noteReelle * ev.coeff;
           totalCoeffMat += ev.coeff;
         } else {
