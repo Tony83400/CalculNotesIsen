@@ -43,7 +43,7 @@
         "matieres": [
           { "name": "Projet IA JAVA THS", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
           { "name": "IA Toolbox", "coeff_matiere": 1, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] },
-          { "name": "Introduction IA RNA", "coeff_matiere": 2, "evaluations": [{ "name": "note", "code": "", "coeff": 1 }] }
+          { "name": "Introduction IA RNA", "coeff_matiere": 2, "evaluations": [{ "name": "Partiel", "code": "25_ISEN_MED_ISEN3_S6_IA_RNA", "coeff": 1 }] }
         ]
       },
       {
