@@ -2,10 +2,10 @@
     "annee": {
         "N1" : {
             "S1": {
-                "CIN" : "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/refs/heads/main/structures_notes/annee_1/S1_CIN.json"
+                "CIN" : "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/refs/heads/main/structures_notes/annee_1/S1_CIN.Json"
         },
         "S2" :{
-            "CIN" : "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_1/S2_CIN.json"
+            "CIN" : "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/refs/heads/main/structures_notes/annee_1/S2_CIN.json"
         }
         },
         "N2": {
