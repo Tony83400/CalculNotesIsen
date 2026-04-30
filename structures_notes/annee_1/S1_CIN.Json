@@ -1,0 +1,340 @@
+[
+  {
+    "ue": "Semestre 1 - Mathématiques",
+    "ects": 5,
+    "matieres": [
+      {
+        "name": "Semestre 1 - Mathématiques",
+        "coeff_matiere": 5,
+        "evaluations": [
+          {
+            "name": "Examen",
+            "code": "25_ISEN_MED_ISEN1_S1_MATHS_EX",
+            "coeff": 45
+          },
+          {
+            "name": "Devoir - 1",
+            "code": "25_ISEN_MED_ISEN1_S1_MATHS_DS_1",
+            "coeff": 17.5
+          },
+          {
+            "name": "Devoir - 2",
+            "code": "25_ISEN_MED_ISEN1_S1_MATHS_DS_2",
+            "coeff": 17.5
+          },
+          {
+            "name": "Contrôle continu",
+            "code": "25_ISEN_MED_ISEN1_S1_MATHS_CC",
+            "coeff": 10
+          },
+          {
+            "name": "Evaluation - 1",
+            "code": "25_ISEN_MED_ISEN1_S1_MATHS_IE_1",
+            "coeff": 5
+          },
+          {
+            "name": "Evaluation - 2",
+            "code": "25_ISEN_MED_ISEN1_S1_MATHS_IE_2",
+            "coeff": 5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Semestre 1 - Outils de l'ingénieur",
+    "ects": 5,
+    "matieres": [
+      {
+        "name": "Semestre 1 - Outils mathématiques",
+        "coeff_matiere": 2,
+        "evaluations": [
+          {
+            "name": "Examen",
+            "code": "25_ISEN_MED_ISEN1_S1_OUTILS_MATHS_EX",
+            "coeff": 45
+          },
+          {
+            "name": "Devoir - 1",
+            "code": "25_ISEN_MED_ISEN1_S1_OUTILS_MATHS_DS_1",
+            "coeff": 35
+          },
+          {
+            "name": "Contrôle continu",
+            "code": "25_ISEN_MED_ISEN1_S1_OUTILS_MATHS_CC",
+            "coeff": 10
+          },
+          {
+            "name": "Epreuve de rentrée",
+            "code": "25_ISEN_MED_ISEN1_S1_OUTILS_MATHS_IE_RENTREE",
+            "coeff": 10
+          }
+        ]
+      },
+      {
+        "name": "Semestre 1 - Mécanique",
+        "coeff_matiere": 3,
+        "evaluations": [
+          {
+            "name": "Examen",
+            "code": "25_ISEN_MED_ISEN1_S1_MECA_EX",
+            "coeff": 45
+          },
+          {
+            "name": "Devoir - 1",
+            "code": "25_ISEN_MED_ISEN1_S1_MECA_DS_1",
+            "coeff": 17.5
+          },
+          {
+            "name": "Devoir - 2",
+            "code": "25_ISEN_MED_ISEN1_S1_MECA_DS_2",
+            "coeff": 17.5
+          },
+          {
+            "name": "Evaluation - 1",
+            "code": "25_ISEN_MED_ISEN1_S1_MECA_IE_1",
+            "coeff": 10
+          },
+          {
+            "name": "Travaux pratiques",
+            "code": "25_ISEN_MED_ISEN1_S1_MECA_TP",
+            "coeff": 10
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Semestre 1 - Physique",
+    "ects": 5,
+    "matieres": [
+      {
+        "name": "Semestre 1 - Signaux physiques",
+        "coeff_matiere": 2,
+        "evaluations": [
+          {
+            "name": "Examen",
+            "code": "25_ISEN_MED_ISEN1_S1_SIGN_PHYS_EX",
+            "coeff": 45
+          },
+          {
+            "name": "Devoir - 1",
+            "code": "25_ISEN_MED_ISEN1_S1_SIGN_PHYS_DS_1",
+            "coeff": 35
+          },
+          {
+            "name": "Evaluation - 1",
+            "code": "25_ISEN_MED_ISEN1_S1_SIGN_PHYS_IE_1",
+            "coeff": 10
+          },
+          {
+            "name": "Travaux pratiques",
+            "code": "25_ISEN_MED_ISEN1_S1_SIGN_PHYS_TP",
+            "coeff": 10
+          }
+        ]
+      },
+      {
+        "name": "Semestre 1 - Stucture de la matière",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Examen",
+            "code": "25_ISEN_MED_ISEN1_S1_STRUCT_MAT_EX",
+            "coeff": 60
+          },
+          {
+            "name": "Devoir - 1",
+            "code": "25_ISEN_MED_ISEN1_S1_STRUCT_MAT_DS1",
+            "coeff": 40
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Semestre 1 - Informatique",
+    "ects": 5,
+    "matieres": [
+      {
+        "name": "Semestre 1 - Algorithmique",
+        "coeff_matiere": 3,
+        "evaluations": [
+          {
+            "name": "Examen",
+            "code": "25_ISEN_MED_ISEN1_S1_ALGO_EX",
+            "coeff": 45
+          },
+          {
+            "name": "Devoir - 1",
+            "code": "25_ISEN_MED_ISEN1_S1_ALGO_DS_1",
+            "coeff": 17.5
+          },
+          {
+            "name": "Devoir - 2",
+            "code": "25_ISEN_MED_ISEN1_S1_ALGO_DS_2",
+            "coeff": 17.5
+          },
+          {
+            "name": "Projet",
+            "code": "25_ISEN_MED_ISEN1_S1_ALGO_PRJ",
+            "coeff": 20
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Semestre 1 - Développement personnel",
+    "ects": 3,
+    "matieres": [
+      {
+        "name": "Semestre 1 - Sciences humaines économiques et sociales",
+        "coeff_matiere": 2,
+        "evaluations": [
+          {
+            "name": "Contrôle continu oral",
+            "code": "25_ISEN_MED_ISEN1_S1_SHES_ORAL_CC",
+            "coeff": 1
+          },
+          {
+            "name": "Contrôle continu écrit",
+            "code": "25_ISEN_MED_ISEN1_S1_SHES_ECRIT_CC",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Semestre 1 - Sport",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Sport",
+            "code": "25_ISEN_MED_ISEN1_S1_EPS",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Semestre 1 - LV2",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Espagnol",
+            "code": "25_ISEN_MED_ISEN1_S1_LV2_ESPAGNOL_NP",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Semestre 1 - Anglais",
+    "ects": 2,
+    "matieres": [
+      {
+        "name": "Semestre 1 - Anglais",
+        "coeff_matiere": 2,
+        "evaluations": [
+          {
+            "name": "Examen",
+            "code": "25_ISEN_MED_ISEN1_S1_ANGLAIS_EX",
+            "coeff": 1
+          },
+          {
+            "name": "Contrôle continu",
+            "code": "25_ISEN_MED_ISEN1_S1_ANGLAIS_CC",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Semestre 1 - Web developpement",
+    "ects": 5,
+    "matieres": [
+      {
+        "name": "Semestre 1 - Web developpement",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Examen",
+            "code": "25_ISEN_MED_ISEN1_CIN1_S1_WEBDEV_EX",
+            "coeff": 45
+          },
+          {
+            "name": "QCM 1",
+            "code": "25_ISEN_MED_ISEN1_CIN1_S1_WEBDEV_QCM1",
+            "coeff": 17.5
+          },
+          {
+            "name": "QCM 2",
+            "code": "25_ISEN_MED_ISEN1_CIN1_S1_WEBDEV_QCM2",
+            "coeff": 17.5
+          },
+          {
+            "name": "Projet",
+            "code": "25_ISEN_MED_ISEN1_CIN1_S1_WEBDEV_PRJ",
+            "coeff": 20
+          }
+        ]
+      },
+      {
+        "name": "Semestre 1 - Réseaux",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Examen",
+            "code": "25_ISEN_MED_ISEN1_CIN1_S1_RESEAU_EX",
+            "coeff": 100
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Semestre 2 (Notes Anticipées)",
+    "ects": 0,
+    "matieres": [
+      {
+        "name": "Electrocinétique",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Devoir surveillé - 1",
+            "code": "25_ISEN_MED_ISEN1_S2_ELEC_DS_1",
+            "coeff": 1
+          },
+          {
+            "name": "Evaluation - 3",
+            "code": "25_ISEN_MED_ISEN1_S2_ELEC_IE_3",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Mathématiques",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Evaluation - 1",
+            "code": "25_ISEN_MED_ISEN1_S2_MATHS_IE_1",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Outils mathématiques",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Devoir - 1",
+            "code": "25_ISEN_MED_ISEN1_S2_OUTILS_MATHS_DS_1",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  }
+]
