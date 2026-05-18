@@ -19,7 +19,6 @@ import {
     CalendarRange,
     RefreshCw
 } from "lucide-react-native";
-import { Alert } from "react-native";
 
 import AgendaGrid from "@/components/ui/agenda/AgendaGrid";
 import DailyAgenda from "@/components/ui/agenda/DailyAgenda";

@@ -1,46 +1,16 @@
-import { Ue, Note } from "../types/note";
+import { Ue, Note, Matiere, Evaluation } from "../types/note";
 
 /**
- * Calcule les moyennes et fusionne les notes de l'API avec la structure de la filière.
- * Gère les simulations et le mode rattrapage spécifique à l'ISEN.
+ * Fusionne les notes de l'API avec la structure locale et gère les simulations.
  */
-const getDonneesAvecNotes = (
-  dataFiliere: Ue[] = [],
-  notes: Note[] = [],
-  simulatedNotes: Record<string, number | null> = {},
-  showRattrapages: boolean = false
-) => {
-  // Sécurité : évite l'erreur JSON.parse("undefined")
-  if (!dataFiliere) dataFiliere = [];
-  
-  // Copie profonde pour ne pas muter l'original
-  const structureCopie: Ue[] = JSON.parse(JSON.stringify(dataFiliere));
-  const usedNoteCodes = new Set<string>();
-
-  // Prétraitement des notes
-  const rattrapageNotes = notes.filter(n => n.code.includes("_RATTRAPAGE_"));
-  const normalNotes = notes.filter(n => !n.code.includes("_RATTRAPAGE_"));
-
-  let ectsValides = 0;
-  let totalPointsSemestre = 0;
-  let totalEctsSemestre = 0;
-
-  structureCopie.forEach((ue) => {
-    let sommePointsUE = 0;
-    let totalCoeffUE = 0;
-    let sommePointsUE_Initial = 0;
-    let totalCoeffUE_Initial = 0;
-    let ueEstComplete = true;
-    let pasDeNoteEliminatoire = true;
-
-    let ueAUtiliseRattrapage = false;
-
+function mergeNotesWithStructure(
+  structure: Ue[],
+  normalNotes: Note[],
+  simulatedNotes: Record<string, number | null>,
+  usedNoteCodes: Set<string>
+) {
+  structure.forEach((ue) => {
     ue.matieres.forEach((matiere) => {
-      let sommePointsMat = 0;
-      let totalCoeffMat = 0;
-
-      // 1. Attribution des notes aux évaluations
-      // ... (code inchangé pour l'attribution des notes)
       matiere.evaluations.forEach((evaluation, indexEval) => {
         const uniqueId = evaluation.code || `${matiere.name}_${evaluation.name}_${indexEval}`;
         evaluation.uniqueId = uniqueId;
@@ -50,7 +20,10 @@ const getDonneesAvecNotes = (
           noteFromApi = normalNotes.find((n) => n.code === evaluation.code) || 
                         normalNotes.find((n) => n.code.startsWith(evaluation.code));
           
-          if (noteFromApi) usedNoteCodes.add(noteFromApi.code);
+          if (noteFromApi) {
+            usedNoteCodes.add(noteFromApi.code);
+            evaluation.name = noteFromApi.name; // On utilise toujours le nom de l'API si dispo
+          }
         }
 
         const simu = simulatedNotes[uniqueId];
@@ -65,27 +38,63 @@ const getDonneesAvecNotes = (
           evaluation.hasApiNote = false;
         }
       });
+    });
+  });
+}
 
-      // 2. Application des Rattrapages (si activé)
-      if (showRattrapages) {
-        const applicableRattrapages = rattrapageNotes.filter(r => {
-          return matiere.code_rattrapage && r.code.includes(matiere.code_rattrapage);
+/**
+ * Applique la logique des rattrapages ISEN.
+ */
+function applyRattrapagesLogic(
+  structure: Ue[],
+  rattrapageNotes: Note[],
+  usedNoteCodes: Set<string>
+) {
+  structure.forEach((ue) => {
+    let ueAUtiliseRattrapage = false;
+
+    ue.matieres.forEach((matiere) => {
+      const applicableRattrapages = rattrapageNotes.filter(r => {
+        return matiere.code_rattrapage && r.code.includes(matiere.code_rattrapage);
+      });
+
+      if (applicableRattrapages.length > 0) {
+        const bestRattrapage = [...applicableRattrapages].sort((a, b) => b.note - a.note)[0];
+        usedNoteCodes.add(bestRattrapage.code);
+        
+        matiere.evaluations.forEach(ev => {
+          if (bestRattrapage.note > (ev.noteReelle ?? -1)) {
+            ev.noteReelle = bestRattrapage.note;
+            ev.name = bestRattrapage.name; // On affiche le nom du rattrapage
+            ev.hasApiNote = true;
+            ueAUtiliseRattrapage = true;
+          }
         });
-
-        if (applicableRattrapages.length > 0) {
-          const bestRattrapage = [...applicableRattrapages].sort((a, b) => b.note - a.note)[0];
-          usedNoteCodes.add(bestRattrapage.code);
-          matiere.evaluations.forEach(ev => {
-            if (bestRattrapage.note > (ev.noteReelle ?? -1)) {
-              ev.noteReelle = bestRattrapage.note;
-              ev.hasApiNote = true;
-              ueAUtiliseRattrapage = true; // Marqueur : l'UE a au moins une note de rattrapage appliquée
-            }
-          });
-        }
       }
+    });
+    
+    ue.hasRattrapageApplied = ueAUtiliseRattrapage;
+  });
+}
 
-      // 3. Calcul Moyenne Finale Matière
+/**
+ * Calcule les moyennes par matière et par UE, ainsi que la validation.
+ */
+function calculateAverages(structure: Ue[], showRattrapages: boolean) {
+  let ectsValides = 0;
+  let totalPointsSemestre = 0;
+  let totalEctsSemestre = 0;
+
+  structure.forEach((ue) => {
+    let sommePointsUE = 0;
+    let totalCoeffUE = 0;
+    let ueEstComplete = true;
+    let pasDeNoteEliminatoire = true;
+
+    ue.matieres.forEach((matiere) => {
+      let sommePointsMat = 0;
+      let totalCoeffMat = 0;
+
       matiere.evaluations.forEach((ev) => {
         if (ev.noteReelle !== null && typeof ev.noteReelle === 'number') {
           sommePointsMat += ev.noteReelle * ev.coeff;
@@ -106,12 +115,10 @@ const getDonneesAvecNotes = (
       }
     });
 
-    // 4. Calcul Moyenne UE & Validation
     if (totalCoeffUE > 0) {
       const moyenneCalculee = sommePointsUE / totalCoeffUE;
 
-      if (showRattrapages && ueAUtiliseRattrapage) {
-        // RÈGLE : Si un rattrapage est utilisé, l'UE est plafonnée à 10
+      if (showRattrapages && ue.hasRattrapageApplied) {
         ue.moyenne = Math.min(moyenneCalculee, 10);
       } else {
         ue.moyenne = moyenneCalculee;
@@ -129,9 +136,15 @@ const getDonneesAvecNotes = (
     }
   });
 
-  // 6. Gestion des notes "orphelines" (non présentes dans la structure)
+  return { ectsValides, totalPointsSemestre, totalEctsSemestre };
+}
+
+/**
+ * Gère les notes "orphelines" (non présentes dans la structure).
+ */
+function appendOrphanNotes(structure: Ue[], notes: Note[], usedNoteCodes: Set<string>) {
   let currentSemester = "";
-  structureCopie.some(ue => ue.matieres.some(m => m.evaluations.some(e => {
+  structure.some(ue => ue.matieres.some(m => m.evaluations?.some(e => {
     const match = e.code?.match(/_S(\d)_/);
     if (match) currentSemester = `S${match[1]}`;
     return !!currentSemester;
@@ -146,7 +159,7 @@ const getDonneesAvecNotes = (
       return dateB.getTime() - dateA.getTime();
     });
 
-    structureCopie.push({
+    structure.push({
       ue: "Autres notes (Hors Moyenne)",
       ects: 0,
       matieres: sortedUnused.map(n => ({
@@ -159,6 +172,39 @@ const getDonneesAvecNotes = (
       isValidated: false,
     });
   }
+}
+
+/**
+ * Calcule les moyennes et fusionne les notes de l'API avec la structure de la filière.
+ * Gère les simulations et le mode rattrapage spécifique à l'ISEN.
+ */
+const getDonneesAvecNotes = (
+  dataFiliere: Ue[] = [],
+  notes: Note[] = [],
+  simulatedNotes: Record<string, number | null> = {},
+  showRattrapages: boolean = false
+) => {
+  if (!dataFiliere) dataFiliere = [];
+  
+  const structureCopie: Ue[] = JSON.parse(JSON.stringify(dataFiliere));
+  const usedNoteCodes = new Set<string>();
+
+  const rattrapageNotes = notes.filter(n => n.code.includes("_RATTRAPAGE_"));
+  const normalNotes = notes.filter(n => !n.code.includes("_RATTRAPAGE_"));
+
+  // 1. Fusion initiale
+  mergeNotesWithStructure(structureCopie, normalNotes, simulatedNotes, usedNoteCodes);
+
+  // 2. Rattrapages
+  if (showRattrapages) {
+    applyRattrapagesLogic(structureCopie, rattrapageNotes, usedNoteCodes);
+  }
+
+  // 3. Calcul des moyennes
+  const { ectsValides, totalPointsSemestre, totalEctsSemestre } = calculateAverages(structureCopie, showRattrapages);
+
+  // 4. Notes orphelines
+  appendOrphanNotes(structureCopie, notes, usedNoteCodes);
 
   return {
     structure: structureCopie,

@@ -8,16 +8,12 @@ import {
     View,
     ScrollView,
     ActivityIndicator,
-    Alert,
-    Dimensions
+    Alert
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { 
-    Check,
     Calendar,
     Layers,
-    Save,
-    ChevronRight,
     ArrowRight
 } from "lucide-react-native";
 
@@ -34,8 +30,8 @@ import {
 } from "@/services/storage";
 import { updateStructureConfig, fetchSemesterStructure } from "@/services/configApi";
 import bundledStructure from "@/structures_notes/structure.json";
-
-const { width } = Dimensions.get('window');
+import { YearSelectorButton } from "@/components/ui/selection/YearSelectorButton";
+import { MajorSelectorCard } from "@/components/ui/selection/MajorSelectorCard";
 
 export default function SelectionAnneeScreen() {
     const [loading, setLoading] = useState(true);
@@ -61,7 +57,6 @@ export default function SelectionAnneeScreen() {
 
     useEffect(() => {
         const loadInitialData = async () => {
-            // Tente de récupérer la version la plus fraîche du catalogue
             const freshStructure = await updateStructureConfig();
             if (freshStructure) setStructure(freshStructure);
 
@@ -81,7 +76,6 @@ export default function SelectionAnneeScreen() {
         const currentYearData = structure.annee[year];
         const semesters = Object.keys(currentYearData);
         
-        // Reset majors but keep those that match in the new year
         const newMajors: Record<string, string> = {};
         semesters.forEach(s => {
             const availableMajors = Object.keys(currentYearData[s]);
@@ -95,8 +89,6 @@ export default function SelectionAnneeScreen() {
     const handleMajorSelect = (semester: string, major: string) => {
         const newMajors = { ...selectedMajors, [semester]: major };
         
-        // "Sélectionner une seule fois" : 
-        // Si la même filière existe dans d'autres semestres de l'année choisie, on l'applique aussi
         if (selectedYear) {
             const currentYearData = structure.annee[selectedYear];
             Object.keys(currentYearData).forEach(s => {
@@ -118,7 +110,6 @@ export default function SelectionAnneeScreen() {
             const semesters = Object.keys(currentYearData);
             const urls: Record<string, string> = {};
             
-            // Validation
             const missing = semesters.find(s => !selectedMajors[s]);
             if (missing) {
                 Alert.alert("Configuration incomplète", `Veuillez sélectionner une filière pour le semestre ${missing}.`);
@@ -126,26 +117,22 @@ export default function SelectionAnneeScreen() {
                 return;
             }
 
-            // Téléchargement et mise en cache de toutes les structures nécessaires
             for (const s of semesters) {
                 const major = selectedMajors[s];
                 const url = currentYearData[s][major];
                 urls[s] = url;
                 
-                // Téléchargement en direct (configApi gère le fetch systématique sur mobile)
                 const data = await fetchSemesterStructure(s, url);
                 if (!data) {
                     throw new Error(`Erreur lors du téléchargement de la structure pour ${s} (${major})`);
                 }
             }
 
-            // Sauvegarde de la configuration globale
             await setSelectedYear(selectedYear);
             await setSelectedMajors(selectedMajors);
             await setSelectedMajorsUrls(urls);
             
-            // Auto-sélection du semestre par défaut basé sur la date
-            const month = new Date().getMonth(); // 0-11
+            const month = new Date().getMonth();
             const defaultSemester = (month >= 8 || month <= 0) ? semesters[0] : (semesters[1] || semesters[0]);
             await setSelectedSemester(defaultSemester);
 
@@ -203,28 +190,13 @@ export default function SelectionAnneeScreen() {
                     </View>
                     <View style={styles.yearGrid}>
                         {years.map((year) => (
-                            <TouchableOpacity
+                            <YearSelectorButton
                                 key={year}
-                                style={[
-                                    styles.yearButton,
-                                    selectedYear === year && styles.yearButtonSelected
-                                ]}
-                                onPress={() => handleYearSelect(year)}
-                                activeOpacity={0.7}
+                                year={year}
+                                isSelected={selectedYear === year}
+                                onSelect={handleYearSelect}
                                 disabled={loadingSaving}
-                            >
-                                <Text style={[
-                                    styles.yearButtonText,
-                                    selectedYear === year && styles.yearButtonTextSelected
-                                ]}>
-                                    {year}
-                                </Text>
-                                {selectedYear === year && (
-                                    <View style={styles.checkBadge}>
-                                        <Check size={10} color={Colors.surface} strokeWidth={4} />
-                                    </View>
-                                )}
-                            </TouchableOpacity>
+                            />
                         ))}
                     </View>
                 </View>
@@ -240,47 +212,14 @@ export default function SelectionAnneeScreen() {
                         </View>
                         
                         {semesters.map((sem) => (
-                            <View key={sem} style={styles.semesterCard}>
-                                <View style={styles.semesterHeader}>
-                                    <View style={styles.semesterBadge}>
-                                        <Text style={styles.semesterBadgeText}>{sem}</Text>
-                                    </View>
-                                    <Text style={styles.semesterSubtitle}>
-                                        {selectedMajors[sem] ? 'Filière sélectionnée' : 'Sélectionnez votre filière'}
-                                    </Text>
-                                </View>
-                                
-                                <View style={styles.majorList}>
-                                    {Object.keys(currentYearData[sem]).map((major: string) => (
-                                        <TouchableOpacity
-                                            key={major}
-                                            style={[
-                                                styles.majorItem,
-                                                selectedMajors[sem] === major && styles.majorItemSelected
-                                            ]}
-                                            onPress={() => handleMajorSelect(sem, major)}
-                                            activeOpacity={0.7}
-                                            disabled={loadingSaving}
-                                        >
-                                            <View style={styles.majorContent}>
-                                                <Text style={[
-                                                    styles.majorText,
-                                                    selectedMajors[sem] === major && styles.majorTextSelected
-                                                ]}>
-                                                    {major}
-                                                </Text>
-                                            </View>
-                                            {selectedMajors[sem] === major ? (
-                                                <View style={styles.majorCheck}>
-                                                    <Check size={14} color={Colors.surface} strokeWidth={3} />
-                                                </View>
-                                            ) : (
-                                                <ChevronRight size={18} color={Colors.text.tertiary} />
-                                            )}
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                            </View>
+                            <MajorSelectorCard
+                                key={sem}
+                                semester={sem}
+                                majors={Object.keys(currentYearData[sem])}
+                                selectedMajor={selectedMajors[sem]}
+                                onMajorSelect={handleMajorSelect}
+                                disabled={loadingSaving}
+                            />
                         ))}
                     </View>
                 )}
@@ -398,130 +337,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 12,
-    },
-    yearButton: {
-        backgroundColor: Colors.surface,
-        paddingVertical: 16,
-        paddingHorizontal: 24,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: Colors.border,
-        minWidth: width * 0.22,
-        alignItems: 'center',
-        position: 'relative',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.02,
-        shadowRadius: 4,
-        elevation: 1,
-    },
-    yearButtonSelected: {
-        borderColor: Colors.primary,
-        backgroundColor: Colors.primary,
-        shadowColor: Colors.primary,
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 4,
-    },
-    yearButtonText: {
-        fontSize: 17,
-        fontWeight: '700',
-        color: Colors.text.secondary,
-    },
-    yearButtonTextSelected: {
-        color: Colors.surface,
-    },
-    checkBadge: {
-        position: 'absolute',
-        top: -4,
-        right: -4,
-        backgroundColor: Colors.status.success,
-        width: 18,
-        height: 18,
-        borderRadius: 9,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: Colors.surface,
-    },
-    semesterCard: {
-        backgroundColor: Colors.surface,
-        borderRadius: 28,
-        padding: 20,
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: Colors.border,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.02,
-        shadowRadius: 12,
-        elevation: 2,
-    },
-    semesterHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 18,
-        paddingBottom: 14,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.divider,
-    },
-    semesterBadge: {
-        backgroundColor: Colors.background,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: Colors.border,
-    },
-    semesterBadgeText: {
-        fontSize: 14,
-        fontWeight: '800',
-        color: Colors.text.primary,
-    },
-    semesterSubtitle: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: Colors.text.tertiary,
-    },
-    majorList: {
-        gap: 10,
-    },
-    majorItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 14,
-        paddingHorizontal: 18,
-        borderRadius: 18,
-        backgroundColor: Colors.background,
-        borderWidth: 1,
-        borderColor: 'transparent',
-    },
-    majorItemSelected: {
-        backgroundColor: Colors.primary + '08',
-        borderColor: Colors.primary + '20',
-    },
-    majorContent: {
-        flex: 1,
-    },
-    majorText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: Colors.text.secondary,
-        letterSpacing: -0.2,
-    },
-    majorTextSelected: {
-        color: Colors.primary,
-        fontWeight: '700',
-    },
-    majorCheck: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: Colors.primary,
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     footer: {
         paddingHorizontal: 24,

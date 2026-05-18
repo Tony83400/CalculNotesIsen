@@ -40,10 +40,10 @@ Pour qu'une Unité d'Enseignement (UE) soit validée, deux conditions sont néce
 
 ## 📂 Structure du Code
 - `app/` : Routes de l'application (Navigation).
-- `components/ui/` : Composants atomiques et cartes complexes (`agenda/`, `notes/`).
-- `services/` : Appels API (`isenApi`, `agendaApi`, `configApi`) et gestion du stockage (`storage.ts`).
-- `utils/` : Logique pure de traitement de données (`notes.ts`, `agenda.ts`, `notifications.ts`).
-- `hooks/` : Hooks personnalisés (`useAgenda.ts`).
+- `components/ui/` : Composants atomiques et cartes complexes (`agenda/`, `notes/`, `selection/`).
+- `services/` : Appels API (`isenApi`, `agendaApi`, `configApi`) et gestion du stockage modulaire (`storage/`).
+- `utils/` : Logique pure de traitement de données (`notes.ts` décomposé, `agenda.ts`, `notifications.ts`).
+- `hooks/` : Hooks de données et d'état (`useNotesData.ts`, `useAuth.ts`, `useAgenda.ts`).
 - `types/` : Definitions TypeScript globales.
 - `structures_notes/` : **Source de vérité pour la configuration.** Contient `structure.json` (global), les fichiers par semestre, et `localMapping.ts`.
 
@@ -52,15 +52,17 @@ Pour qu'une Unité d'Enseignement (UE) soit validée, deux conditions sont néce
 2. **Surgical Updates :** Utiliser `replace` avec un contexte suffisant pour éviter les erreurs de duplication.
 3. **Architecture Config :** **NE JAMAIS** utiliser `structure_note.json` (legacy supprimé). Toujours utiliser `structures_notes/structure.json` via `configApi.ts`.
 4. **Validation :** Après chaque changement de logique de calcul, vérifier l'impact dans `utils/notes.ts`.
-5. **Performance :** Utiliser `useCallback` et `useMemo` pour les calculs lourds et les listes.
-6. **UI Premium :** Toujours respecter le système de design v2 (arrondis généreux, ombres douces).
+5. **Composants Screens :** Les fichiers dans `app/` doivent rester "bêtes" (UI uniquement). Toute la logique de chargement, de cache et d'état complexe doit être extraite dans un hook personnalisé (ex: `useNotesData`).
+6. **Performance :** Utiliser `useCallback` et `useMemo` pour les calculs lourds et les listes.
+7. **UI Premium :** Toujours respecter le système de design v2 (arrondis généreux, ombres douces).
 
 ## 🔄 Flux de Données
-1. **Notes :** Récupération via `isenApi.ts` -> Cache (`storage.ts`) -> Fusion avec la structure (`utils/notes.ts`) -> Affichage.
-2. **Config Globale (`structure.json`) :** Chargée via `updateStructureConfig` (configApi.ts).
+1. **Notes :** Récupération via `isenApi.ts` -> Gestion par `useNotesData` (Cache `storage/cacheStorage.ts`) -> Fusion avec la structure via `getDonneesAvecNotes` (`utils/notes.ts`) -> Affichage.
+2. **Authentification :** Gérée par `useAuth` utilisant `authStorage.ts` (SecureStore pour le mobile, Cookies pour le web).
+3. **Config Globale (`structure.json`) :** Chargée via `updateStructureConfig` (configApi.ts).
     - **Web :** Mapping local par défaut.
     - **Native :** Cache (`storage.ts`) -> GitHub RAW -> Fallback Local.
-    - **Actualisation :** Le bouton "Actualiser" force le téléchargement GitHub et met à jour le cache.
+    - **Actualisation :** Le bouton "Actualiser" force le téléchargement GitHub et met à jour le cache (Native uniquement).
 - **Config Semestre :** Chargée via `fetchSemesterStructure` (configApi.ts) après sélection de l'année/filière.
     - **Web :** Mapping local (bundled).
     - **Native :** Cache (`StructureConfig_` prefix) -> GitHub RAW -> Fallback Local.

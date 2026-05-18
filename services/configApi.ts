@@ -74,7 +74,7 @@ export async function fetchSemesterStructure(semester: string, url: string, forc
             await saveSemesterStructureToCache(semester, url, json);
             return json;
         }
-    } catch (e) {
+    } catch (error) {
         console.warn(`[Config] Échec téléchargement pour ${semester}`);
     }
 

@@ -1,0 +1,58 @@
+1. app/notes.tsx : Le problème de l'état global et de la surcharge
+Ce fichier fait actuellement beaucoup trop de choses : il gère le rendu de l'interface, des animations, les requêtes réseau, et surtout un système de cache "fait maison" via des variables globales (let sessionNotes, let sessionConfigs, etc.).
+
+Séparation recommandée :
+
+
+Logique métier : Extrayez toute la logique de chargement (le gros useEffect de chargement initial) dans un hook personnalisé, par exemple useNotesData().
+
+Animations : Sortez la logique d'animation (les Animated.Value et spinValue) dans un hook réutilisable (ex: useSpinAnimation()).
+
+Le fichier notes.tsx ne devrait idéalement contenir que le rendu UI final.
+
+2. utils/notes.ts : Découper la "Fonction Dieu"
+La fonction getDonneesAvecNotes est une "God Function" (fonction à tout faire). Elle compte plus de 100 lignes et s'occupe de :
+
+Fusionner les notes de l'API avec la structure locale.
+
+Gérer la logique spécifique des rattrapages (écrasement des notes, plafonnement à 10).
+
+Calculer les moyennes par matière et par UE.
+
+Gérer l'ajout dynamique des notes "orphelines" (qui ne sont pas dans la structure).
+
+Séparation recommandée :
+
+Créez plusieurs petites fonctions pures, par exemple : mergeNotesWithStructure(), applyRattrapagesLogic(), calculateAverages(), et appendOrphanNotes(). Votre fonction principale getDonneesAvecNotes se contentera d'appeler ces sous-fonctions à la suite, ce qui la rendra beaucoup plus facile à lire et à tester unitairement.
+
+3. services/storage.ts : Diviser le fourre-tout
+Ce fichier est devenu un goulot d'étranglement qui contient toutes les clés et toutes les méthodes d'accès au stockage (authentification, configuration, cache des notes, cache de l'agenda).
+
+Séparation recommandée :
+
+Créez un dossier services/storage/ et découpez-le par domaine :
+
+authStorage.ts (token, password, id)
+
+configStorage.ts (semestres, filières, URLs)
+
+cacheStorage.ts (agenda, notes, lastUpdate)
+
+Cela évitera d'avoir un fichier géant et clarifiera d'un coup d'œil où se trouvent les données.
+
+4. app/index.tsx (Écran de connexion) : Extraire la logique d'authentification
+Actuellement, la logique de vérification du cache au lancement et la requête de connexion (onPressLogin) sont codées directement dans le composant visuel.
+
+Séparation recommandée :
+
+Créez un hook useAuth() (dans un dossier hooks/) qui gérera l'état loading, errorText, et exposera une fonction login(email, password). L'écran index.tsx s'occupera uniquement d'afficher les inputs et les boutons.
+
+5. app/selectionAnnee.tsx : Alléger le JSX
+Le code JSX de ce composant est très long à cause du rendu de la grille des années et des cartes de filières.
+
+Séparation recommandée :
+
+Créez des composants dédiés dans components/ui/ comme <YearSelectorButton /> et <MajorSelectorCard />. Le composant principal selectionAnnee.tsx deviendra beaucoup plus lisible.
+
+En résumé, la stratégie à adopter pour la suite :
+Vos composants d'écrans (app/*.tsx) doivent être les plus "bêtes" possibles. Ils ne devraient faire qu'appeler un hook personnalisé (useMonEcran()) pour récupérer les données, puis utiliser des petits composants UI (components/) pour les afficher.

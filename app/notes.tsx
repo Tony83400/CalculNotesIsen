@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import React, { useCallback, useState } from "react";
 import {
     FlatList,
     SafeAreaView,
@@ -7,15 +7,11 @@ import {
     TouchableOpacity,
     View,
     StatusBar,
-    Animated,
-    Easing,
-    Alert,
-    ActivityIndicator
+    Animated
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { 
     Home, 
-    RotateCcw, 
     AlertCircle, 
     Loader2, 
     TrendingUp, 
@@ -26,55 +22,35 @@ import {
     Check,
 } from "lucide-react-native";
 
-import { getNotes } from "@/services/isenApi";
 import { 
-    getId, 
-    getSelectedMajorsUrls,
-    getSelectedMajors,
-    getSelectedYear,
-    getSelectedSemester,
-    setSelectedSemester,
-    loadNotesFromCache,
-    getLastUpdate,
     isTokenExpired,
     canSilentLogin,
 } from "@/services/storage";
-import { fetchSemesterStructure } from "@/services/configApi";
-import { Note } from "@/types/note";
 import getDonneesAvecNotes from "@/utils/notes";
 import UeCard from '../components/ui/notes/UeList';
 import { Colors } from "@/constants/Colors";
-
-// CACHE SESSION (Hors composant pour persister entre les navigations Agenda <-> Notes)
-let sessionNotes: Note[] | undefined = undefined;
-let sessionConfigs: Record<string, any> = {};
-let sessionUserId: string | null = "";
-let sessionUserParams: any = null;
-let sessionLastUpdate: string | null = null;
+import { useNotesData } from "@/hooks/useNotesData";
+import { useSpinAnimation } from "@/hooks/useSpinAnimation";
 
 export default function NotesScreen() {
-    const [notes, setNotes] = useState<Note[] | undefined>(sessionNotes);
-    const [lastUpdate, setLastUpdate] = useState<string | null>(sessionLastUpdate);
-    const [selectedYear, setSelectedYear] = useState<string | null>(sessionUserParams?.year || null);
-    const [selectedSemester, setSelectedSemesterState] = useState<string | null>(sessionUserParams?.semester || null);
-    const [selectedMajors, setSelectedMajors] = useState<Record<string, string>>(sessionUserParams?.majors || {});
-    const [majorUrls, setMajorUrls] = useState<Record<string, string>>(sessionUserParams?.urls || {});
-    
-    // Stockage de toutes les structures en mémoire pour switch instantané
-    const [allConfigs, setAllConfigs] = useState<Record<string, any>>(sessionConfigs);
-    
-    const [userId, setUserId] = useState<string | null>(sessionUserId);
-    const [error, setError] = useState<string | null>(null);
+    const {
+        notes,
+        lastUpdate,
+        selectedSemester,
+        selectedMajors,
+        allConfigs,
+        error,
+        isLoading,
+        isRefreshing,
+        handleSemesterChange,
+    } = useNotesData();
+
     const [simulatedNotes, setSimulatedNotes] = useState<Record<string, number | null>>({});
     const [isRattrapageMode, setIsRattrapageMode] = useState(false);
-    
-    // On n'affiche le chargement QUE si on n'a absolument rien en mémoire
-    const [isLoading, setIsLoading] = useState(!sessionNotes || Object.keys(sessionConfigs).length === 0);
-    const [isRefreshing, setIsRefreshing] = useState(false);
     const [showSemesterPicker, setShowSemesterPicker] = useState(false);
 
-    const spinValue = useRef(new Animated.Value(0)).current;
-    const refreshSpinValue = useRef(new Animated.Value(0)).current;
+    const spin = useSpinAnimation(isLoading, 1200);
+    const refreshSpin = useSpinAnimation(isRefreshing, 1000);
 
     useFocusEffect(
         React.useCallback(() => {
@@ -88,195 +64,6 @@ export default function NotesScreen() {
             checkSession();
         }, [])
     );
-
-    // Animation pour le rafraîchissement en arrière-plan
-    useEffect(() => {
-        let animation: Animated.CompositeAnimation | null = null;
-        if (isRefreshing) {
-            refreshSpinValue.setValue(0);
-            animation = Animated.loop(
-                Animated.timing(refreshSpinValue, {
-                    toValue: 1,
-                    duration: 1000,
-                    easing: Easing.linear,
-                    useNativeDriver: true,
-                })
-            );
-            animation.start();
-        } else {
-            refreshSpinValue.setValue(0);
-        }
-        return () => animation?.stop();
-    }, [isRefreshing]);
-
-    const refreshSpin = refreshSpinValue.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '360deg']
-    });
-
-    // 1. Chargement initial : Config + TOUTES les structures + Notes
-    useEffect(() => {
-        const loadInitialData = async () => {
-            // On récupère les paramètres de base
-            const [year, majors, urls, semester, id, lastUp] = await Promise.all([
-                getSelectedYear(),
-                getSelectedMajors(),
-                getSelectedMajorsUrls(),
-                getSelectedSemester(),
-                getId(),
-                getLastUpdate()
-            ]);
-
-            if (!year || !majors || !urls || !semester) {
-                router.replace("/selectionAnnee");
-                return;
-            }
-
-            // Détection de changement d'utilisateur pour vider la session mémoire
-            if (id && sessionUserId && id !== sessionUserId) {
-                sessionNotes = undefined;
-                sessionConfigs = {};
-                sessionUserParams = null;
-                sessionLastUpdate = null;
-            }
-
-            // Mise à jour des états locaux et session
-            const userParams = { year, majors, urls, semester };
-            sessionUserParams = userParams;
-            sessionUserId = id;
-            sessionLastUpdate = lastUp;
-            setSelectedYear(year);
-            setSelectedMajors(majors);
-            setMajorUrls(urls);
-            setSelectedSemesterState(semester);
-            setUserId(id);
-            setLastUpdate(lastUp);
-
-            // GESTION DU CHARGEMENT DISCRET
-            let currentNotes = sessionNotes;
-            if (!currentNotes) {
-                currentNotes = await loadNotesFromCache() || undefined;
-                if (currentNotes) {
-                    sessionNotes = currentNotes;
-                    setNotes(currentNotes);
-                }
-            }
-
-            // On ne met isLoading à true QUE si on n'a vraiment pas de notes
-            if (!currentNotes) {
-                setIsLoading(true);
-            } else {
-                setIsLoading(false);
-            }
-
-            try {
-                // Chargement de TOUTES les structures des semestres disponibles en parallèle
-                const configPromises = Object.entries(urls).map(async ([sem, url]) => {
-                    const data = await fetchSemesterStructure(sem, url);
-                    const majorName = majors[sem] || "Filière";
-                    return {
-                        sem,
-                        config: {
-                            filieres: {
-                                [majorName]: Array.isArray(data) ? data : (data.filieres ? data.filieres[majorName] : [])
-                            }
-                        }
-                    };
-                });
-
-                const loadedConfigs = await Promise.all(configPromises);
-                const configsObj: Record<string, any> = {};
-                loadedConfigs.forEach(item => {
-                    configsObj[item.sem] = item.config;
-                });
-                
-                sessionConfigs = configsObj;
-                setAllConfigs(configsObj);
-
-                // Chargement des notes depuis l'API (Refresh en arrière-plan)
-                if (id) {
-                    setIsRefreshing(true);
-                    const rep = await getNotes();
-                    if (rep) {
-                        sessionNotes = rep;
-                        setNotes(rep);
-                        const newLastUp = await getLastUpdate();
-                        sessionLastUpdate = newLastUp;
-                        setLastUpdate(newLastUp);
-                    }
-                    setIsRefreshing(false);
-                }
-            } catch (e: any) {
-                console.error("Error loading notes screen:", e);
-                setIsRefreshing(false);
-                // On ne bloque que si on n'a vraiment rien à afficher (ni cache, ni session)
-                if (!sessionNotes && !currentNotes) {
-                    setError(e.message || "Erreur de chargement.");
-                }
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        loadInitialData();
-    }, []);
-
-    // 2. Changement de semestre (Instantané car config déjà en mémoire)
-    const handleSemesterChange = async (sem: string) => {
-        if (sem === selectedSemester) return;
-        setShowSemesterPicker(false);
-        setSelectedSemesterState(sem);
-        sessionUserParams.semester = sem;
-        await setSelectedSemester(sem);
-    };
-
-    const fetchNote = useCallback(async () => {
-        if (!userId) return;
-        setError(null);
-        setIsRefreshing(true);
-        try {
-            const rep = await getNotes();
-            if (rep) {
-                sessionNotes = rep;
-                setNotes(rep);
-                const newLastUp = await getLastUpdate();
-                sessionLastUpdate = newLastUp;
-                setLastUpdate(newLastUp);
-            }
-        } catch (err: any) {
-            if (err.message === "Session expirée") {
-                router.replace("/");
-                return;
-            }
-            // Si on a déjà des notes, on montre juste un message discret au lieu de bloquer l'écran
-            if (notes) {
-                Alert.alert("Erreur", err.message || "Impossible de mettre à jour les notes.");
-            } else {
-                setError(err.message || "Une erreur est survenue.");
-            }
-        } finally {
-            setIsRefreshing(false);
-        }
-    }, [userId, notes]);
-
-    // --- Animation ---
-    useEffect(() => {
-        let isCancelled = false;
-        const runAnimation = () => {
-            if (isCancelled) return;
-            spinValue.setValue(0);
-            Animated.timing(spinValue, {
-                toValue: 1, duration: 1200, easing: Easing.linear, useNativeDriver: true,
-            }).start(({ finished }) => {
-                if (finished && !isCancelled) runAnimation();
-            });
-        };
-        if (isLoading) runAnimation();
-        return () => { isCancelled = true; spinValue.stopAnimation(); };
-    }, [isLoading]);
-
-    const spin = spinValue.interpolate({
-        inputRange: [0, 1], outputRange: ['0deg', '360deg']
-    });
 
     const updateSimulation = useCallback((id: string, val: number | null) => {
         setSimulatedNotes(prev => ({ ...prev, [id]: val }));
@@ -300,7 +87,6 @@ export default function NotesScreen() {
         );
     }
 
-    // On n'affiche le loader que s'il n'y a STRICTEMENT rien à montrer
     if (isLoading && !notes) {
         return (
             <SafeAreaView style={styles.container}>
@@ -353,7 +139,10 @@ export default function NotesScreen() {
                         <TouchableOpacity 
                             key={sem} 
                             style={[styles.semesterPickerItem, sem === selectedSemester && styles.semesterPickerItemActive]}
-                            onPress={() => handleSemesterChange(sem)}
+                            onPress={() => {
+                                handleSemesterChange(sem);
+                                setShowSemesterPicker(false);
+                            }}
                         >
                             <Text style={[styles.semesterPickerText, sem === selectedSemester && styles.semesterPickerTextActive]}>
                                 {sem} ({selectedMajors[sem]})

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
     SafeAreaView,
     StatusBar,
@@ -11,7 +11,6 @@ import {
     Platform,
     ActivityIndicator
 } from "react-native";
-import { router } from "expo-router";
 import { 
     Lock, 
     User, 
@@ -23,86 +22,22 @@ import {
 } from "lucide-react-native";
 import { Analytics } from "@vercel/analytics/react";
 
-import { getId, getPasswordStorage, setId, setPasswordStorage, setToken, getSelectedYear, getSelectedMajors, getToken, isTokenExpired } from "@/services/storage";
-import { login } from "../services/isenApi";
+import { useAuth } from "@/hooks/useAuth";
 import { Colors } from "@/constants/Colors";
 
 export default function LoginScreen() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [errorText, setErrorText] = useState("");
-    const [keepLogin, setKeepLogin] = useState(false);
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            const year = await getSelectedYear();
-            const majors = await getSelectedMajors();
-            const Fetchpassword = await getPasswordStorage();
-            const Fetchemail = await getId();
-            const token = await getToken();
-            const expired = await isTokenExpired();
-
-            // Si "Rester connecté" était coché au dernier login, on l'active par défaut
-            if (Fetchpassword) {
-                setKeepLogin(true);
-            }
-
-            // Si déjà configuré ET token valide, on va au dashboard
-            if (token && !expired && year && majors) {
-                router.replace("/selection");
-                return;
-            }
-
-            if (Fetchemail) setEmail(Fetchemail);
-            if (Fetchemail && Fetchpassword) {
-                setPassword(Fetchpassword);
-                // Si on a les identifiants mais que le token est expiré ou absent, re-login auto
-                onPressLogin(Fetchemail, Fetchpassword);
-            }
-        };
-        fetchUser();
-    }, []);
-
-    const onPressLogin = async (emailLogin: string, passwordLogin: string) => {
-        if (!emailLogin || !passwordLogin) {
-            setErrorText("Veuillez remplir tous les champs");
-            return;
-        }
-
-        setLoading(true);
-        setErrorText("");
-        
-        try {
-            const rep = await login({
-                username: emailLogin,
-                password: passwordLogin
-            });
-            await setToken(rep.token);
-            await setId(emailLogin);
-            if (keepLogin) {
-                await setPasswordStorage(passwordLogin);
-            }
-
-            // Vérifier si on doit aller à la sélection ou au dashboard
-            const year = await getSelectedYear();
-            const majors = await getSelectedMajors();
-            if (year && majors) {
-                router.replace("/selection");
-            } else {
-                router.replace("/selectionAnnee");
-            }
-        } catch (error) {
-            setErrorText((error as Error).message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const onPressContinueWithoutLogin = async () => {
-        await setId("");
-        router.push("/notes");
-    };
+    const {
+        email,
+        setEmail,
+        password,
+        setPassword,
+        errorText,
+        keepLogin,
+        setKeepLogin,
+        loading,
+        handleLogin,
+        loginWithoutAccount
+    } = useAuth();
 
     return (
         <SafeAreaView style={styles.container}>
@@ -177,7 +112,7 @@ export default function LoginScreen() {
 
                         <TouchableOpacity
                             style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-                            onPress={() => onPressLogin(email, password)}
+                            onPress={() => handleLogin(email, password)}
                             disabled={loading}
                             activeOpacity={0.8}
                         >
@@ -194,7 +129,7 @@ export default function LoginScreen() {
                         {errorText ? (
                             <TouchableOpacity
                                 style={styles.ghostButton}
-                                onPress={onPressContinueWithoutLogin}
+                                onPress={loginWithoutAccount}
                             >
                                 <Text style={styles.ghostButtonText}>Continuer sans connexion</Text>
                             </TouchableOpacity>

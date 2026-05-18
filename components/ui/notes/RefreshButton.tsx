@@ -1,14 +1,13 @@
 import React, { useState } from "react";
-import { TouchableOpacity, ActivityIndicator, StyleSheet, Text, View, Platform } from "react-native";
+import { TouchableOpacity, ActivityIndicator, StyleSheet, Text, Platform } from "react-native";
 import { RefreshCw } from "lucide-react-native";
 
 import { Colors } from "@/constants/Colors";
 import { getAgendaIsen } from "@/services/agendaApi";
 import { fetchSemesterStructure, updateStructureConfig } from "@/services/configApi";
 import { getNotes } from "@/services/isenApi";
-import { clearAppCache, getSelectedMajorsUrls, isTokenExpired } from "@/services/storage";
+import { clearAppCache, getSelectedMajorsUrls } from "@/services/storage";
 import { router } from "expo-router";
-import { Alert } from "react-native";
 
 const isWeb = Platform.OS === 'web';
 

@@ -15,10 +15,7 @@ import {
     ChevronRight, 
     LogOut, 
     Heart,
-    Settings,
-    ArrowRight
-} from "lucide-react-native";
-import { Alert } from "react-native";
+    Settings} from "lucide-react-native";
 
 import RefreshButton from "@/components/ui/notes/RefreshButton";
 import { Colors } from "@/constants/Colors";
@@ -27,9 +24,7 @@ import { getNotes } from "@/services/isenApi";
 import { 
     clearAllStorage, 
     getId, 
-    getSelectedMajors, 
     getSelectedYear,
-    setSelectedSemester,
     isTokenExpired,
     canSilentLogin
 } from "@/services/storage";
