@@ -106,10 +106,15 @@
         "name": "Modulation",
         "coeff_matiere": 2,
         "evaluations": [
-          {
+           {
             "name": "Partiel",
             "code": "",
-            "coeff": 1
+            "coeff": 0.6
+          },
+           {
+            "name": "TP",
+            "code": "25_ISEN_MED_ISEN3_S6_MODULATION_TP_NP",
+            "coeff": 0.6
           }
         ]
       }
