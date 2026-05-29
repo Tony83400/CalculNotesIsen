@@ -108,7 +108,7 @@
         "evaluations": [
            {
             "name": "Partiel",
-            "code": "",
+            "code": "25_ISEN_MED_ISEN3_S6_MODULATION",
             "coeff": 0.6
           },
            {
@@ -263,7 +263,7 @@
         "evaluations": [
           {
             "name": "note",
-            "code": "",
+            "code": "25_ISEN_MED_ISEN3_S6_SHES_STARTUP_CHALLENGE_NP",
             "coeff": 1
           }
         ]
