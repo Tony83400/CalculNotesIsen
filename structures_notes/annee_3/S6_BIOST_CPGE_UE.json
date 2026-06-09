@@ -175,8 +175,13 @@
         "coeff_matiere": 1,
         "evaluations": [
           {
-            "name": "note",
-            "code": "",
+            "name": "CC",
+            "code": "25_ISEN_MED_ISEN3_S6_RESEAU_CC",
+            "coeff": 1
+          },
+           {
+            "name": "Exam",
+            "code": "25_ISEN_MED_ISEN3_S6_RESEAU_examen_final",
             "coeff": 1
           }
         ]
@@ -231,7 +236,7 @@
         "evaluations": [
           {
             "name": "note",
-            "code": "",
+            "code": "25_ISEN_MED_ISEN3_S6_SHES_INGENIEUR_ET_ANTHROPOCENE_NP",
             "coeff": 1
           }
         ]
