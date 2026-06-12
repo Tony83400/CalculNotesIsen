@@ -59,7 +59,7 @@
         "evaluations": [
           {
             "name": "Cotrole continu",
-            "code": "",
+            "code": "25_ISEN_MED_ISEN3_S6_Erlang_CC",
             "coeff": 0.25
           },
           {
@@ -69,7 +69,7 @@
           },
           {
             "name": "Examen",
-            "code": "",
+            "code": "25_ISEN_MED_ISEN3_S6_Erlang_Examen",
             "coeff": 0.45
           }
         ]
@@ -148,7 +148,7 @@
           {
             "name": "Livrable",
             "code": "25_ISEN_MED_ISEN3_S6_IA_THS_JAVA_PROJET_Livrables_NP",
-            "coeff": 0.15
+            "coeff": 0.35
           },
           {
             "name": "Oral",
@@ -158,10 +158,6 @@
             "name": "Examen",
             "code": "25_ISEN_MED_ISEN3_S6_IA_THS_JAVA_PROJET_examen",
             "coeff": 0.25
-          },{
-            "name": "Technique",
-            "code": "",
-            "coeff": 0.2
           }
         ]
       },
