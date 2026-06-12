@@ -136,9 +136,22 @@
         "coeff_matiere": 1,
         "evaluations": [
           {
-            "name": "note",
+            "name": "Livrable",
+            "code": "25_ISEN_MED_ISEN3_S6_IA_THS_JAVA_PROJET_Livrables_NP",
+            "coeff": 0.15
+          },
+          {
+            "name": "Oral",
+            "code": "25_ISEN_MED_ISEN3_S6_IA_THS_JAVA_PROJET_Recette_NP",
+            "coeff": 0.4
+          },{
+            "name": "Examen",
+            "code": "25_ISEN_MED_ISEN3_S6_IA_THS_JAVA_PROJET_examen",
+            "coeff": 0.25
+          },{
+            "name": "Technique",
             "code": "",
-            "coeff": 1
+            "coeff": 0.2
           }
         ]
       },
@@ -269,7 +282,7 @@
         "evaluations": [
           {
             "name": "note",
-            "code": "",
+            "code": "25_ISEN_MED_ISEN3_S6_LV2_",
             "coeff": 1
           }
         ]
