@@ -101,7 +101,7 @@
             "code": "25_ISEN_MED_ISEN3_S6_MODULATION",
             "coeff": 0.6
           },
-           {
+          {
             "name": "TP",
             "code": "25_ISEN_MED_ISEN3_S6_MODULATION_TP_NP",
             "coeff": 0.4
@@ -144,7 +144,8 @@
             "name": "Oral",
             "code": "25_ISEN_MED_ISEN3_S6_IA_THS_JAVA_PROJET_Recette_NP",
             "coeff": 0.4
-          },{
+          },
+          {
             "name": "Examen",
             "code": "25_ISEN_MED_ISEN3_S6_IA_THS_JAVA_PROJET_examen",
             "coeff": 0.25
@@ -188,7 +189,7 @@
             "code": "25_ISEN_MED_ISEN3_S6_RESEAU_CC",
             "coeff": 1
           },
-           {
+          {
             "name": "Exam",
             "code": "25_ISEN_MED_ISEN3_S6_RESEAU_examen_final",
             "coeff": 1
@@ -295,7 +296,7 @@
         "evaluations": [
           {
             "name": "note",
-            "code": "",
+            "code": "25_ISEN_MED_ISEN3_S6_ANGLAIS_certifications",
             "coeff": 1
           }
         ]
