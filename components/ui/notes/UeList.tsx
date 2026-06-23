@@ -1,9 +1,76 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Award, BookOpen, GraduationCap } from "lucide-react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Award, BookOpen, GraduationCap, ChevronDown, ChevronRight } from "lucide-react-native";
 import { Ue } from "@/types/note";
 import MatiereCard from "./MatiereCard";
 import { Colors } from "@/constants/Colors";
+
+interface MatiereSectionProps {
+    matiere: any;
+    simulatedNotes: Record<string, number | null>;
+    updateSimulation: (id: string, val: number | null) => void;
+    getMatiereColor: (moyenne: number | null | undefined) => string;
+}
+
+const MatiereSection: React.FC<MatiereSectionProps> = ({
+    matiere,
+    simulatedNotes,
+    updateSimulation,
+    getMatiereColor
+}) => {
+    const [expanded, setExpanded] = React.useState(false);
+    
+    const hasActiveSimulation = React.useMemo(() => {
+        return matiere.evaluations.some((ev: any) => {
+            const id = ev.uniqueId || ev.code || `${ev.name}_index`;
+            return simulatedNotes[id] !== undefined && simulatedNotes[id] !== null;
+        });
+    }, [matiere.evaluations, simulatedNotes]);
+
+    React.useEffect(() => {
+        if (hasActiveSimulation) {
+            setExpanded(true);
+        }
+    }, [hasActiveSimulation]);
+
+    return (
+        <View style={styles.matiereItem}>
+            <TouchableOpacity
+                onPress={() => setExpanded(!expanded)}
+                activeOpacity={0.7}
+                style={styles.matiereHeader}
+            >
+                <View style={styles.matiereTitleRow}>
+                    {expanded ? (
+                        <ChevronDown size={16} color={Colors.text.tertiary} style={{ marginRight: 4 }} />
+                    ) : (
+                        <ChevronRight size={16} color={Colors.text.tertiary} style={{ marginRight: 4 }} />
+                    )}
+                    <BookOpen size={14} color={Colors.text.tertiary} />
+                    <Text style={styles.matiereName} numberOfLines={1}>{matiere.name}</Text>
+                </View>
+                <View style={styles.matiereScoreRow}>
+                    <Text style={[styles.matiereMoy, { color: getMatiereColor(matiere.moyenne) }]}>
+                        {matiere.moyenne !== null && matiere.moyenne !== undefined ? matiere.moyenne.toFixed(2) : "--"}
+                    </Text>
+                    <View style={styles.coeffBadge}>
+                        <Text style={styles.matiereCoeff}>coeff {matiere.coeff_matiere}</Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
+            
+            {expanded && (
+                <View style={styles.evaluationsContainer}>
+                    <MatiereCard 
+                        evaluationData={matiere.evaluations}
+                        simulatedNotes={simulatedNotes}
+                        updateSimulation={updateSimulation}
+                    />
+                </View>
+            )}
+        </View>
+    );
+};
 
 interface UeCardProps {
     Ue: Ue;
@@ -86,30 +153,13 @@ export default function UeCard({ Ue, simulatedNotes, updateSimulation }: UeCardP
             {/* Liste des matières : Subtilement imbriquée */}
             <View style={styles.matieresList}>
                 {Ue.matieres.map((matiere, index) => (
-                    <View key={matiere.name + index} style={styles.matiereItem}>
-                        <View style={styles.matiereHeader}>
-                            <View style={styles.matiereTitleRow}>
-                                <BookOpen size={14} color={Colors.text.tertiary} />
-                                <Text style={styles.matiereName}>{matiere.name}</Text>
-                            </View>
-                            <View style={styles.matiereScoreRow}>
-                                <Text style={[styles.matiereMoy, { color: getMatiereColor(matiere.moyenne) }]}>
-                                    {matiere.moyenne !== null && matiere.moyenne !== undefined ? matiere.moyenne.toFixed(2) : "--"}
-                                </Text>
-                                <View style={styles.coeffBadge}>
-                                    <Text style={styles.matiereCoeff}>coeff {matiere.coeff_matiere}</Text>
-                                </View>
-                            </View>
-                        </View>
-                        
-                        <View style={styles.evaluationsContainer}>
-                            <MatiereCard 
-                                evaluationData={matiere.evaluations}
-                                simulatedNotes={simulatedNotes}
-                                updateSimulation={updateSimulation}
-                            />
-                        </View>
-                    </View>
+                    <MatiereSection
+                        key={matiere.name + index}
+                        matiere={matiere}
+                        simulatedNotes={simulatedNotes}
+                        updateSimulation={updateSimulation}
+                        getMatiereColor={getMatiereColor}
+                    />
                 ))}
             </View>
         </View>

@@ -16,7 +16,6 @@ import {
     Loader2, 
     TrendingUp, 
     Trophy,
-    Info,
     CalendarDays,
     ChevronDown,
     Check,
@@ -124,7 +123,9 @@ export default function NotesScreen() {
                         onPress={() => setShowSemesterPicker(!showSemesterPicker)}
                         activeOpacity={0.7}
                     >
-                        <Text style={styles.headerTitle}>{selectedSemester} - {currentMajor}</Text>
+                        <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
+                            {selectedSemester} - {currentMajor}
+                        </Text>
                         <ChevronDown size={16} color={Colors.text.tertiary} />
                     </TouchableOpacity>
                 </View>
@@ -152,11 +153,6 @@ export default function NotesScreen() {
                     ))}
                 </View>
             )}
-
-            <View style={styles.infoBar}>
-                <Info size={14} color={Colors.primary} />
-                <Text style={styles.infoBarText}>Tapez sur une note pour simuler votre moyenne</Text>
-            </View>
 
             <View style={styles.modeSelectorContainer}>
                 <View style={styles.modeSelector}>
@@ -278,9 +274,7 @@ const styles = StyleSheet.create({
     semesterPickerItemActive: { backgroundColor: Colors.primary + '08' },
     semesterPickerText: { fontSize: 15, fontWeight: '600', color: Colors.text.secondary },
     semesterPickerTextActive: { color: Colors.primary, fontWeight: '700' },
-    infoBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primaryLight, paddingVertical: 10, gap: 8 },
-    infoBarText: { fontSize: 12, color: Colors.primary, fontWeight: '600', letterSpacing: -0.2 },
-    modeSelectorContainer: { paddingHorizontal: 16, paddingTop: 16 },
+    modeSelectorContainer: { paddingHorizontal: 16, paddingTop: 12 },
     modeSelector: { flexDirection: 'row', backgroundColor: Colors.surface, borderRadius: 16, padding: 4, borderWidth: 1, borderColor: Colors.border },
     modeTab: { flex: 1, paddingVertical: 10, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
     activeModeTab: { backgroundColor: Colors.primary, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
@@ -291,8 +285,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingTop: 12,
-        paddingBottom: 4,
+        paddingTop: 8,
+        paddingBottom: 0,
     },
     refreshInfoLeft: {
         flexDirection: 'row',

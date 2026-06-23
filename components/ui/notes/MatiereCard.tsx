@@ -66,7 +66,9 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
                         <View style={styles.rowTop}>
                             <View style={styles.leftInfo}>
                                 <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
-                                <Text style={styles.code}>{item.code}</Text>
+                                <View style={styles.coeffBadge}>
+                                    <Text style={styles.coeffText}>coeff {item.coeff}</Text>
+                                </View>
                             </View>
 
                             <TouchableOpacity 
@@ -111,9 +113,6 @@ export default function MatiereCard({ evaluationData, simulatedNotes, updateSimu
                                     )}
                                     <Text style={styles.noteTotal}>/20</Text>
                                 </View>
-                                <View style={styles.coeffBadge}>
-                                    <Text style={styles.coeffText}>coeff {item.coeff}</Text>
-                                </View>
                             </TouchableOpacity>
                         </View>
 
@@ -150,7 +149,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
     },
     row: { 
-        paddingVertical: 14,
+        paddingVertical: 8,
     },
     separator: { 
         borderBottomWidth: 1, 
@@ -166,27 +165,22 @@ const styles = StyleSheet.create({
         marginRight: 16,
     },
     name: { 
-        fontSize: 14, 
+        fontSize: 13, 
         color: Colors.text.primary, 
         fontWeight: '600',
-        lineHeight: 20,
-    },
-    code: { 
-        fontSize: 11, 
-        color: Colors.text.tertiary, 
-        marginTop: 2,
-        letterSpacing: 0.5,
+        lineHeight: 18,
     },
     rightInfo: { 
-        alignItems: 'flex-end',
-        minWidth: 85,
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 75,
     },
     noteContainer: { 
         flexDirection: 'row', 
         alignItems: 'baseline',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 10,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
         backgroundColor: Colors.background,
     },
     missingNoteContainer: {
@@ -205,34 +199,39 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     noteValue: { 
-        fontSize: 17, 
+        fontSize: 15, 
         fontWeight: '800',
         letterSpacing: -0.5,
     },
     editIcon: {
-        marginLeft: 6,
+        marginLeft: 4,
         opacity: 0.9,
     },
     noteInput: { 
-        fontSize: 17, 
+        fontSize: 15, 
         fontWeight: '800', 
         padding: 0,
-        minWidth: 40,
+        minWidth: 35,
         textAlign: 'right',
     },
     noteTotal: { 
-        fontSize: 11, 
+        fontSize: 10, 
         color: Colors.text.tertiary, 
         marginLeft: 2,
         fontWeight: '600',
     },
     coeffBadge: {
-        marginTop: 6,
+        marginTop: 4,
+        alignSelf: 'flex-start',
+        backgroundColor: Colors.divider,
+        paddingHorizontal: 6,
+        paddingVertical: 1,
+        borderRadius: 6,
     },
     coeffText: { 
-        fontSize: 10, 
-        color: Colors.text.tertiary,
-        fontWeight: '600',
+        fontSize: 9, 
+        color: Colors.text.secondary, 
+        fontWeight: '700',
         textTransform: 'uppercase',
     },
     sliderSection: { 
