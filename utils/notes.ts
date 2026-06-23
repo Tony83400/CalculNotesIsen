@@ -1,4 +1,4 @@
-import { Ue, Note, Matiere, Evaluation } from "../types/note";
+import { Ue, Note, Matiere, Evaluations } from "../types/note";
 
 /**
  * Fusionne les notes de l'API avec la structure locale et gère les simulations.

@@ -31,4 +31,5 @@ export interface Ue {
   moyenne?: number | null; 
   isValidated?: boolean; 
   hasEliminatoryNote?: boolean;
+  hasRattrapageApplied?: boolean;
 }
