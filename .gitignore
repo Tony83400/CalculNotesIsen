@@ -148,3 +148,4 @@ dist/
 .env*.local
 /android
 *.png
+/.agents
