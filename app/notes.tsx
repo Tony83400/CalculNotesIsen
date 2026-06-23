@@ -80,7 +80,7 @@ export default function NotesScreen() {
                     <Text style={styles.errorMessage}>{error}</Text>
                     <TouchableOpacity style={styles.primaryButton} onPress={() => router.push("/")}>
                         <Home size={20} color="#FFF" />
-                        <Text style={styles.primaryButtonText}>Retour à l'accueil</Text>
+                        <Text style={styles.primaryButtonText}>{"Retour à l'accueil"}</Text>
                     </TouchableOpacity>
                 </View>
             </SafeAreaView>

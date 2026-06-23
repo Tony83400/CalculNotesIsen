@@ -72,7 +72,13 @@ export default function EventDetailModal({ event, visible, onClose }: EventDetai
                     ]}>
                         <View style={{ flex: 1 }}>
                             {event.isExam && <Text style={styles.examLabelModal}>EXAMEN</Text>}
-                            <Text style={styles.modalTitle}>{event.title}</Text>
+                            <ScrollView 
+                                nestedScrollEnabled={true} 
+                                style={{ maxHeight: 75 }}
+                                showsVerticalScrollIndicator={true}
+                            >
+                                <Text style={styles.modalTitle}>{event.title}</Text>
+                            </ScrollView>
                         </View>
                         <TouchableOpacity 
                             onPress={onClose}

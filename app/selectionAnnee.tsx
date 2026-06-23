@@ -176,7 +176,7 @@ export default function SelectionAnneeScreen() {
                     <Text style={styles.welcomeText}>CalculNotes ISEN</Text>
                     <Text style={styles.title}>Configuration</Text>
                     <Text style={styles.description}>
-                        Personnalisez votre application pour n'avoir qu'à consulter vos notes par la suite.
+                        {"Personnalisez votre application pour n'avoir qu'à consulter vos notes par la suite."}
                     </Text>
                 </View>
 
@@ -186,7 +186,7 @@ export default function SelectionAnneeScreen() {
                         <View style={styles.iconCircle}>
                             <Calendar size={18} color={Colors.primary} />
                         </View>
-                        <Text style={styles.sectionTitle}>Année d'étude</Text>
+                        <Text style={styles.sectionTitle}>{"Année d'étude"}</Text>
                     </View>
                     <View style={styles.yearGrid}>
                         {years.map((year) => (

@@ -74,22 +74,17 @@ export default function SelectionScreen() {
                 {/* HEADER : Bienvenue */}
                 <View style={styles.header}>
                     <View style={styles.headerTopRow}>
-                        <View style={{ flex: 1 }}>
-                            <Text style={styles.welcomeText}>Bonjour,</Text>
-                            <Text style={styles.title}>Tableau de bord</Text>
-                            {selectedYear && <Text style={styles.yearText}>{selectedYear}</Text>}
-                        </View>
+                        <Text style={styles.welcomeText}>Bonjour,</Text>
                         <TouchableOpacity 
                             style={styles.settingsBtn}
                             onPress={() => router.push("/selectionAnnee")}
                             activeOpacity={0.7}
                         >
-                            <View style={styles.settingsIconCircle}>
-                                <Settings size={18} color={Colors.primary} />
-                            </View>
-                            <Text style={styles.settingsBtnText}>Configurer mon cursus</Text>
+                            <Settings size={20} color={Colors.primary} />
                         </TouchableOpacity>
                     </View>
+                    <Text style={styles.title}>Tableau de bord</Text>
+                    {selectedYear && <Text style={styles.yearText}>{selectedYear}</Text>}
                 </View>
 
                 {/* CORPS : Fonctionnalités principales */}
@@ -180,34 +175,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     settingsBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        width: 44,
+        height: 44,
+        borderRadius: 14,
         backgroundColor: Colors.surface,
-        paddingVertical: 10,
-        paddingHorizontal: 14,
-        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
         borderWidth: 1,
         borderColor: Colors.border,
-        gap: 10,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.03,
         shadowRadius: 6,
         elevation: 1,
-    },
-    settingsIconCircle: {
-        width: 32,
-        height: 32,
-        borderRadius: 10,
-        backgroundColor: Colors.primary + '10',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    settingsBtnText: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: Colors.text.primary,
-        letterSpacing: -0.2,
     },
     welcomeText: {
         fontSize: 16,
@@ -295,20 +275,22 @@ const styles = StyleSheet.create({
     // Footer
     footer: {
         marginTop: 'auto',
-        padding: 32,
+        paddingHorizontal: 24,
+        paddingTop: 16,
+        paddingBottom: 32,
         alignItems: 'center',
     },
     actionRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 24,
-        marginBottom: 40,
+        alignSelf: 'stretch',
+        gap: 12,
+        marginBottom: 24,
     },
     logoutBtn: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
         backgroundColor: Colors.status.error + '10',
-        borderRadius: 14,
+        borderRadius: 16,
         gap: 8,
         paddingVertical: 12,
         paddingHorizontal: 16,
