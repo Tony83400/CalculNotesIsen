@@ -126,6 +126,23 @@ export default function SelectionScreen() {
                             <ChevronRight size={20} color={Colors.text.tertiary} />
                         </View>
                     </TouchableOpacity>
+                    {/* Carte AGENDA MULTIPLE */}
+                    <TouchableOpacity
+                        style={styles.card}
+                        onPress={() => router.push("/multi-agenda")}
+                        activeOpacity={0.7}
+                    >
+                        <View style={[styles.iconBox, { backgroundColor: Colors.status.success + '10' }]}>
+                            <Heart size={32} color={Colors.status.success} />
+                        </View>
+                        <View style={styles.cardTextContainer}>
+                            <Text style={styles.cardTitle}>Agendas Multiples</Text>
+                            <Text style={styles.cardDescription}>Comparer les emplois du temps</Text>
+                        </View>
+                        <View style={styles.arrowContainer}>
+                            <ChevronRight size={20} color={Colors.text.tertiary} />
+                        </View>
+                    </TouchableOpacity>
                 </View>
 
                 {/* FOOTER : Actions & Infos */}

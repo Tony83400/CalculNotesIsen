@@ -34,20 +34,68 @@ export default function DailyAgenda({ events, selectedDate }: DailyAgendaProps) 
         .filter(event => {
             const eventDate = new Date(event.start);
             return eventDate.toDateString() === selectedDate.toDateString();
+        })
+        .sort((a, b) => a.start.getTime() - b.start.getTime());
+
+    // Calculer les colonnes pour les chevauchements
+    const getEventLayouts = () => {
+        const layouts = dailyEvents.map(event => ({
+            event,
+            startHour: event.start.getHours() + event.start.getMinutes() / 60,
+            endHour: event.end.getHours() + event.end.getMinutes() / 60,
+            column: 0,
+            totalColumns: 1
+        }));
+
+        let currentCluster: typeof layouts = [];
+        let clusterEndHour = 0;
+
+        const allLayouts: typeof layouts = [];
+
+        layouts.forEach((item) => {
+            if (currentCluster.length > 0 && item.startHour >= clusterEndHour) {
+                const maxCol = currentCluster.reduce((max, e) => Math.max(max, e.column + 1), 0);
+                currentCluster.forEach(i => i.totalColumns = maxCol);
+                allLayouts.push(...currentCluster);
+                currentCluster = [];
+                clusterEndHour = 0;
+            }
+
+            const columnsInCluster: (typeof layouts)[] = [];
+            currentCluster.forEach(i => {
+                if (!columnsInCluster[i.column]) columnsInCluster[i.column] = [];
+                columnsInCluster[i.column].push(i);
+            });
+
+            let placed = false;
+            for (let col = 0; col < columnsInCluster.length; col++) {
+                const columnItems = columnsInCluster[col] || [];
+                const lastItem = columnItems[columnItems.length - 1];
+                if (!lastItem || lastItem.endHour <= item.startHour) {
+                    item.column = col;
+                    placed = true;
+                    break;
+                }
+            }
+
+            if (!placed) {
+                item.column = columnsInCluster.length;
+            }
+
+            currentCluster.push(item);
+            clusterEndHour = Math.max(clusterEndHour, item.endHour);
         });
 
-    const getEventStyle = (event: AgendaEvent) => {
-        const startHour = event.start.getHours() + event.start.getMinutes() / 60;
-        const endHour = event.end.getHours() + event.end.getMinutes() / 60;
-        const duration = endHour - startHour;
+        if (currentCluster.length > 0) {
+            const maxCol = currentCluster.reduce((max, e) => Math.max(max, e.column + 1), 0);
+            currentCluster.forEach(i => i.totalColumns = maxCol);
+            allLayouts.push(...currentCluster);
+        }
 
-        return {
-            top: (startHour - START_HOUR) * HOUR_HEIGHT + 10,
-            height: duration * HOUR_HEIGHT - 4,
-            left: 8,
-            width: windowWidth - LEFT_COLUMN_WIDTH - 20,
-        };
+        return allLayouts;
     };
+
+    const eventLayouts = getEventLayouts();
 
     if (dailyEvents.length === 0) {
         return (
@@ -84,20 +132,32 @@ export default function DailyAgenda({ events, selectedDate }: DailyAgendaProps) 
                         ))}
 
                         {/* Les cours positionnés */}
-                        {dailyEvents.map((event, index) => {
-                            const eventStyle = getEventStyle(event);
+                        {eventLayouts.map((layoutItem, index) => {
+                            const { event, startHour, endHour, column, totalColumns } = layoutItem;
                             const isExam = event.isExam;
                             const durationMinutes = (event.end.getTime() - event.start.getTime()) / (1000 * 60);
 
+                            const availableWidth = windowWidth - LEFT_COLUMN_WIDTH - 20;
+                            const width = availableWidth / totalColumns;
+                            const left = 8 + column * width;
+
+                            const eventStyle = {
+                                top: (startHour - START_HOUR) * HOUR_HEIGHT + 10,
+                                height: (endHour - startHour) * HOUR_HEIGHT - 4,
+                                left: left,
+                                width: width,
+                            };
+
                             return (
                                 <TouchableOpacity 
-                                    key={event.id || index} 
+                                    key={`${event.id || 'evt'}-${index}`} 
                                     activeOpacity={0.8}
                                     onPress={() => setSelectedEvent(event)}
                                     style={[
                                         styles.eventCard,
                                         eventStyle,
-                                        isExam ? styles.examCard : styles.regularCard
+                                        isExam ? styles.examCard : (event.color ? undefined : styles.regularCard),
+                                        event.color && !isExam ? { backgroundColor: event.color + '0A', borderLeftColor: event.color, borderColor: event.color + '20' } : undefined
                                     ]}
                                 >
                                     <View style={styles.eventMain}>
@@ -108,7 +168,13 @@ export default function DailyAgenda({ events, selectedDate }: DailyAgendaProps) 
                                                     <Text style={styles.examBadgeText}>EXAMEN</Text>
                                                 </View>
                                             )}
-                                            <Text style={[styles.eventTitle, isExam && styles.examText]} numberOfLines={durationMinutes < 45 ? 1 : 2}>
+                                            {event.userName && (
+                                                <View style={[styles.examBadge, { backgroundColor: event.color + '20' }]}>
+                                                    <User size={10} color={event.color} />
+                                                    <Text style={[styles.examBadgeText, { color: event.color }]}>{event.userName.toUpperCase()}</Text>
+                                                </View>
+                                            )}
+                                            <Text style={[styles.eventTitle, isExam && styles.examText, event.color && !isExam ? { color: event.color } : undefined]} numberOfLines={durationMinutes < 45 ? 1 : 2}>
                                                 {event.title}
                                             </Text>
                                         </View>
