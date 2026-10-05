@@ -6,6 +6,8 @@ export interface AgendaEvent {
   start: Date;
   end: Date;
   isExam?: boolean; 
+  color?: string; // Optional property for multi-agenda view
+  userName?: string; // Optional property for multi-agenda view
 }
 
 export interface EventDetails {

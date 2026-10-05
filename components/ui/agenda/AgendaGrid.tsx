@@ -42,28 +42,86 @@ export default function AgendaGrid({ events, startDay }: AgendaGridProps) {
         };
     };
 
-    const getEventStyle = (event: AgendaEvent) => {
-        const startHour = event.start.getHours() + event.start.getMinutes() / 60;
-        const endHour = event.end.getHours() + event.end.getMinutes() / 60;
-        const duration = endHour - startHour;
-
-        const eventDate = new Date(event.start);
-        eventDate.setHours(0,0,0,0);
-        const refDate = new Date(startDay);
-        refDate.setHours(0,0,0,0);
+    // Filter events and map them to their day column
+    const getEventsWithLayout = () => {
+        const eventsByDay: AgendaEvent[][] = [[], [], [], [], [], []];
         
-        const diffTime = eventDate.getTime() - refDate.getTime();
-        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+        events.forEach(event => {
+            const eventDate = new Date(event.start);
+            eventDate.setHours(0,0,0,0);
+            const refDate = new Date(startDay);
+            refDate.setHours(0,0,0,0);
+            
+            const diffTime = eventDate.getTime() - refDate.getTime();
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-        if (diffDays < 0 || diffDays > 5) return null;
+            if (diffDays >= 0 && diffDays <= 5) {
+                eventsByDay[diffDays].push(event);
+            }
+        });
 
-        return {
-            top: (startHour - 8) * HOUR_HEIGHT,
-            height: duration * HOUR_HEIGHT - 2, 
-            left: diffDays * DAY_WIDTH + 2,
-            width: DAY_WIDTH - 4,
-        };
+        const allLayouts: { event: AgendaEvent, startHour: number, endHour: number, column: number, totalColumns: number, dayIndex: number }[] = [];
+
+        eventsByDay.forEach((dayEvents, dayIndex) => {
+            const sortedEvents = [...dayEvents].sort((a, b) => a.start.getTime() - b.start.getTime());
+            
+            const layouts = sortedEvents.map(event => ({
+                event,
+                startHour: event.start.getHours() + event.start.getMinutes() / 60,
+                endHour: event.end.getHours() + event.end.getMinutes() / 60,
+                column: 0,
+                totalColumns: 1,
+                dayIndex
+            }));
+
+            let currentCluster: typeof layouts = [];
+            let clusterEndHour = 0;
+
+            layouts.forEach((item) => {
+                if (currentCluster.length > 0 && item.startHour >= clusterEndHour) {
+                    const maxCol = currentCluster.reduce((max, e) => Math.max(max, e.column + 1), 0);
+                    currentCluster.forEach(i => i.totalColumns = maxCol);
+                    allLayouts.push(...currentCluster);
+                    currentCluster = [];
+                    clusterEndHour = 0;
+                }
+
+                const columnsInCluster: (typeof layouts)[] = [];
+                currentCluster.forEach(i => {
+                    if (!columnsInCluster[i.column]) columnsInCluster[i.column] = [];
+                    columnsInCluster[i.column].push(i);
+                });
+
+                let placed = false;
+                for (let col = 0; col < columnsInCluster.length; col++) {
+                    const columnItems = columnsInCluster[col] || [];
+                    const lastItem = columnItems[columnItems.length - 1];
+                    if (!lastItem || lastItem.endHour <= item.startHour) {
+                        item.column = col;
+                        placed = true;
+                        break;
+                    }
+                }
+
+                if (!placed) {
+                    item.column = columnsInCluster.length;
+                }
+
+                currentCluster.push(item);
+                clusterEndHour = Math.max(clusterEndHour, item.endHour);
+            });
+
+            if (currentCluster.length > 0) {
+                const maxCol = currentCluster.reduce((max, e) => Math.max(max, e.column + 1), 0);
+                currentCluster.forEach(i => i.totalColumns = maxCol);
+                allLayouts.push(...currentCluster);
+            }
+        });
+
+        return allLayouts;
     };
+
+    const eventLayouts = getEventsWithLayout();
 
     return (
         <View style={styles.container}>
@@ -115,30 +173,44 @@ export default function AgendaGrid({ events, startDay }: AgendaGridProps) {
                             );
                         })}
 
-                        {events.map((event, index) => {
-                            const eventStyle = getEventStyle(event);
-                            if (!eventStyle) return null;
+                        {eventLayouts.map((layoutItem, index) => {
+                            const { event, startHour, endHour, column, totalColumns, dayIndex } = layoutItem;
+                            
+                            const durationHours = endHour - startHour;
+                            const width = (DAY_WIDTH - 4) / totalColumns;
+                            const left = dayIndex * DAY_WIDTH + 2 + column * width;
 
-                            const durationHours = (event.end.getTime() - event.start.getTime()) / (1000 * 60 * 60);
+                            const eventStyle = {
+                                top: (startHour - 8) * HOUR_HEIGHT,
+                                height: durationHours * HOUR_HEIGHT - 2, 
+                                left: left,
+                                width: width,
+                            };
 
                             return (
                                 <TouchableOpacity 
-                                    key={event.id || index} 
+                                    key={`${event.id || 'evt'}-${index}`} 
                                     activeOpacity={0.7}
                                     onPress={() => setSelectedEvent(event)}
                                     style={[
                                         styles.eventBlock, 
                                         eventStyle,
-                                        event.isExam ? styles.examBlock : styles.regularBlock
+                                        event.isExam ? styles.examBlock : (event.color ? undefined : styles.regularBlock),
+                                        event.color && !event.isExam ? { backgroundColor: event.color + '15', borderLeftColor: event.color } : undefined
                                     ]}
                                 >
                                     {event.isExam && (
                                         <Text style={styles.examLabel}>EXAMEN</Text>
                                     )}
+                                    {event.userName && (
+                                        <Text style={[styles.examLabel, { color: event.color || Colors.text.secondary }]} numberOfLines={1}>
+                                            {event.userName}
+                                        </Text>
+                                    )}
 
                                     <Text 
-                                        style={[styles.eventTitle, event.isExam && styles.examText]} 
-                                        numberOfLines={durationHours > 1.2 ? 4 : 2}
+                                        style={[styles.eventTitle, event.isExam && styles.examText, event.color && !event.isExam ? { color: event.color } : undefined]} 
+                                        numberOfLines={durationHours > 1.2 ? (event.userName ? 3 : 4) : 2}
                                     >
                                         {event.title}
                                     </Text>
