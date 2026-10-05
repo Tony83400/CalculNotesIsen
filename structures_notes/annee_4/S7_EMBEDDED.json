@@ -1,0 +1,260 @@
+[
+    {
+        "ue": "UE1 IA",
+        "ects": 3,
+        "matieres": [
+            {
+                "name": "Generative IA",
+                "code_rattrapage": "",
+                "coeff_matiere": 1,
+                "evaluations": [
+                    {
+                        "name": "Generative IA",
+                        "code": "",
+                        "coeff": 1
+                    }
+                ]
+            },
+            {
+                "name": "Plateforme de DEV",
+                "code_rattrapage": "",
+                "coeff_matiere": 1,
+                "evaluations": [
+                    {
+                        "name": "Plateforme de DEV",
+                        "code": "",
+                        "coeff": 1
+                    }
+                ]
+            },
+            {
+                "name": "TOOLS IA level 1",
+                "code_rattrapage": "",
+                "coeff_matiere": 1,
+                "evaluations": [
+                    {
+                        "name": "TOOLS IA level 1",
+                        "code": "",
+                        "coeff": 1
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "ue": "UE2 Microcontrôleur et Interfaces",
+        "ects": 4,
+        "matieres": [
+            {
+                "name": "Sensors",
+                "code_rattrapage": "",
+                "coeff_matiere": 1,
+                "evaluations": [
+                    {
+                        "name": "Sensors",
+                        "code": "",
+                        "coeff": 1
+                    }
+                ]
+            },
+            {
+                "name": "STM 32 level 1",
+                "code_rattrapage": "",
+                "coeff_matiere": 1,
+                "evaluations": [
+                    {
+                        "name": "STM 32 level 1",
+                        "code": "",
+                        "coeff": 1
+                    }
+                ]
+            },
+            {
+                "name": "STM32 EDGE",
+                "code_rattrapage": "",
+                "coeff_matiere": 1,
+                "evaluations": [
+                    {
+                        "name": "STM32 EDGE",
+                        "code": "",
+                        "coeff": 1
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "ue": "UE3 Developpement système",
+        "ects": 4,
+        "matieres": [
+            {
+                "name": "Linux Shell",
+                "code_rattrapage": "",
+                "coeff_matiere": 1,
+                "evaluations": [
+                    {
+                        "name": "Linux Shell",
+                        "code": "",
+                        "coeff": 1
+                    }
+                ]
+            },
+            {
+                "name": "Labview Intro",
+                "code_rattrapage": "",
+                "coeff_matiere": 1,
+                "evaluations": [
+                    {
+                        "name": "Labview Intro",
+                        "code": "",
+                        "coeff": 1
+                    }
+                ]
+            },
+            {
+                "name": "Labview Embedded",
+                "code_rattrapage": "",
+                "coeff_matiere": 1,
+                "evaluations": [
+                    {
+                        "name": "Labview Embedded",
+                        "code": "",
+                        "coeff": 1
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "ue": "UE4 Ingénierie des systèmes IoT",
+        "ects": 5,
+        "matieres": [
+            {
+                "name": "RTOS",
+                "code_rattrapage": "",
+                "coeff_matiere": 1,
+                "evaluations": [
+                    {
+                        "name": "RTOS",
+                        "code": "",
+                        "coeff": 1
+                    }
+                ]
+            },
+            {
+                "name": "Batterie - Gestion de consommation",
+                "code_rattrapage": "",
+                "coeff_matiere": 1,
+                "evaluations": [
+                    {
+                        "name": "Batterie - Gestion de consommation",
+                        "code": "",
+                        "coeff": 1
+                    }
+                ]
+            },
+            {
+                "name": "Electronique de conception",
+                "code_rattrapage": "",
+                "coeff_matiere": 1,
+                "evaluations": [
+                    {
+                        "name": "Electronique de conception",
+                        "code": "",
+                        "coeff": 1
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "ue": "Projet Technique",
+        "ects": 11,
+        "matieres": [
+            {
+                "name": "Projet technique",
+                "code_rattrapage": "",
+                "coeff_matiere": 1,
+                "evaluations": [
+                    {
+                        "name": "Projet technique",
+                        "code": "",
+                        "coeff": 1
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "ue": "SHES",
+        "ects": 2,
+        "matieres": [
+            {
+                "coeff_matiere": 1,
+                "code_rattrapage": "",
+                "name": "Agilité",
+                "evaluations": [
+                    {
+                        "code": "26_ISEN_MED_ISEN4_S7_SHES_AGILE_PROJECT_MANAGEMENT",
+                        "name": "Agilité",
+                        "coeff": 1
+                    }
+                ]
+            },
+            {
+                "coeff_matiere": 1,
+                "code_rattrapage": "",
+                "name": "Projet Personnel et Professionnel",
+                "evaluations": [
+                    {
+                        "code": "",
+                        "name": "Projet Personnel et Professionnel",
+                        "coeff": 1
+                    }
+                ]
+            },
+            {
+                "coeff_matiere": 1,
+                "code_rattrapage": "",
+                "name": "Prospective et Inovation",
+                "evaluations": [
+                    {
+                        "code": "",
+                        "name": "Prospective et Inovation",
+                        "coeff": 1
+                    }
+                ]
+            },
+            {
+                "coeff_matiere": 1,
+                "code_rattrapage": "",
+                "name": "Start up et Entreprenariat",
+                "evaluations": [
+                    {
+                        "code": "",
+                        "name": "Start up et Entreprenariat",
+                        "coeff": 1
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "ue": "Anglais",
+        "ects": 1,
+        "matieres": [
+            {
+                "name": "Anglais_FISE",
+                "code_rattrapage": "",
+                "coeff_matiere": 1,
+                "evaluations": [
+                    {
+                        "name": "Anglais_FISE",
+                        "code": "",
+                        "coeff": 1
+                    }
+                ]
+            }
+        ]
+    }
+]

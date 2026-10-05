@@ -1,0 +1,159 @@
+[
+  {
+    "ue": "UE1 - Developpement plateforme mobile",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "Dev mobile lvl 1 et lvl 2",
+        "code_rattrapage": "",
+        "coeff_matiere": 2,
+        "evaluations": [
+          {
+            "name": "Dev mobile lvl 1 et lvl 2",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "DEV BLE",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "DEV BLE",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "UE2- Sécurité",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "Archi secu",
+        "code_rattrapage": "",
+        "coeff_matiere": 2,
+        "evaluations": [
+          {
+            "name": "Archi secu",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Secu hardware IOT SE",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Secu hardware IOT SE",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "UE 3 - ENERGY",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "Energie de la transition",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Energie de la transition",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Reseau d'energie",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Reseau d'energie",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "S3ENR",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "S3ENR",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Projet Technique",
+    "ects": 15,
+    "matieres": [
+      {
+        "name": "Projet technique",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Projet technique",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "SHES",
+    "ects": 2,
+    "matieres": [
+      {
+        "name": "SHES",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "SHES",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Anglais",
+    "ects": 1,
+    "matieres": [
+      {
+        "name": "Anglais_FISE",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Anglais_FISE",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  }
+]
+

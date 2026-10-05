@@ -1,0 +1,171 @@
+[
+  {
+    "ue": "UE1 - Sécurité RISE",
+    "ects": 3,
+    "matieres": [
+      {
+        "name": "Embedded Security Architecture",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Embedded Security Architecture",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "UE2 - Robotique",
+    "ects": 5,
+    "matieres": [
+      {
+        "name": "STM32 level 2",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "STM32 level 2",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "BLE Embedded",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "BLE Embedded",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Capteurs Robotique",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Capteurs Robotique",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Robotique accoustique",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Robotique accoustique",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "UE3 - Design Analog",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "Microelectronic Introduction & Design Flow",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Microelectronic Introduction & Design Flow",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Microelectronics Design Environment & Basic Designs",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Microelectronics Design Environment & Basic Designs",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Analog IC",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Analog IC",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Projet Technique",
+    "ects": 15,
+    "matieres": [
+      {
+        "name": "Projet technique",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Projet technique",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "SHES",
+    "ects": 2,
+    "matieres": [
+      {
+        "name": "SHES",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "SHES",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Anglais",
+    "ects": 1,
+    "matieres": [
+      {
+        "name": "Anglais_FISE",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Anglais_FISE",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  }
+]
+

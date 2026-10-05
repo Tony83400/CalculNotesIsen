@@ -1,0 +1,159 @@
+[
+  {
+    "ue": "UE1 - Developpement plateforme mobile",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "Développement mobile natif",
+        "code_rattrapage": "",
+        "coeff_matiere": 2,
+        "evaluations": [
+          {
+            "name": "Développement mobile natif",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "BDD No SQL",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "BDD No SQL",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "En cours de définition",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "En cours de définition",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "UE2 - Sécurité DEV",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "Introduction à la sécurité",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Introduction à la sécurité",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Sécurité des livrables",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Sécurité des livrables",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "UE3 - Dev WEB",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "Web DEV",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Web DEV",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "JEE",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "JEE",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Projet Technique",
+    "ects": 15,
+    "matieres": [
+      {
+        "name": "Projet technique",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Projet technique",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "SHES",
+    "ects": 2,
+    "matieres": [
+      {
+        "name": "SHES",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "SHES",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Anglais",
+    "ects": 1,
+    "matieres": [
+      {
+        "name": "Anglais_FISE",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Anglais_FISE",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  }
+]
+

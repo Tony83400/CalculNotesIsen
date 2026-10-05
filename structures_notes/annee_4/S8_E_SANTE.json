@@ -1,0 +1,159 @@
+[
+  {
+    "ue": "UE1 - Developpement mobile Esanté",
+    "ects": 3,
+    "matieres": [
+      {
+        "name": "Dev mobile esanté",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Dev mobile esanté",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "UE2 Bio Electricité",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "Electronique Analogique et instrumentation (cf Syst. Embarqué) - Instrumentation",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Electronique Analogique et instrumentation (cf Syst. Embarqué) - Instrumentation",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Caracterisation electrique des tissus / potentiel d'action et stimulation",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Caracterisation electrique des tissus / potentiel d'action et stimulation",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "TP Bio electricité (ECG, STM 32 , IA sur signaux)",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "TP Bio electricité (ECG, STM 32 , IA sur signaux)",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "UE3 Imagerie",
+    "ects": 5,
+    "matieres": [
+      {
+        "name": "Traitement d'Images",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Traitement d'Images",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Imagerie médicale et cellulaires",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Imagerie médicale et cellulaires",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "IA diagnostic cancer sur image de biopsie",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "IA diagnostic cancer sur image de biopsie",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Projet Technique",
+    "ects": 15,
+    "matieres": [
+      {
+        "name": "Projet technique",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Projet technique",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "SHES",
+    "ects": 2,
+    "matieres": [
+      {
+        "name": "SHES",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "SHES",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Anglais",
+    "ects": 1,
+    "matieres": [
+      {
+        "name": "Anglais_FISE",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Anglais_FISE",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  }
+]
+

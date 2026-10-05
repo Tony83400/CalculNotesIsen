@@ -1,0 +1,147 @@
+[
+  {
+    "ue": "UE2- Sécurité",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "Archi secu",
+        "code_rattrapage": "",
+        "coeff_matiere": 2,
+        "evaluations": [
+          {
+            "name": "Archi secu",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Secu hardware IOT SE",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Secu hardware IOT SE",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "UE3 - Conception et communication des systèmes IoT",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "BLE Embedded",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "BLE Embedded",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Iot data communication",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Iot data communication",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "UE1 - Developpement plateforme mobile",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "Dev mobile lvl 1 et 2",
+        "code_rattrapage": "",
+        "coeff_matiere": 2,
+        "evaluations": [
+          {
+            "name": "Dev mobile lvl 1 et 2",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Dev BLE",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Dev BLE",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Projet Technique",
+    "ects": 15,
+    "matieres": [
+      {
+        "name": "Projet technique + workshop PCB",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Projet technique + workshop PCB",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "SHES",
+    "ects": 2,
+    "matieres": [
+      {
+        "name": "SHES",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "SHES",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Anglais",
+    "ects": 1,
+    "matieres": [
+      {
+        "name": "Anglais_FISE",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Anglais_FISE",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  }
+]
+

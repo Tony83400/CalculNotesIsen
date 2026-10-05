@@ -1,0 +1,171 @@
+[
+  {
+    "ue": "UE1 - Physique et Sécurité",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "Physique des composants",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Physique des composants",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Embedded Security Architecture",
+        "code_rattrapage": "",
+        "coeff_matiere": 2,
+        "evaluations": [
+          {
+            "name": "Embedded Security Architecture",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "UE2 - Electronique Digitale & Analog avancée",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "STM32 level 2",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "STM32 level 2",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Elec Analog level 2",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Elec Analog level 2",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "BLE EMBEDDED",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "BLE EMBEDDED",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "UE3 - Design Analog Microelectronique",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "Microelectronic Introduction & Design Flow",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Microelectronic Introduction & Design Flow",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Microelectronics Design Environment & Basic Designs",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Microelectronics Design Environment & Basic Designs",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Analog IC",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Analog IC",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Projet Technique",
+    "ects": 15,
+    "matieres": [
+      {
+        "name": "Projet technique",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Projet technique",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "SHES",
+    "ects": 2,
+    "matieres": [
+      {
+        "name": "SHES",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "SHES",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Anglais",
+    "ects": 1,
+    "matieres": [
+      {
+        "name": "Anglais_FISE",
+        "code_rattrapage": "",
+        "coeff_matiere": 1,
+        "evaluations": [
+          {
+            "name": "Anglais_FISE",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  }
+]
+
