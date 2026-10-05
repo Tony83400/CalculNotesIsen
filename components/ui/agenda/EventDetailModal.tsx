@@ -72,6 +72,11 @@ export default function EventDetailModal({ event, visible, onClose }: EventDetai
                     ]}>
                         <View style={{ flex: 1 }}>
                             {event.isExam && <Text style={styles.examLabelModal}>EXAMEN</Text>}
+                            {event.userName && (
+                                <View style={[styles.examBadgeModal, { backgroundColor: event.color + '20' }]}>
+                                    <Text style={[styles.examBadgeTextModal, { color: event.color }]}>{event.userName.toUpperCase()}</Text>
+                                </View>
+                            )}
                             <ScrollView 
                                 nestedScrollEnabled={true} 
                                 style={{ maxHeight: 75 }}
@@ -237,6 +242,17 @@ const styles = StyleSheet.create({
         color: Colors.status.error,
         marginBottom: 4,
         letterSpacing: 0.5,
+    },
+    examBadgeModal: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+        alignSelf: 'flex-start',
+        marginBottom: 8,
+    },
+    examBadgeTextModal: {
+        fontSize: 10,
+        fontWeight: '800',
     },
     closeButton: {
         padding: 4,
