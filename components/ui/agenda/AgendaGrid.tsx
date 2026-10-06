@@ -162,13 +162,20 @@ export default function AgendaGrid({ events, startDay, scrollEnabled = true }: A
                     const durationHours = endHour - startHour;
                     const width = (DAY_WIDTH - 4) / totalColumns;
                     const left = dayIndex * DAY_WIDTH + 2 + column * width;
+                    const cardHeight = durationHours * HOUR_HEIGHT - 2;
 
                     const eventStyle = {
                         top: (startHour - 8) * HOUR_HEIGHT,
-                        height: durationHours * HOUR_HEIGHT - 2, 
+                        height: cardHeight, 
                         left: left,
                         width: width,
                     };
+
+                    // Calcul dynamique du nombre de lignes disponibles pour le titre
+                    const badgesHeight = (event.isExam ? 12 : 0) + (event.userName ? 12 : 0);
+                    const detailsHeight = durationHours < 0.8 ? 12 : 24;
+                    const availableTitleHeight = cardHeight - 10 - badgesHeight - detailsHeight;
+                    const maxTitleLines = Math.max(1, Math.floor(availableTitleHeight / 12));
 
                     return (
                         <TouchableOpacity 
@@ -193,7 +200,7 @@ export default function AgendaGrid({ events, startDay, scrollEnabled = true }: A
 
                             <Text 
                                 style={[styles.eventTitle, event.isExam && styles.examText, event.color && !event.isExam ? { color: event.color } : undefined]} 
-                                numberOfLines={durationHours > 1.2 ? (event.userName ? 3 : 4) : 2}
+                                numberOfLines={maxTitleLines}
                             >
                                 {event.title}
                             </Text>
@@ -202,9 +209,11 @@ export default function AgendaGrid({ events, startDay, scrollEnabled = true }: A
                                 <Text style={[styles.eventTime, event.isExam && styles.examText]} numberOfLines={1}>
                                     {formatTime(event.start)} - {formatTime(event.end)}
                                 </Text>
-                                <Text style={[styles.eventLocation, event.isExam && styles.examText]} numberOfLines={1}>
-                                    {event.location}
-                                </Text>
+                                {durationHours >= 0.8 && (
+                                    <Text style={[styles.eventLocation, event.isExam && styles.examText]} numberOfLines={1}>
+                                        {event.location}
+                                    </Text>
+                                )}
                             </View>
                         </TouchableOpacity>
                     );

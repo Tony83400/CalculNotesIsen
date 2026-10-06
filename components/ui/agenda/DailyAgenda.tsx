@@ -134,6 +134,7 @@ export default function DailyAgenda({ events, selectedDate, scrollEnabled = true
                     const { event, startHour, endHour, column, totalColumns } = layoutItem;
                     const isExam = event.isExam;
                     const durationMinutes = (event.end.getTime() - event.start.getTime()) / (1000 * 60);
+                    const cardHeight = (endHour - startHour) * HOUR_HEIGHT - 4;
 
                     const availableWidth = windowWidth - LEFT_COLUMN_WIDTH - 20;
                     const width = availableWidth / totalColumns;
@@ -141,10 +142,16 @@ export default function DailyAgenda({ events, selectedDate, scrollEnabled = true
 
                     const eventStyle = {
                         top: (startHour - START_HOUR) * HOUR_HEIGHT + 10,
-                        height: (endHour - startHour) * HOUR_HEIGHT - 4,
+                        height: cardHeight,
                         left: left,
                         width: width,
                     };
+
+                    // Calcul dynamique du nombre de lignes pour le titre
+                    const badgesHeight = (isExam ? 18 : 0) + (event.userName ? 18 : 0);
+                    const infoHeight = durationMinutes < 60 ? 20 : (event.professors ? 45 : 30);
+                    const availableTitleHeight = cardHeight - 20 - badgesHeight - infoHeight;
+                    const maxTitleLines = Math.max(1, Math.floor(availableTitleHeight / 18));
 
                     return (
                         <TouchableOpacity 
@@ -172,7 +179,7 @@ export default function DailyAgenda({ events, selectedDate, scrollEnabled = true
                                             <Text style={[styles.examBadgeText, { color: event.color }]}>{event.userName.toUpperCase()}</Text>
                                         </View>
                                     )}
-                                    <Text style={[styles.eventTitle, isExam && styles.examText, event.color && !isExam ? { color: event.color } : undefined]} numberOfLines={durationMinutes < 45 ? 1 : 2}>
+                                    <Text style={[styles.eventTitle, isExam && styles.examText, event.color && !isExam ? { color: event.color } : undefined]} numberOfLines={maxTitleLines}>
                                         {event.title}
                                     </Text>
                                 </View>
