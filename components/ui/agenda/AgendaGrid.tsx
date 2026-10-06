@@ -8,9 +8,10 @@ import EventDetailModal from "./EventDetailModal";
 interface AgendaGridProps {
     events: AgendaEvent[];
     startDay: Date;
+    scrollEnabled?: boolean;
 }
 
-export default function AgendaGrid({ events, startDay }: AgendaGridProps) {
+export default function AgendaGrid({ events, startDay, scrollEnabled = true }: AgendaGridProps) {
     const { width: windowWidth } = useWindowDimensions();
     const [selectedEvent, setSelectedEvent] = useState<AgendaEvent | null>(null);
     
@@ -123,8 +124,96 @@ export default function AgendaGrid({ events, startDay }: AgendaGridProps) {
 
     const eventLayouts = getEventsWithLayout();
 
+    const gridContent = (
+        <View style={styles.gridBody}>
+            {/* Colonne des Heures */}
+            <View style={[styles.hoursColumn, { width: LEFT_COLUMN_WIDTH }]}>
+                {hours.map((hour) => (
+                    <View key={hour} style={[styles.hourLabelContainer, { height: HOUR_HEIGHT }]}>
+                        <Text style={styles.hourLabel}>{hour}h</Text>
+                    </View>
+                ))}
+            </View>
+
+            {/* Grille */}
+            <View style={{ width: windowWidth - LEFT_COLUMN_WIDTH, height: hours.length * HOUR_HEIGHT }}>
+                {[0, 1, 2, 3, 4, 5].map((index) => {
+                    const { isToday } = getDayInfo(index);
+                    return (
+                        <View 
+                            key={index} 
+                            style={[
+                                styles.gridColumn, 
+                                { left: index * DAY_WIDTH, width: DAY_WIDTH },
+                                isToday && styles.todayColumn
+                            ]}
+                        >
+                            {hours.map((_, hourIndex) => (
+                                <View key={hourIndex} style={[styles.gridCell, { height: HOUR_HEIGHT }]} />
+                            ))}
+                        </View>
+                    );
+                })}
+
+                {eventLayouts.map((layoutItem, index) => {
+                    const { event, startHour, endHour, column, totalColumns, dayIndex } = layoutItem;
+                    
+                    const durationHours = endHour - startHour;
+                    const width = (DAY_WIDTH - 4) / totalColumns;
+                    const left = dayIndex * DAY_WIDTH + 2 + column * width;
+
+                    const eventStyle = {
+                        top: (startHour - 8) * HOUR_HEIGHT,
+                        height: durationHours * HOUR_HEIGHT - 2, 
+                        left: left,
+                        width: width,
+                    };
+
+                    return (
+                        <TouchableOpacity 
+                            key={`${event.id || 'evt'}-${index}`} 
+                            activeOpacity={0.7}
+                            onPress={() => setSelectedEvent(event)}
+                            style={[
+                                styles.eventBlock, 
+                                eventStyle,
+                                event.isExam ? styles.examBlock : (event.color ? undefined : styles.regularBlock),
+                                event.color && !event.isExam ? { backgroundColor: event.color + '15', borderLeftColor: event.color } : undefined
+                            ]}
+                        >
+                            {event.isExam && (
+                                <Text style={styles.examLabel}>EXAMEN</Text>
+                            )}
+                            {event.userName && (
+                                <Text style={[styles.examLabel, { color: event.color || Colors.text.secondary }]} numberOfLines={1}>
+                                    {event.userName}
+                                </Text>
+                            )}
+
+                            <Text 
+                                style={[styles.eventTitle, event.isExam && styles.examText, event.color && !event.isExam ? { color: event.color } : undefined]} 
+                                numberOfLines={durationHours > 1.2 ? (event.userName ? 3 : 4) : 2}
+                            >
+                                {event.title}
+                            </Text>
+                            
+                            <View style={styles.eventDetails}>
+                                <Text style={[styles.eventTime, event.isExam && styles.examText]} numberOfLines={1}>
+                                    {formatTime(event.start)} - {formatTime(event.end)}
+                                </Text>
+                                <Text style={[styles.eventLocation, event.isExam && styles.examText]} numberOfLines={1}>
+                                    {event.location}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
+        </View>
+    );
+
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, !scrollEnabled && { flex: undefined }]}>
             {/* Header des Jours */}
             <View style={styles.headerRow}>
                 <View style={{ width: LEFT_COLUMN_WIDTH }} />
@@ -142,93 +231,13 @@ export default function AgendaGrid({ events, startDay }: AgendaGridProps) {
                 </View>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
-                <View style={styles.gridBody}>
-                    {/* Colonne des Heures */}
-                    <View style={[styles.hoursColumn, { width: LEFT_COLUMN_WIDTH }]}>
-                        {hours.map((hour) => (
-                            <View key={hour} style={[styles.hourLabelContainer, { height: HOUR_HEIGHT }]}>
-                                <Text style={styles.hourLabel}>{hour}h</Text>
-                            </View>
-                        ))}
-                    </View>
-
-                    {/* Grille */}
-                    <View style={{ width: windowWidth - LEFT_COLUMN_WIDTH, height: hours.length * HOUR_HEIGHT }}>
-                        {[0, 1, 2, 3, 4, 5].map((index) => {
-                            const { isToday } = getDayInfo(index);
-                            return (
-                                <View 
-                                    key={index} 
-                                    style={[
-                                        styles.gridColumn, 
-                                        { left: index * DAY_WIDTH, width: DAY_WIDTH },
-                                        isToday && styles.todayColumn
-                                    ]}
-                                >
-                                    {hours.map((_, hourIndex) => (
-                                        <View key={hourIndex} style={[styles.gridCell, { height: HOUR_HEIGHT }]} />
-                                    ))}
-                                </View>
-                            );
-                        })}
-
-                        {eventLayouts.map((layoutItem, index) => {
-                            const { event, startHour, endHour, column, totalColumns, dayIndex } = layoutItem;
-                            
-                            const durationHours = endHour - startHour;
-                            const width = (DAY_WIDTH - 4) / totalColumns;
-                            const left = dayIndex * DAY_WIDTH + 2 + column * width;
-
-                            const eventStyle = {
-                                top: (startHour - 8) * HOUR_HEIGHT,
-                                height: durationHours * HOUR_HEIGHT - 2, 
-                                left: left,
-                                width: width,
-                            };
-
-                            return (
-                                <TouchableOpacity 
-                                    key={`${event.id || 'evt'}-${index}`} 
-                                    activeOpacity={0.7}
-                                    onPress={() => setSelectedEvent(event)}
-                                    style={[
-                                        styles.eventBlock, 
-                                        eventStyle,
-                                        event.isExam ? styles.examBlock : (event.color ? undefined : styles.regularBlock),
-                                        event.color && !event.isExam ? { backgroundColor: event.color + '15', borderLeftColor: event.color } : undefined
-                                    ]}
-                                >
-                                    {event.isExam && (
-                                        <Text style={styles.examLabel}>EXAMEN</Text>
-                                    )}
-                                    {event.userName && (
-                                        <Text style={[styles.examLabel, { color: event.color || Colors.text.secondary }]} numberOfLines={1}>
-                                            {event.userName}
-                                        </Text>
-                                    )}
-
-                                    <Text 
-                                        style={[styles.eventTitle, event.isExam && styles.examText, event.color && !event.isExam ? { color: event.color } : undefined]} 
-                                        numberOfLines={durationHours > 1.2 ? (event.userName ? 3 : 4) : 2}
-                                    >
-                                        {event.title}
-                                    </Text>
-                                    
-                                    <View style={styles.eventDetails}>
-                                        <Text style={[styles.eventTime, event.isExam && styles.examText]} numberOfLines={1}>
-                                            {formatTime(event.start)} - {formatTime(event.end)}
-                                        </Text>
-                                        <Text style={[styles.eventLocation, event.isExam && styles.examText]} numberOfLines={1}>
-                                            {event.location}
-                                        </Text>
-                                    </View>
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
-                </View>
-            </ScrollView>
+            {scrollEnabled ? (
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    {gridContent}
+                </ScrollView>
+            ) : (
+                gridContent
+            )}
 
             <EventDetailModal 
                 event={selectedEvent}
@@ -243,19 +252,24 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors.surface,
+        maxWidth: '100%',
+        overflow: 'hidden',
     },
     headerRow: {
         flexDirection: 'row',
         backgroundColor: Colors.surface,
         borderBottomWidth: 0.5,
         borderBottomColor: Colors.divider,
+        maxWidth: '100%',
     },
     daysRow: {
         flexDirection: 'row',
         flex: 1,
+        minWidth: 0,
     },
     dayLabelContainer: {
         flex: 1,
+        minWidth: 0,
         alignItems: 'center',
         paddingVertical: 10,
     },

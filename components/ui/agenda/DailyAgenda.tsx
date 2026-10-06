@@ -16,9 +16,10 @@ import EventDetailModal from "./EventDetailModal";
 interface DailyAgendaProps {
     events: AgendaEvent[];
     selectedDate: Date;
+    scrollEnabled?: boolean;
 }
 
-export default function DailyAgenda({ events, selectedDate }: DailyAgendaProps) {
+export default function DailyAgenda({ events, selectedDate, scrollEnabled = true }: DailyAgendaProps) {
     const { width: windowWidth } = useWindowDimensions();
     const [selectedEvent, setSelectedEvent] = useState<AgendaEvent | null>(null);
 
@@ -99,7 +100,7 @@ export default function DailyAgenda({ events, selectedDate }: DailyAgendaProps) 
 
     if (dailyEvents.length === 0) {
         return (
-            <View style={styles.emptyContainer}>
+            <View style={[styles.emptyContainer, !scrollEnabled && { minHeight: 250, paddingVertical: 40 }]}>
                 <View style={styles.emptyIconContainer}>
                     <CalendarIcon size={48} color={Colors.text.tertiary} strokeWidth={1.5} />
                 </View>
@@ -109,107 +110,116 @@ export default function DailyAgenda({ events, selectedDate }: DailyAgendaProps) 
         );
     }
 
-    return (
-        <View style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-                <View style={styles.timelineContainer}>
-                    
-                    {/* Colonne des Heures */}
-                    <View style={[styles.hoursColumn, { width: LEFT_COLUMN_WIDTH }]}>
-                        {hours.map((hour) => (
-                            <View key={hour} style={[styles.hourLabelContainer, { height: HOUR_HEIGHT }]}>
-                                <Text style={styles.hourLabel}>{hour}h</Text>
-                                <View style={styles.hourDot} />
-                            </View>
-                        ))}
+    const timelineContent = (
+        <View style={styles.timelineContainer}>
+            {/* Colonne des Heures */}
+            <View style={[styles.hoursColumn, { width: LEFT_COLUMN_WIDTH }]}>
+                {hours.map((hour) => (
+                    <View key={hour} style={[styles.hourLabelContainer, { height: HOUR_HEIGHT }]}>
+                        <Text style={styles.hourLabel}>{hour}h</Text>
+                        <View style={styles.hourDot} />
                     </View>
+                ))}
+            </View>
 
-                    {/* Grille et Événements */}
-                    <View style={styles.eventsGrid}>
-                        {/* Lignes de fond */}
-                        {hours.map((hour) => (
-                            <View key={hour} style={[styles.gridLine, { height: HOUR_HEIGHT }]} />
-                        ))}
+            {/* Grille et Événements */}
+            <View style={styles.eventsGrid}>
+                {/* Lignes de fond */}
+                {hours.map((hour) => (
+                    <View key={hour} style={[styles.gridLine, { height: HOUR_HEIGHT }]} />
+                ))}
 
-                        {/* Les cours positionnés */}
-                        {eventLayouts.map((layoutItem, index) => {
-                            const { event, startHour, endHour, column, totalColumns } = layoutItem;
-                            const isExam = event.isExam;
-                            const durationMinutes = (event.end.getTime() - event.start.getTime()) / (1000 * 60);
+                {/* Les cours positionnés */}
+                {eventLayouts.map((layoutItem, index) => {
+                    const { event, startHour, endHour, column, totalColumns } = layoutItem;
+                    const isExam = event.isExam;
+                    const durationMinutes = (event.end.getTime() - event.start.getTime()) / (1000 * 60);
 
-                            const availableWidth = windowWidth - LEFT_COLUMN_WIDTH - 20;
-                            const width = availableWidth / totalColumns;
-                            const left = 8 + column * width;
+                    const availableWidth = windowWidth - LEFT_COLUMN_WIDTH - 20;
+                    const width = availableWidth / totalColumns;
+                    const left = 8 + column * width;
 
-                            const eventStyle = {
-                                top: (startHour - START_HOUR) * HOUR_HEIGHT + 10,
-                                height: (endHour - startHour) * HOUR_HEIGHT - 4,
-                                left: left,
-                                width: width,
-                            };
+                    const eventStyle = {
+                        top: (startHour - START_HOUR) * HOUR_HEIGHT + 10,
+                        height: (endHour - startHour) * HOUR_HEIGHT - 4,
+                        left: left,
+                        width: width,
+                    };
 
-                            return (
-                                <TouchableOpacity 
-                                    key={`${event.id || 'evt'}-${index}`} 
-                                    activeOpacity={0.8}
-                                    onPress={() => setSelectedEvent(event)}
-                                    style={[
-                                        styles.eventCard,
-                                        eventStyle,
-                                        isExam ? styles.examCard : (event.color ? undefined : styles.regularCard),
-                                        event.color && !isExam ? { backgroundColor: event.color + '0A', borderLeftColor: event.color, borderColor: event.color + '20' } : undefined
-                                    ]}
-                                >
-                                    <View style={styles.eventMain}>
-                                        <View style={styles.titleRow}>
-                                            {isExam && (
-                                                <View style={styles.examBadge}>
-                                                    <AlertCircle size={10} color={Colors.status.error} />
-                                                    <Text style={styles.examBadgeText}>EXAMEN</Text>
-                                                </View>
-                                            )}
-                                            {event.userName && (
-                                                <View style={[styles.examBadge, { backgroundColor: event.color + '20' }]}>
-                                                    <User size={10} color={event.color} />
-                                                    <Text style={[styles.examBadgeText, { color: event.color }]}>{event.userName.toUpperCase()}</Text>
-                                                </View>
-                                            )}
-                                            <Text style={[styles.eventTitle, isExam && styles.examText, event.color && !isExam ? { color: event.color } : undefined]} numberOfLines={durationMinutes < 45 ? 1 : 2}>
-                                                {event.title}
+                    return (
+                        <TouchableOpacity 
+                            key={`${event.id || 'evt'}-${index}`} 
+                            activeOpacity={0.8}
+                            onPress={() => setSelectedEvent(event)}
+                            style={[
+                                styles.eventCard,
+                                eventStyle,
+                                isExam ? styles.examCard : (event.color ? undefined : styles.regularCard),
+                                event.color && !isExam ? { backgroundColor: event.color + '0A', borderLeftColor: event.color, borderColor: event.color + '20' } : undefined
+                            ]}
+                        >
+                            <View style={styles.eventMain}>
+                                <View style={styles.titleRow}>
+                                    {isExam && (
+                                        <View style={styles.examBadge}>
+                                            <AlertCircle size={10} color={Colors.status.error} />
+                                            <Text style={styles.examBadgeText}>EXAMEN</Text>
+                                        </View>
+                                    )}
+                                    {event.userName && (
+                                        <View style={[styles.examBadge, { backgroundColor: event.color + '20' }]}>
+                                            <User size={10} color={event.color} />
+                                            <Text style={[styles.examBadgeText, { color: event.color }]}>{event.userName.toUpperCase()}</Text>
+                                        </View>
+                                    )}
+                                    <Text style={[styles.eventTitle, isExam && styles.examText, event.color && !isExam ? { color: event.color } : undefined]} numberOfLines={durationMinutes < 45 ? 1 : 2}>
+                                        {event.title}
+                                    </Text>
+                                </View>
+
+                                <View style={[styles.infoContainer, durationMinutes < 60 && styles.infoContainerCompact]}>
+                                    <View style={styles.infoItem}>
+                                        <Clock size={12} color={isExam ? Colors.status.error : Colors.text.tertiary} />
+                                        <Text style={[styles.infoText, isExam && styles.examText]}>
+                                            {formatTime(event.start)} - {formatTime(event.end)}
+                                        </Text>
+                                    </View>
+                                    
+                                    <View style={styles.infoItem}>
+                                        <MapPin size={12} color={isExam ? Colors.status.error : Colors.text.tertiary} />
+                                        <Text style={[styles.infoText, isExam && styles.examText]} numberOfLines={1}>
+                                            {event.location}
+                                        </Text>
+                                    </View>
+
+                                    {event.professors && durationMinutes > 60 && (
+                                        <View style={styles.infoItem}>
+                                            <User size={12} color={isExam ? Colors.status.error : Colors.text.tertiary} />
+                                            <Text style={[styles.infoText, isExam && styles.examText]} numberOfLines={1}>
+                                                {event.professors}
                                             </Text>
                                         </View>
+                                    )}
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
+        </View>
+    );
 
-                                        <View style={[styles.infoContainer, durationMinutes < 60 && styles.infoContainerCompact]}>
-                                            <View style={styles.infoItem}>
-                                                <Clock size={12} color={isExam ? Colors.status.error : Colors.text.tertiary} />
-                                                <Text style={[styles.infoText, isExam && styles.examText]}>
-                                                    {formatTime(event.start)} - {formatTime(event.end)}
-                                                </Text>
-                                            </View>
-                                            
-                                            <View style={styles.infoItem}>
-                                                <MapPin size={12} color={isExam ? Colors.status.error : Colors.text.tertiary} />
-                                                <Text style={[styles.infoText, isExam && styles.examText]} numberOfLines={1}>
-                                                    {event.location}
-                                                </Text>
-                                            </View>
-
-                                            {event.professors && durationMinutes > 60 && (
-                                                <View style={styles.infoItem}>
-                                                    <User size={12} color={isExam ? Colors.status.error : Colors.text.tertiary} />
-                                                    <Text style={[styles.infoText, isExam && styles.examText]} numberOfLines={1}>
-                                                        {event.professors}
-                                                    </Text>
-                                                </View>
-                                            )}
-                                        </View>
-                                    </View>
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
+    return (
+        <View style={[styles.container, !scrollEnabled && { flex: undefined }]}>
+            {scrollEnabled ? (
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+                    {timelineContent}
+                </ScrollView>
+            ) : (
+                <View style={styles.scrollContent}>
+                    {timelineContent}
                 </View>
-            </ScrollView>
+            )}
 
             <EventDetailModal 
                 event={selectedEvent}
@@ -224,6 +234,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors.background,
+        maxWidth: '100%',
+        overflow: 'hidden',
     },
     scrollContent: {
         paddingVertical: 20,
@@ -274,6 +286,7 @@ const styles = StyleSheet.create({
         borderLeftWidth: 4,
         borderWidth: 1,
         borderColor: Colors.divider,
+        overflow: 'hidden',
     },
     regularCard: {
         borderLeftColor: Colors.primary,

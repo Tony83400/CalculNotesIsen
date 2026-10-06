@@ -99,7 +99,7 @@ export default function AgendaScreen() {
                     </TouchableOpacity>
                     
                     <View style={styles.dateDisplay}>
-                        <Text style={styles.dateRangeText}>
+                        <Text style={styles.dateRangeText} numberOfLines={1} ellipsizeMode="tail">
                             {viewMode === 'week' ? (
                                 `${currentDay.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} — ${endOfWeek.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`
                             ) : (
@@ -243,9 +243,12 @@ const styles = StyleSheet.create({
         padding: 8,
         borderRadius: 10,
         backgroundColor: Colors.background,
+        flexShrink: 0,
     },
     dateDisplay: {
         flex: 1,
+        minWidth: 0,
+        flexShrink: 1,
         marginHorizontal: 12,
         backgroundColor: Colors.background,
         paddingHorizontal: 16,
