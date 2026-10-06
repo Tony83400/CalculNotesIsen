@@ -145,6 +145,7 @@ export default function AgendaGrid({ events, startDay, scrollEnabled = true }: A
                             style={[
                                 styles.gridColumn, 
                                 { left: index * DAY_WIDTH, width: DAY_WIDTH },
+                                index < 5 && styles.dayColumnSeparator,
                                 isToday && styles.todayColumn
                             ]}
                         >
@@ -216,12 +217,19 @@ export default function AgendaGrid({ events, startDay, scrollEnabled = true }: A
         <View style={[styles.container, !scrollEnabled && { flex: undefined }]}>
             {/* Header des Jours */}
             <View style={styles.headerRow}>
-                <View style={{ width: LEFT_COLUMN_WIDTH }} />
+                <View style={[styles.hoursHeaderCell, { width: LEFT_COLUMN_WIDTH }]} />
                 <View style={styles.daysRow}>
                     {[0, 1, 2, 3, 4, 5].map((index) => {
                         const { dayName, dateStr, isToday } = getDayInfo(index);
                         return (
-                            <View key={index} style={[styles.dayLabelContainer, isToday && styles.todayHeader]}>
+                            <View 
+                                key={index} 
+                                style={[
+                                    styles.dayLabelContainer, 
+                                    index < 5 && styles.dayColumnSeparator,
+                                    isToday && styles.todayHeader
+                                ]}
+                            >
                                 <Text style={[styles.dayLabel, isToday && styles.todayLabelText]}>
                                     {dayName}{"\n"}{dateStr}
                                 </Text>
@@ -258,9 +266,13 @@ const styles = StyleSheet.create({
     headerRow: {
         flexDirection: 'row',
         backgroundColor: Colors.surface,
-        borderBottomWidth: 0.5,
-        borderBottomColor: Colors.divider,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border,
         maxWidth: '100%',
+    },
+    hoursHeaderCell: {
+        borderRightWidth: 1,
+        borderRightColor: Colors.border,
     },
     daysRow: {
         flexDirection: 'row',
@@ -273,6 +285,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 10,
     },
+    dayColumnSeparator: {
+        borderRightWidth: 1,
+        borderRightColor: Colors.border,
+    },
     dayLabel: {
         fontSize: 9,
         fontWeight: '600',
@@ -283,6 +299,7 @@ const styles = StyleSheet.create({
     todayHeader: {
         borderBottomWidth: 2,
         borderBottomColor: Colors.primary,
+        backgroundColor: Colors.primary + '08',
     },
     todayLabelText: {
         color: Colors.primary,
@@ -293,8 +310,8 @@ const styles = StyleSheet.create({
     },
     hoursColumn: {
         backgroundColor: Colors.surface,
-        borderRightWidth: 0.5,
-        borderRightColor: Colors.divider,
+        borderRightWidth: 1,
+        borderRightColor: Colors.border,
     },
     hourLabelContainer: {
         justifyContent: 'flex-start',
@@ -309,11 +326,9 @@ const styles = StyleSheet.create({
     gridColumn: {
         position: 'absolute',
         height: '100%',
-        borderRightWidth: 0.5,
-        borderRightColor: Colors.divider,
     },
     todayColumn: {
-        backgroundColor: Colors.primary + '03',
+        backgroundColor: Colors.primary + '05',
     },
     gridCell: {
         borderBottomWidth: 0.5,
