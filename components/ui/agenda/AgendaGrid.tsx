@@ -9,9 +9,10 @@ interface AgendaGridProps {
     events: AgendaEvent[];
     startDay: Date;
     scrollEnabled?: boolean;
+    hideDetails?: boolean;
 }
 
-export default function AgendaGrid({ events, startDay, scrollEnabled = true }: AgendaGridProps) {
+export default function AgendaGrid({ events, startDay, scrollEnabled = true, hideDetails = false }: AgendaGridProps) {
     const { width: windowWidth } = useWindowDimensions();
     const [selectedEvent, setSelectedEvent] = useState<AgendaEvent | null>(null);
     
@@ -260,6 +261,7 @@ export default function AgendaGrid({ events, startDay, scrollEnabled = true }: A
                 event={selectedEvent}
                 visible={!!selectedEvent}
                 onClose={() => setSelectedEvent(null)}
+                hideDetails={hideDetails}
             />
         </View>
     );

@@ -19,19 +19,22 @@ interface EventDetailModalProps {
     event: AgendaEvent | null;
     visible: boolean;
     onClose: () => void;
+    hideDetails?: boolean;
 }
 
-export default function EventDetailModal({ event, visible, onClose }: EventDetailModalProps) {
+export default function EventDetailModal({ event, visible, onClose, hideDetails = false }: EventDetailModalProps) {
     const [loading, setLoading] = useState(false);
     const [details, setDetails] = useState<EventDetails | null>(null);
 
+    const shouldHideDetails = hideDetails || !!event?.userName;
+
     useEffect(() => {
-        if (visible && event) {
+        if (visible && event && !shouldHideDetails) {
             loadDetails();
         } else {
             setDetails(null);
         }
-    }, [visible, event]);
+    }, [visible, event, shouldHideDetails]);
 
     const loadDetails = async () => {
         if (!event) return;
@@ -116,74 +119,76 @@ export default function EventDetailModal({ event, visible, onClose }: EventDetai
                                 </View>
                             </View>
 
-                            {loading ? (
-                                <View style={styles.loadingContainer}>
-                                    <ActivityIndicator color={Colors.primary} />
-                                    <Text style={styles.loadingText}>Chargement des détails...</Text>
-                                </View>
-                            ) : details ? (
-                                <>
-                                    <View style={styles.detailItem}>
-                                        <BookOpen size={20} color={Colors.primary} style={styles.detailIcon} />
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={styles.detailLabel}>Module</Text>
-                                            <Text style={styles.detailValue}>{details.module || 'Non défini'}</Text>
-                                        </View>
+                            {!shouldHideDetails && (
+                                loading ? (
+                                    <View style={styles.loadingContainer}>
+                                        <ActivityIndicator color={Colors.primary} />
+                                        <Text style={styles.loadingText}>Chargement des détails...</Text>
                                     </View>
-
-                                    <View style={styles.detailItem}>
-                                        <Tag size={20} color={Colors.primary} style={styles.detailIcon} />
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={styles.detailLabel}>Groupe</Text>
-                                            <Text style={styles.detailValue}>
-                                                {details.type || ''} {
-                                                    (details.groups?.length ?? 0) > 1 
-                                                    ? `- ${details.groups?.[1]}` 
-                                                    : ((details.groups?.length ?? 0) > 0 ? `- ${details.groups?.[0]}` : '')
-                                                }
-                                            </Text>
-                                        </View>
-                                    </View>
-
-                                    <View style={styles.detailItem}>
-                                        <Info size={20} color={Colors.primary} style={styles.detailIcon} />
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={styles.detailLabel}>Enseignants</Text>
-                                            <Text style={styles.detailValue}>
-                                                {(details.teachers?.length ?? 0) > 0 ? details.teachers?.join(', ') : 'Non défini'}
-                                            </Text>
-                                        </View>
-                                    </View>
-
-                                    <View style={styles.detailItem}>
-                                        <Users size={20} color={Colors.primary} style={styles.detailIcon} />
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={styles.detailLabel}>Étudiants ({details.students?.length ?? 0})</Text>
-                                            <View style={[
-                                                styles.studentsListContainer,
-                                                { maxHeight: (details.students?.length ?? 0) > 5 ? 180 : undefined }
-                                            ]}>
-                                                <ScrollView 
-                                                    nestedScrollEnabled={true} 
-                                                    style={styles.studentsScrollView}
-                                                    showsVerticalScrollIndicator={(details.students?.length ?? 0) > 5}
-                                                >
-                                                    <View style={styles.studentsList}>
-                                                        {(details.students ?? []).map((student, index) => (
-                                                            <Text key={index} style={styles.studentName}>
-                                                                • {student}
-                                                            </Text>
-                                                        ))}
-                                                    </View>
-                                                </ScrollView>
+                                ) : details ? (
+                                    <>
+                                        <View style={styles.detailItem}>
+                                            <BookOpen size={20} color={Colors.primary} style={styles.detailIcon} />
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.detailLabel}>Module</Text>
+                                                <Text style={styles.detailValue}>{details.module || 'Non défini'}</Text>
                                             </View>
                                         </View>
+
+                                        <View style={styles.detailItem}>
+                                            <Tag size={20} color={Colors.primary} style={styles.detailIcon} />
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.detailLabel}>Groupe</Text>
+                                                <Text style={styles.detailValue}>
+                                                    {details.type || ''} {
+                                                        (details.groups?.length ?? 0) > 1 
+                                                        ? `- ${details.groups?.[1]}` 
+                                                        : ((details.groups?.length ?? 0) > 0 ? `- ${details.groups?.[0]}` : '')
+                                                    }
+                                                </Text>
+                                            </View>
+                                        </View>
+
+                                        <View style={styles.detailItem}>
+                                            <Info size={20} color={Colors.primary} style={styles.detailIcon} />
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.detailLabel}>Enseignants</Text>
+                                                <Text style={styles.detailValue}>
+                                                    {(details.teachers?.length ?? 0) > 0 ? details.teachers?.join(', ') : 'Non défini'}
+                                                </Text>
+                                            </View>
+                                        </View>
+
+                                        <View style={styles.detailItem}>
+                                            <Users size={20} color={Colors.primary} style={styles.detailIcon} />
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.detailLabel}>Étudiants ({details.students?.length ?? 0})</Text>
+                                                <View style={[
+                                                    styles.studentsListContainer,
+                                                    { maxHeight: (details.students?.length ?? 0) > 5 ? 180 : undefined }
+                                                ]}>
+                                                    <ScrollView 
+                                                        nestedScrollEnabled={true} 
+                                                        style={styles.studentsScrollView}
+                                                        showsVerticalScrollIndicator={(details.students?.length ?? 0) > 5}
+                                                    >
+                                                        <View style={styles.studentsList}>
+                                                            {(details.students ?? []).map((student, index) => (
+                                                                <Text key={index} style={styles.studentName}>
+                                                                    • {student}
+                                                                </Text>
+                                                            ))}
+                                                        </View>
+                                                    </ScrollView>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    </>
+                                ) : !loading && (
+                                    <View style={styles.noDetailsContainer}>
+                                        <Text style={styles.noDetailsText}>Détails non disponibles pour ce cours.</Text>
                                     </View>
-                                </>
-                            ) : !loading && (
-                                <View style={styles.noDetailsContainer}>
-                                    <Text style={styles.noDetailsText}>Détails non disponibles pour ce cours.</Text>
-                                </View>
+                                )
                             )}
                         </View>
                     </ScrollView>

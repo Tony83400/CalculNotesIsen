@@ -17,9 +17,10 @@ interface DailyAgendaProps {
     events: AgendaEvent[];
     selectedDate: Date;
     scrollEnabled?: boolean;
+    hideDetails?: boolean;
 }
 
-export default function DailyAgenda({ events, selectedDate, scrollEnabled = true }: DailyAgendaProps) {
+export default function DailyAgenda({ events, selectedDate, scrollEnabled = true, hideDetails = false }: DailyAgendaProps) {
     const { width: windowWidth } = useWindowDimensions();
     const [selectedEvent, setSelectedEvent] = useState<AgendaEvent | null>(null);
 
@@ -232,6 +233,7 @@ export default function DailyAgenda({ events, selectedDate, scrollEnabled = true
                 event={selectedEvent}
                 visible={!!selectedEvent}
                 onClose={() => setSelectedEvent(null)}
+                hideDetails={hideDetails}
             />
         </View>
     );

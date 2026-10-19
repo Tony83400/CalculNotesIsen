@@ -238,9 +238,9 @@ export default function MultiAgendaScreen() {
                     </View>
                 ) : (
                     viewMode === 'week' ? (
-                        <AgendaGrid events={weekEvents} startDay={currentDay} scrollEnabled={false} />
+                        <AgendaGrid events={weekEvents} startDay={currentDay} scrollEnabled={false} hideDetails={true} />
                     ) : (
-                        <DailyAgenda events={allEvents} selectedDate={selectedDate} scrollEnabled={false} />
+                        <DailyAgenda events={allEvents} selectedDate={selectedDate} scrollEnabled={false} hideDetails={true} />
                     )
                 )}
             </ScrollView>
