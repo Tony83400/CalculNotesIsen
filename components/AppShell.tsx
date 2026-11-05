@@ -1,10 +1,11 @@
+import { useAppearance } from "../providers/Appearance";
+import { themedStyles } from "../constants/themedStyles";
 import React from "react";
 import {
   View,
   Text,
   Pressable,
   ScrollView,
-  StyleSheet,
   useWindowDimensions,
   ActivityIndicator,
 } from "react-native";
@@ -17,6 +18,8 @@ import {
   Users,
   SlidersHorizontal,
   LogOut,
+  Sun,
+  Moon,
 } from "lucide-react-native";
 import { Colors as C } from "../constants/Colors";
 import { Theme } from "../constants/Theme";
@@ -59,6 +62,7 @@ export default function AppShell({
   actions?: React.ReactNode;
   scroll?: boolean;
 }) {
+  const appearance = useAppearance();
   const app = useAppData(),
     path = usePathname(),
     { width } = useWindowDimensions();
@@ -88,7 +92,7 @@ export default function AppShell({
                 ? C.primary
                 : C.text.secondary
               : active
-                ? C.text.inverse
+                ? "#FFFFFF"
                 : C.brand.muted
           }
           strokeWidth={1.5}
@@ -97,7 +101,7 @@ export default function AppShell({
           style={[
             mobile ? s.mobileText : s.navText,
             active && {
-              color: mobile ? C.primary : C.text.inverse,
+              color: mobile ? C.primary : "#FFFFFF",
               fontWeight: "500",
             },
           ]}
@@ -188,6 +192,12 @@ export default function AppShell({
             />
             <View style={{ gap: 8 }}>{routes.slice(3).map((r) => nav(r))}</View>
             <View style={{ flex: 1 }} />
+            <Button
+              label={appearance.dark ? "Mode clair" : "Mode sombre"}
+              onPress={appearance.toggle}
+              inverse
+              variant="quiet"
+            />
             <View style={s.cursus}>
               <Text style={[s.kicker, { color: C.brand.muted }]}>
                 Votre cursus
@@ -196,7 +206,7 @@ export default function AppShell({
                 style={{
                   fontSize: 15,
                   fontWeight: "500",
-                  color: C.text.inverse,
+                  color: "#FFFFFF",
                   marginTop: 12,
                 }}
               >
@@ -237,6 +247,22 @@ export default function AppShell({
               </Pressable>
             )}
             <View style={ui.row}>
+              {!desktop && (
+                <Button
+                  label={appearance.dark ? "Mode clair" : "Mode sombre"}
+                  onPress={appearance.toggle}
+                  iconOnly
+                  inverse
+                  variant="quiet"
+                  icon={
+                    appearance.dark ? (
+                      <Sun size={18} color="white" />
+                    ) : (
+                      <Moon size={18} color="white" />
+                    )
+                  }
+                />
+              )}
               {desktop && (
                 <Text style={[ui.small, { color: C.brand.muted }]}>
                   {new Date().toLocaleDateString("fr-FR", {
@@ -256,7 +282,7 @@ export default function AppShell({
                   <SlidersHorizontal
                     strokeWidth={1.5}
                     size={18}
-                    color={C.text.inverse}
+                    color={"#FFFFFF"}
                   />
                 </Pressable>
               )}
@@ -275,7 +301,7 @@ export default function AppShell({
           )}
           {!desktop && (
             <View style={s.mobileNav}>
-              {routes.slice(0, 3).map((r) => nav(r, true))}
+              {routes.slice(0, 4).map((r) => nav(r, true))}
             </View>
           )}
         </View>
@@ -288,14 +314,14 @@ export function RouteLink({ label, to }: { label: string; to: Href }) {
     <Button label={label} variant="quiet" onPress={() => router.navigate(to)} />
   );
 }
-const s = StyleSheet.create({
+const s = themedStyles(() => ({
   root: { flex: 1, backgroundColor: C.brand.navy },
   layout: { flex: 1, flexDirection: "row" },
   sidebar: {
     width: 256,
     padding: 20,
     borderRightWidth: 1,
-    borderRightColor: C.border,
+    borderRightColor: C.brand.navy,
     backgroundColor: C.brand.navy,
   },
   monogram: {
@@ -345,7 +371,7 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomWidth: 1,
-    borderBottomColor: C.border,
+    borderBottomColor: C.brand.navy,
   },
   mastheadText: {
     fontSize: 12,
@@ -378,7 +404,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 0,
     backgroundColor: "transparent",
     borderBottomWidth: 1,
-    borderBottomColor: C.border,
+    borderBottomColor: C.brand.navy,
     marginBottom: 24,
     gap: 12,
   },
@@ -418,4 +444,4 @@ const s = StyleSheet.create({
   },
   mobileActive: { borderTopColor: C.brand.coral },
   mobileText: { fontSize: 11, color: C.text.secondary },
-});
+}));

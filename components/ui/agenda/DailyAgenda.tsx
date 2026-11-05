@@ -1,5 +1,6 @@
+import { themedStyles } from "../../../constants/themedStyles";
 import React, { useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import type { AgendaEvent } from "../../../types/agenda";
 import { eventsOnDay, formatTime } from "../../../utils/agenda";
 import { Colors as C } from "../../../constants/Colors";
@@ -41,6 +42,7 @@ export default function DailyAgenda({
             onPress={() => setChosen(e)}
             style={[
               s.event,
+              e.isExam && { backgroundColor: "#FFCE38" },
               {
                 borderLeftColor:
                   e.color || (e.isExam ? C.status.warning : C.primary),
@@ -48,12 +50,27 @@ export default function DailyAgenda({
             ]}
           >
             <View style={s.time}>
-              <Text style={s.start}>{formatTime(e.start)}</Text>
-              <Text style={ui.small}>{formatTime(e.end)}</Text>
+              <Text style={[s.start, e.isExam && { color: "#492700" }]}>
+                {formatTime(e.start)}
+              </Text>
+              <Text style={[ui.small, e.isExam && { color: "#492700" }]}>
+                {formatTime(e.end)}
+              </Text>
             </View>
             <View style={{ flex: 1, minWidth: 0, gap: 8 }}>
               <View style={ui.wrap}>
-                {e.isExam && <Badge tone="warning">Examen</Badge>}
+                {e.isExam && (
+                  <Text
+                    style={{
+                      backgroundColor: "#492700",
+                      color: "#FFFFFF",
+                      padding: 4,
+                      fontSize: 11,
+                    }}
+                  >
+                    Examen
+                  </Text>
+                )}
                 {e.userName && (
                   <Text
                     style={[ui.small, { color: e.color, fontWeight: "500" }]}
@@ -63,8 +80,12 @@ export default function DailyAgenda({
                 )}
                 {collision && <Badge tone="info">En simultané</Badge>}
               </View>
-              <Text style={s.title}>{e.title}</Text>
-              <Text style={ui.small}>{e.location}</Text>
+              <Text style={[s.title, e.isExam && { color: "#492700" }]}>
+                {e.title}
+              </Text>
+              <Text style={[ui.small, e.isExam && { color: "#492700" }]}>
+                {e.location}
+              </Text>
               {e.start.toDateString() !== e.end.toDateString() && (
                 <Text style={ui.small}>Événement sur plusieurs jours</Text>
               )}
@@ -82,7 +103,7 @@ export default function DailyAgenda({
     </View>
   );
 }
-const s = StyleSheet.create({
+const s = themedStyles(() => ({
   event: {
     flexDirection: "row",
     gap: 16,
@@ -108,4 +129,4 @@ const s = StyleSheet.create({
     color: C.text.primary,
     lineHeight: 22,
   },
-});
+}));

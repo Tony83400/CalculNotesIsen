@@ -2,6 +2,8 @@
 
 La session web persistante a été ajoutée ensuite à la demande du responsable : les mentions historiques « mémoire uniquement » ci-dessous décrivent la première livraison. Le comportement actuel et la configuration Vercel sont détaillés dans [SESSION_WEB.md](SESSION_WEB.md).
 
+ISENA4 a ensuite été ajouté d’après le tableau fourni : S7/S8 de 30 ECTS, coefficients d’évaluation provisoires à 1. L’ancienne année M1 est désormais nommée ISEN4, avec compatibilité des réglages enregistrés. Voir [CURSUS_ISENA4.md](CURSUS_ISENA4.md).
+
 ## Livraison et direction visuelle
 
 Intervention depuis le commit **7be717f** du dépôt `Tony83400/CalculNotesIsen`, sans changement de framework. Expo 54, React Native 0.81.5, React 19.1, Expo Router, StyleSheet et TypeScript strict sont conservés. Le web reste compatible Vercel ; les mêmes écrans et services servent Android/iOS.

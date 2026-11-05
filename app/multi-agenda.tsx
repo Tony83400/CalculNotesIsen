@@ -1,5 +1,12 @@
+import { agendaColors } from "../constants/AgendaColors";
 import React, { useRef, useState } from "react";
-import { View, Text, TextInput, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  useWindowDimensions,
+} from "react-native";
 import AppShell from "../components/AppShell";
 import { useMultiAgenda } from "../hooks/useMultiAgenda";
 import CalendarToolbar from "../components/ui/agenda/CalendarToolbar";
@@ -7,6 +14,7 @@ import AgendaGrid from "../components/ui/agenda/AgendaGrid";
 import { Button, Empty, Field, Notice, ui } from "../components/ui/Primitives";
 import { Colors as C } from "../constants/Colors";
 export default function MultiAgenda() {
+  const { width } = useWindowDimensions();
   const c = useMultiAgenda(),
     [prenom, setPrenom] = useState(""),
     [nom, setNom] = useState(""),
@@ -132,7 +140,7 @@ export default function MultiAgenda() {
                 key={u.id}
                 style={{
                   borderLeftWidth: 4,
-                  borderLeftColor: u.color,
+                  borderLeftColor: agendaColors(u.color).border,
                   backgroundColor: C.surface,
                   paddingLeft: 12,
                   borderWidth: 1,
@@ -172,12 +180,14 @@ export default function MultiAgenda() {
       {c.users.length ? (
         <>
           <CalendarToolbar calendar={c} allowWeekOnMobile />
-          <AgendaGrid
-            events={c.allEvents}
-            startDay={c.viewMode === "week" ? c.currentDay : c.selectedDate}
-            viewMode={c.viewMode}
-            hideDetails
-          />
+          <View style={width < 600 ? { marginHorizontal: -20 } : undefined}>
+            <AgendaGrid
+              events={c.allEvents}
+              startDay={c.viewMode === "week" ? c.currentDay : c.selectedDate}
+              viewMode={c.viewMode}
+              hideDetails
+            />
+          </View>
         </>
       ) : (
         <Empty

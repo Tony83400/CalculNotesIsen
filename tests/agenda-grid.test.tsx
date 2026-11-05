@@ -1,3 +1,4 @@
+import { setColorMode } from "../constants/Colors";
 import React, { act } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
 import { expect, it, vi } from "vitest";
@@ -137,4 +138,57 @@ it("uses the real container width and scrolls internally for many concurrent cou
   );
   expect(scroll.props.contentContainerStyle.width).toBe(1200);
   await act(async () => view.unmount());
+});
+
+it("fits all seven shared days inside the measured container without horizontal scrolling", async () => {
+  const view = await render("week");
+  await act(async () =>
+    view.root
+      .findByProps({ testID: "agenda-time-grid" })
+      .props.onLayout({ nativeEvent: { layout: { width: 390 } } }),
+  );
+  const scroll = view.root.findByType("ScrollView" as React.ElementType);
+  expect(scroll.props.scrollEnabled).toBe(false);
+  expect(scroll.props.contentContainerStyle.width).toBe(388);
+  expect(
+    view.root.findAllByProps({ testID: "agenda-day-header" }),
+  ).toHaveLength(7);
+  await act(async () => view.unmount());
+});
+
+it("keeps shared blue courses visible against the dark calendar", async () => {
+  setColorMode("dark");
+  try {
+    const view = await render("day");
+    const style = flatten(
+      view.root.findByProps({ testID: "agenda-event-a" }).props.style,
+    );
+    expect(style.backgroundColor).toBe("#C6E3FF");
+    expect(style.borderLeftColor).toBe("#5299DC");
+    await act(async () => view.unmount());
+  } finally {
+    setColorMode("light");
+  }
+});
+
+it("uses distinct light identities for two people even in dark mode", async () => {
+  setColorMode("dark");
+  try {
+    const view = await render(
+      "day",
+      events.map((e, i) => ({ ...e, color: i === 1 ? "#B2343D" : e.color })),
+    );
+    const a = flatten(
+      view.root.findByProps({ testID: "agenda-event-a" }).props.style,
+    );
+    const b = flatten(
+      view.root.findByProps({ testID: "agenda-event-b" }).props.style,
+    );
+    expect(a.backgroundColor).toBe("#C6E3FF");
+    expect(b.backgroundColor).toBe("#FFD4DE");
+    expect(a.borderLeftColor).not.toBe(b.borderLeftColor);
+    await act(async () => view.unmount());
+  } finally {
+    setColorMode("light");
+  }
 });

@@ -146,7 +146,7 @@ function useAppState() {
         if (demoRef.current) {
           setDemo(true);
           setUser("demo");
-          setYear("M1");
+          setYear("ISEN4");
           setSemester("S7");
           setMajors({ S7: "DEV_LOGICIEL", S8: "DEV_LOGICIEL" });
           setConfigs({

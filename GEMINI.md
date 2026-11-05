@@ -26,7 +26,7 @@ Le proxy calendrier doit vérifier TLS et conserver les restrictions de méthode
 
 Validation estimée : données complètes, moyenne d’UE ≥ 10, aucune matière < 6. **Rattrapage à confirmer : conserver le code de `7be717f`**, c’est-à-dire meilleur rattrapage améliorant les évaluations puis plafond UE 10 dès qu’une amélioration a été appliquée. Le responsable a demandé de maintenir ce comportement dans l’attente d’une règle fiable. Ne pas adopter l’ancienne formulation « seulement si UE initiale < 10 » sans nouvelle confirmation.
 
-N2 et S2/N1 sont incomplets ; de nombreux codes M1 sont vides. Les signaler sans inventer de correspondance ou de pondération.
+N2 et S2/N1 sont incomplets ; de nombreux codes ISEN4 (ancienne M1) sont vides. Les signaler sans inventer de correspondance ou de pondération.
 
 ## Vérification
 
@@ -34,4 +34,8 @@ Exécuter typecheck, lint, tests ciblés et export web après une modification s
 
 ## Comparaison des agendas
 
-Conserver une grille temporelle commune en vue jour et semaine pour les agendas partagés. Les événements simultanés doivent être côte à côte au même niveau horaire, selon `layoutDay`. Les sélecteurs Jour/Semaine restent disponibles sur mobile ; une semaine comprend sept jours (lundi–dimanche). Le défilement est interne à la grille. Ne pas réintroduire une liste verticale pour la comparaison quotidienne ni forcer le mode jour après un choix explicite de la semaine. L’agenda personnel garde son comportement mobile existant.
+Conserver une grille temporelle commune en vue jour et semaine pour les agendas partagés. Les événements simultanés doivent être côte à côte au même niveau horaire, selon `layoutDay`. Les sélecteurs Jour/Semaine restent disponibles sur mobile ; une semaine comprend sept jours (lundi–dimanche). La semaine partagée doit désormais tenir dans la largeur du téléphone, sans défilement horizontal ; conserver les sept jours et l’accès aux détails. Ne pas réintroduire une liste verticale pour la comparaison quotidienne ni forcer le mode jour après un choix explicite de la semaine. L’agenda personnel garde son comportement mobile existant.
+
+## Cursus ISEN4 et ISENA4
+
+L’ancienne année M1 est renommée ISEN4 ; conserver l’alias en lecture des réglages et catalogues mobiles historiques. Ses fichiers existants restent dans annee_4. ISENA4 est une année distincte avec S7/S8 de 30 ECTS chacun dans annee_4_isena4. Matières et ECTS transcrits du tableau fourni ; coefficients de matière 1, évaluations provisoires à 1 à la demande du responsable. Les emplacements DS/Partiel, Projet et Entreprise sont à confirmer ; les codes d’évaluation et rattrapage restent vides tant qu’ils ne sont pas fournis. Ne pas deviner de codes ISEN ni de correspondance par nom. Afficher le caractère provisoire, préserver les simulations et les notes hors structure. Voir docs/CURSUS_ISENA4.md.

@@ -1,3 +1,5 @@
+import { MultiAgendaProvider } from "../hooks/useMultiAgenda";
+import { AppearanceProvider } from "../providers/Appearance";
 import { Colors as C } from "../constants/Colors";
 import React from "react";
 import { Stack } from "expo-router";
@@ -8,14 +10,18 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AppDataProvider>
-        <StatusBar style="light" backgroundColor={C.brand.navy} />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            animation: "none",
-            contentStyle: { backgroundColor: C.background },
-          }}
-        />
+        <MultiAgendaProvider>
+          <AppearanceProvider>
+            <StatusBar style="light" backgroundColor={C.brand.navy} />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                animation: "none",
+                contentStyle: { backgroundColor: C.background },
+              }}
+            />
+          </AppearanceProvider>
+        </MultiAgendaProvider>
       </AppDataProvider>
     </SafeAreaProvider>
   );

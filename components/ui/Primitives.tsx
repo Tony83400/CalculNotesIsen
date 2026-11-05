@@ -1,3 +1,4 @@
+import { themedStyles } from "../../constants/themedStyles";
 import React from "react";
 import {
   ActivityIndicator,
@@ -5,7 +6,6 @@ import {
   Text,
   TextInput,
   View,
-  StyleSheet,
   type TextInputProps,
   type ViewStyle,
   type StyleProp,
@@ -79,7 +79,7 @@ export function Button({
             s.buttonText,
             variant === "primary" && { color: "white" },
             variant === "danger" && { color: C.status.error },
-            inverse && { color: C.text.inverse },
+            inverse && { color: "#FFFFFF" },
           ]}
         >
           {label}
@@ -239,7 +239,7 @@ export function ResourceStatus({
     </View>
   );
 }
-export const ui = StyleSheet.create({
+export const ui = themedStyles(() => ({
   panel: {
     backgroundColor: C.surface,
     borderWidth: 1,
@@ -258,11 +258,11 @@ export const ui = StyleSheet.create({
   number: { fontVariant: ["tabular-nums"], color: C.text.primary },
   rule: { height: 1, backgroundColor: C.border },
   label: { fontSize: 12, fontWeight: "500", color: C.text.secondary },
-});
+}));
 function safeSmall() {
   return { fontSize: 13, color: C.text.secondary, lineHeight: 20 } as const;
 }
-const s = StyleSheet.create({
+const s = themedStyles(() => ({
   button: {
     minHeight: Theme.controlHeight,
     flexDirection: "row",
@@ -276,7 +276,7 @@ const s = StyleSheet.create({
     gap: Theme.space.sm,
     backgroundColor: C.surface,
   },
-  primary: { backgroundColor: C.primary, borderColor: C.primary },
+  primary: { backgroundColor: C.brand.navy, borderColor: C.primary },
   quiet: { borderColor: "transparent", backgroundColor: "transparent" },
   buttonText: { fontSize: 14, fontWeight: "500", color: C.text.primary },
   input: {
@@ -321,4 +321,4 @@ const s = StyleSheet.create({
     backgroundColor: C.primaryLight,
   },
   empty: { paddingVertical: 32, gap: 8 },
-});
+}));

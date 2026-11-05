@@ -1,11 +1,6 @@
+import { themedStyles } from "../../../constants/themedStyles";
 import React, { useState } from "react";
-import {
-  Text,
-  View,
-  Pressable,
-  StyleSheet,
-  useWindowDimensions,
-} from "react-native";
+import { Text, View, Pressable, useWindowDimensions } from "react-native";
 import { ChevronDown, ChevronRight } from "lucide-react-native";
 import type { Ue as UeType, Matiere } from "../../../types/note";
 import { Colors as C } from "../../../constants/Colors";
@@ -169,7 +164,7 @@ function Subject({
     </View>
   );
 }
-const s = StyleSheet.create({
+const s = themedStyles(() => ({
   ueHeader: {
     padding: 20,
     flexDirection: "row",
@@ -209,4 +204,4 @@ const s = StyleSheet.create({
   },
   published: { width: 105, textAlign: "right" },
   coeff: { width: 85, textAlign: "right" },
-});
+}));

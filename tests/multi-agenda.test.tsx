@@ -1,7 +1,11 @@
 import React, { act } from "react";
 import { create, type ReactTestRenderer } from "react-test-renderer";
 import { beforeEach, it, expect, vi } from "vitest";
-import { useMultiAgenda } from "../hooks/useMultiAgenda";
+import {
+  useMultiAgendaState as useMultiAgenda,
+  MultiAgendaProvider,
+  useMultiAgenda as useSharedAgenda,
+} from "../hooks/useMultiAgenda";
 import { fetchCalendar } from "../services/agendaApi";
 vi.mock("../providers/AppData", () => ({
   useAppData: () => account,
@@ -124,5 +128,47 @@ it("clears visible comparisons and never persists the previous account into the 
   expect(
     JSON.parse(store.get("Multi:fiction.new") || '{"users":[]}').users,
   ).toEqual([]);
+  await act(async () => renderer.unmount());
+});
+
+it("preserves both calendars and avoids requests when the appearance subtree remounts", async () => {
+  vi.mocked(fetchCalendar).mockImplementation(async (p) => [Event(p)]);
+  let shared!: ReturnType<typeof useSharedAgenda>;
+  function SharedProbe() {
+    shared = useSharedAgenda();
+    return null;
+  }
+  const tree = (mode: string) => (
+    <MultiAgendaProvider>
+      <React.Fragment key={mode}>
+        <SharedProbe />
+      </React.Fragment>
+    </MultiAgendaProvider>
+  );
+  let renderer: ReactTestRenderer;
+  await act(async () => {
+    renderer = create(tree("light"));
+  });
+  await act(async () => {
+    await shared.addUser("Fiction", "Alice");
+  });
+  await act(async () => {
+    await shared.addUser("Fiction", "Bob");
+  });
+  const before = shared.allEvents;
+  expect(fetchCalendar).toHaveBeenCalledTimes(2);
+  vi.mocked(fetchCalendar).mockRejectedValue(
+    new Error("Agenda indisponible (502)."),
+  );
+  await act(async () => {
+    renderer.update(tree("dark"));
+  });
+  await act(async () => {
+    renderer.update(tree("light"));
+  });
+  expect(fetchCalendar).toHaveBeenCalledTimes(2);
+  expect(shared.users).toHaveLength(2);
+  expect(shared.allEvents).toEqual(before);
+  expect(shared.errors).toEqual({});
   await act(async () => renderer.unmount());
 });

@@ -1,0 +1,260 @@
+[
+  {
+    "ue": "Sciences de l’ingénieur",
+    "ects": 5,
+    "matieres": [
+      {
+        "name": "Linux embarqué",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "VHDL",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "IoT",
+    "ects": 5,
+    "matieres": [
+      {
+        "name": "SmartCard",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "IoT",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Projet IoT",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "Projet",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "CYBER/IA",
+    "ects": 6,
+    "matieres": [
+      {
+        "name": "Android",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Java",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Cyber",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "IA",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Sciences humaines",
+    "ects": 4,
+    "matieres": [
+      {
+        "name": "Méthodologie de recherche",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Management de la SST",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Droit et éthique",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Stratégie de développement",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Entreprise",
+    "ects": 10,
+    "matieres": [
+      {
+        "name": "Entreprise",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "Évaluation entreprise",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  }
+]

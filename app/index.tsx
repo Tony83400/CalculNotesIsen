@@ -1,8 +1,9 @@
+import { useAppearance } from "../providers/Appearance";
+import { themedStyles } from "../constants/themedStyles";
 import React, { useRef, useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TextInput,
   KeyboardAvoidingView,
   Platform,
@@ -20,6 +21,7 @@ import { Colors as C } from "../constants/Colors";
 import { Theme } from "../constants/Theme";
 import { Button, Field, Notice, ui } from "../components/ui/Primitives";
 export default function Login() {
+  const appearance = useAppearance();
   const a = useAuth(),
     app = useAppData(),
     { width } = useWindowDimensions(),
@@ -104,7 +106,6 @@ export default function Login() {
                     <Text
                       style={{
                         fontSize: 13,
-                        fontFamily: Theme.font.body,
                         fontWeight: "500",
                         color: C.text.primary,
                       }}
@@ -167,6 +168,7 @@ export default function Login() {
                         gap: 12,
                         minHeight: 44,
                         fontSize: 13,
+                        fontFamily: Theme.font.body,
                         color: C.text.secondary,
                         cursor: "pointer",
                       }}
@@ -233,11 +235,30 @@ export default function Login() {
                 </Text>
                 <View style={[ui.rule, { marginTop: 4 }]} />
                 <View style={{ gap: 8 }}>
-                  <Button
-                    label="Découvrir avec des données fictives"
-                    onPress={() => void a.loginWithoutAccount()}
-                    disabled={a.loading || !app.ready}
-                  />
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      gap: 12,
+                      alignItems: "stretch",
+                    }}
+                  >
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Button
+                        label={appearance.dark ? "Mode clair" : "Mode sombre"}
+                        onPress={appearance.toggle}
+                        style={{ flex: 1 }}
+                      />
+                    </View>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Button
+                        label="Données fictives"
+                        accessibilityLabel="Découvrir avec des données fictives"
+                        onPress={() => void a.loginWithoutAccount()}
+                        disabled={a.loading || !app.ready}
+                        style={{ flex: 1 }}
+                      />
+                    </View>
+                  </View>
                   <Text
                     style={[ui.small, { fontSize: 12, textAlign: "center" }]}
                   >
@@ -256,9 +277,9 @@ export default function Login() {
     </SafeAreaView>
   );
 }
-const s = StyleSheet.create({
+const s = themedStyles(() => ({
   layout: { flex: 1, flexDirection: "row", minHeight: 700 },
-  editorial: { width: "47%", backgroundColor: C.brand.navy, padding: 48 },
+  editorial: { width: "33.333%", backgroundColor: C.brand.navy, padding: 48 },
   issue: { fontSize: 12, letterSpacing: 0, color: C.brand.muted },
   statement: {
     fontFamily: Theme.font.heading,
@@ -321,4 +342,4 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-});
+}));

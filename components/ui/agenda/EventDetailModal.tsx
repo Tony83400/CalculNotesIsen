@@ -1,3 +1,4 @@
+import { themedStyles } from "../../../constants/themedStyles";
 import React, { useEffect, useRef, useState } from "react";
 import {
   View,
@@ -204,7 +205,7 @@ function Detail({ label, value }: { label: string; value?: string }) {
     </View>
   );
 }
-const s = StyleSheet.create({
+const s = themedStyles(() => ({
   overlay: {
     flex: 1,
     backgroundColor: C.overlay,
@@ -228,4 +229,4 @@ const s = StyleSheet.create({
     color: C.text.primary,
     lineHeight: 34,
   },
-});
+}));

@@ -1,0 +1,192 @@
+[
+  {
+    "ue": "Sciences de l’ingénieur",
+    "ects": 5,
+    "matieres": [
+      {
+        "name": "Élec de puissance",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Auto",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Radiocom",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Informatique",
+    "ects": 5,
+    "matieres": [
+      {
+        "name": "POO",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Système d’exploitation",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Projet Info",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "Projet",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Sciences humaines",
+    "ects": 5,
+    "matieres": [
+      {
+        "name": "Gestion de la qualité",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      },
+      {
+        "name": "Management des hommes",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Anglais",
+    "ects": 5,
+    "matieres": [
+      {
+        "name": "Anglais",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "DS",
+            "code": "",
+            "coeff": 1
+          },
+          {
+            "name": "Partiel",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ue": "Entreprise",
+    "ects": 10,
+    "matieres": [
+      {
+        "name": "Entreprise",
+        "coeff_matiere": 1,
+        "code_rattrapage": "",
+        "evaluations": [
+          {
+            "name": "Évaluation entreprise",
+            "code": "",
+            "coeff": 1
+          }
+        ]
+      }
+    ]
+  }
+]

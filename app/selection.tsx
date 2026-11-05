@@ -1,5 +1,6 @@
+import { themedStyles } from "../constants/themedStyles";
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
 import { RefreshCw } from "lucide-react-native";
 import AppShell, { RouteLink } from "../components/AppShell";
@@ -253,7 +254,7 @@ export default function Home() {
     </AppShell>
   );
 }
-const s = StyleSheet.create({
+const s = themedStyles(() => ({
   top: { gap: 20 },
   next: {
     backgroundColor: C.surface,
@@ -328,4 +329,4 @@ const s = StyleSheet.create({
     color: C.text.tertiary,
   },
   shortcutTitle: { fontSize: 14, fontWeight: "500", color: C.text.primary },
-});
+}));

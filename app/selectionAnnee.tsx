@@ -55,7 +55,7 @@ export default function Settings() {
     try {
       if (app.demo) {
         setError(
-          "La démonstration présente un cursus fictif M1. Connectez-vous pour enregistrer votre propre cursus.",
+          "La démonstration présente un cursus fictif ISEN4. Connectez-vous pour enregistrer votre propre cursus.",
         );
         return;
       }
@@ -90,7 +90,10 @@ export default function Settings() {
       </Text>
       <View style={[ui.panel, { padding: 24, gap: 28, maxWidth: 900 }]}>
         <View style={{ gap: 12 }}>
-          <Text accessibilityRole="header" style={sTitle}>
+          <Text
+            accessibilityRole="header"
+            style={[sTitle, { color: C.text.primary }]}
+          >
             01 · Votre année
           </Text>
           <View style={ui.wrap}>
@@ -118,6 +121,13 @@ export default function Settings() {
             ne sera pas renseignée.
           </Notice>
         )}
+        {year === "ISENA4" && (
+          <Notice>
+            S7 et S8 : 30 ECTS chacun. Les coefficients des évaluations sont
+            provisoirement fixés à 1. Les codes ISEN restent à renseigner pour
+            associer automatiquement les notes publiées.
+          </Notice>
+        )}
         {semesters.map((s) => (
           <View
             key={s}
@@ -128,7 +138,10 @@ export default function Settings() {
               borderTopColor: C.border,
             }}
           >
-            <Text accessibilityRole="header" style={sTitle}>
+            <Text
+              accessibilityRole="header"
+              style={[sTitle, { color: C.text.primary }]}
+            >
               {s} · Votre filière
             </Text>
             <View style={ui.wrap}>
@@ -167,7 +180,10 @@ export default function Settings() {
         </View>
       </View>
       <View style={{ marginTop: 32, maxWidth: 900, gap: 16 }}>
-        <Text accessibilityRole="header" style={sTitle}>
+        <Text
+          accessibilityRole="header"
+          style={[sTitle, { color: C.text.primary }]}
+        >
           Rappels de cours
         </Text>
         {Platform.OS === "web" ? (
@@ -203,7 +219,10 @@ export default function Settings() {
         )}
         {notificationError && <Notice error>{notificationError}</Notice>}
         <View style={ui.rule} />
-        <Text accessibilityRole="header" style={sTitle}>
+        <Text
+          accessibilityRole="header"
+          style={[sTitle, { color: C.text.primary }]}
+        >
           Votre session
         </Text>
         <Text style={ui.small}>

@@ -1,6 +1,23 @@
 export interface CurriculumCatalog {
   annee: Record<string, Record<string, Record<string, string>>>;
 }
+/** Keep existing saved selections readable after the product label changed. */
+export const normalizeYear = (year: string) => (year === "M1" ? "ISEN4" : year);
+
+/** Old mobile caches/GitHub catalogs must not hide newly bundled curricula. */
+export function mergeCatalog(
+  source: CurriculumCatalog,
+  bundled: CurriculumCatalog,
+): CurriculumCatalog {
+  const { M1, ...years } = source.annee;
+  return {
+    annee: {
+      ...bundled.annee,
+      ...years,
+      ...(!years.ISEN4 && M1 ? { ISEN4: M1 } : {}),
+    },
+  };
+}
 export function validCatalog(value: unknown): value is CurriculumCatalog {
   if (
     !value ||

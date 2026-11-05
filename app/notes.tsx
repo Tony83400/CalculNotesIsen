@@ -1,5 +1,6 @@
+import { themedStyles } from "../constants/themedStyles";
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, useWindowDimensions } from "react-native";
 import { RefreshCw } from "lucide-react-native";
 import AppShell from "../components/AppShell";
 import { useAppData } from "../providers/AppData";
@@ -167,6 +168,13 @@ export default function Notes() {
             ; les notes non associées restent hors moyenne.
           </Notice>
         )}
+        {app.year === "ISENA4" && (
+          <Notice>
+            ISENA4 · Coefficients d’évaluation provisoires : 1. La répartition
+            DS/partiel reste à confirmer ; les projets et l’entreprise disposent
+            d’une évaluation provisoire dédiée.
+          </Notice>
+        )}
         {retakes && (
           <Notice>
             Règle à confirmer : le meilleur rattrapage améliore les évaluations
@@ -220,7 +228,7 @@ export default function Notes() {
     </AppShell>
   );
 }
-const s = StyleSheet.create({
+const s = themedStyles(() => ({
   stats: {
     flexDirection: "row",
     borderWidth: 1,
@@ -258,4 +266,4 @@ const s = StyleSheet.create({
     borderLeftWidth: 3,
     borderLeftColor: C.status.info,
   },
-});
+}));

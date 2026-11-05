@@ -4,6 +4,9 @@ import {
   setToken,
   getToken,
   clearAllStorage,
+  setStorageItem,
+  getSelectedYear,
+  setSelectedYear,
 } from "../services/storage";
 import { getDataGeneration } from "../services/dataScope";
 import { it, expect, vi } from "vitest";
@@ -52,4 +55,11 @@ it("rejects a delayed renewal captured before logout", async () => {
     name: "AbortError",
   });
   expect(await getToken()).toBeNull();
+});
+it("reads the native legacy M1 choice as ISEN4 and keeps ISENA4 as a distinct year", async () => {
+  await setStorageItem("SelectedYear", "M1");
+  expect(await getSelectedYear()).toBe("ISEN4");
+  await setSelectedYear("ISENA4");
+  expect(await getSelectedYear()).toBe("ISENA4");
+  expect(state.ordinary.get("cnisen:v3:SelectedYear")).toBe("ISENA4");
 });

@@ -4,6 +4,7 @@ import {
   removeStorageItem,
   storageKeys,
 } from "./base";
+import { normalizeYear } from "../../types/config";
 
 const structureName = "StructureConfig";
 const selectedYearName = "SelectedYear";
@@ -12,11 +13,12 @@ const selectedMajorsName = "SelectedMajors";
 const selectedMajorsUrlsName = "SelectedMajorsUrls";
 
 export async function getSelectedYear(): Promise<string | null> {
-  return await getStorageItem(selectedYearName);
+  const year = await getStorageItem(selectedYearName);
+  return year ? normalizeYear(year) : null;
 }
 
 export async function setSelectedYear(value: string) {
-  await setStorageItem(selectedYearName, value);
+  await setStorageItem(selectedYearName, normalizeYear(value));
 }
 
 export async function getSelectedSemester(): Promise<string | null> {

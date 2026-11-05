@@ -1,4 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  createElement,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import type { AgendaEvent } from "../types/agenda";
 import { fetchCalendar } from "../services/agendaApi";
 import { getStorageItem, setStorageItem } from "../services/storage/base";
@@ -21,7 +29,7 @@ const colors = [
   "#49664A",
   "#765680",
 ];
-export function useMultiAgenda() {
+export function useMultiAgendaState() {
   const app = useAppData(),
     nav = useCalendarNavigation({ allowWeekOnMobile: true });
   const [users, setUsers] = useState<MultiAgendaUser[]>([]),
@@ -194,4 +202,18 @@ export function useMultiAgenda() {
     searchError,
     setSearchError,
   };
+}
+
+// The comparison data belongs above appearance-driven screen remounts.
+const MultiAgendaContext = createContext<ReturnType<
+  typeof useMultiAgendaState
+> | null>(null);
+export function MultiAgendaProvider({ children }: { children: ReactNode }) {
+  const value = useMultiAgendaState();
+  return createElement(MultiAgendaContext.Provider, { value }, children);
+}
+export function useMultiAgenda() {
+  const value = useContext(MultiAgendaContext);
+  if (!value) throw new Error("MultiAgendaProvider manquant");
+  return value;
 }

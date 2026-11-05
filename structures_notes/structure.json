@@ -1,45 +1,52 @@
 {
-    "annee": {
-        "N1" : {
-            "S1": {
-                "CIN" : "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/refs/heads/main/structures_notes/annee_1/S1_CIN.json"
-        },
-        "S2" :{
-            "CIN" : "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/refs/heads/main/structures_notes/annee_1/S2_CIN.json"
-        }
-        },
-        "N2": {
-        },
-        "N3": {
-            "S5": {
-                "CIN/UI": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_3/S5_CIN_UI.json",
-                "BIOST": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_3/S5_BIOST.json",
-                "CPGE/UE": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_3/S5_CPGE_UE.json"
-            },
-            "S6": {
-                "CIN/UI": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_3/S6_CIN_UI.json",
-                "BIOST/CPGE/UE": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_3/S6_BIOST_CPGE_UE.json"
-            }
-        },
-        "M1": {
-            "S7": {
-                "DEV_LOGICIEL": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S7_DEV_LOGICIEL.json",
-                "CYBER": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S7_CYBER.json",
-                "EMBEDDED": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S7_EMBEDDED.json",
-                "ROBOTIQUE": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S7_ROBOTIQUE.json",
-                "IOT": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S7_IOT.json",
-                "E_SANTE": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S7_E_SANTE.json",
-                "SMART": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S7_SMART.json"
-            },
-            "S8": {
-                "DEV_LOGICIEL": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S8_DEV_LOGICIEL.json",
-                "CYBER": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S8_CYBER.json",
-                "EMBEDDED": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S8_EMBEDDED.json",
-                "ROBOTIQUE": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S8_ROBOTIQUE.json",
-                "IOT": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S8_IOT.json",
-                "E_SANTE": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S8_E_SANTE.json",
-                "SMART": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S8_SMART.json"
-            }
-        }
+  "annee": {
+    "N1": {
+      "S1": {
+        "CIN": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/refs/heads/main/structures_notes/annee_1/S1_CIN.json"
+      },
+      "S2": {
+        "CIN": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/refs/heads/main/structures_notes/annee_1/S2_CIN.json"
+      }
+    },
+    "N2": {},
+    "N3": {
+      "S5": {
+        "CIN/UI": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_3/S5_CIN_UI.json",
+        "BIOST": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_3/S5_BIOST.json",
+        "CPGE/UE": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_3/S5_CPGE_UE.json"
+      },
+      "S6": {
+        "CIN/UI": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_3/S6_CIN_UI.json",
+        "BIOST/CPGE/UE": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_3/S6_BIOST_CPGE_UE.json"
+      }
+    },
+    "ISEN4": {
+      "S7": {
+        "DEV_LOGICIEL": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S7_DEV_LOGICIEL.json",
+        "CYBER": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S7_CYBER.json",
+        "EMBEDDED": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S7_EMBEDDED.json",
+        "ROBOTIQUE": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S7_ROBOTIQUE.json",
+        "IOT": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S7_IOT.json",
+        "E_SANTE": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S7_E_SANTE.json",
+        "SMART": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S7_SMART.json"
+      },
+      "S8": {
+        "DEV_LOGICIEL": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S8_DEV_LOGICIEL.json",
+        "CYBER": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S8_CYBER.json",
+        "EMBEDDED": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S8_EMBEDDED.json",
+        "ROBOTIQUE": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S8_ROBOTIQUE.json",
+        "IOT": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S8_IOT.json",
+        "E_SANTE": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S8_E_SANTE.json",
+        "SMART": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4/S8_SMART.json"
+      }
+    },
+    "ISENA4": {
+      "S7": {
+        "Cursus commun": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4_isena4/S7_ISENA4.json"
+      },
+      "S8": {
+        "Cursus commun": "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/main/structures_notes/annee_4_isena4/S8_ISENA4.json"
+      }
     }
+  }
 }

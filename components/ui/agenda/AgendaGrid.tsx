@@ -1,5 +1,7 @@
+import { agendaColors } from "../../../constants/AgendaColors";
+import { themedStyles } from "../../../constants/themedStyles";
 import React, { useMemo, useState } from "react";
-import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import type { AgendaEvent } from "../../../types/agenda";
 import {
   addDays,
@@ -8,7 +10,7 @@ import {
   formatTime,
   minutesInDay,
 } from "../../../utils/agenda";
-import { Colors as C } from "../../../constants/Colors";
+import { Colors as C, getColorMode } from "../../../constants/Colors";
 import { ui } from "../Primitives";
 import EventDetailModal from "./EventDetailModal";
 interface Props {
@@ -59,18 +61,32 @@ export default function AgendaGrid({
   );
   // Two simultaneous courses fit a phone. More lanes remain readable by scrolling
   // this container; a week always includes all seven days, including Sunday.
-  const minimumWidth = viewMode === "week" ? 900 : TIMES + maxColumns * 132;
-  const gridWidth = Math.max(containerWidth, minimumWidth);
+  const fitWeek = hideDetails && viewMode === "week";
+  const minimumWidth = fitWeek
+    ? 0
+    : viewMode === "week"
+      ? 900
+      : TIMES + maxColumns * 132;
+  const gridWidth = Math.max(
+    fitWeek ? containerWidth - 2 : containerWidth,
+    minimumWidth,
+  );
   const dayWidth = (gridWidth - TIMES) / dayCount;
   const height = (maxHour - minHour) * hourHeight;
-  const shortEvents = layout.flat().filter((p) => p.end - p.start < 3600000);
+  const shortEvents = fitWeek
+    ? layout.flat()
+    : layout.flat().filter((p) => p.end - p.start < 3600000);
   return (
     <View
       testID="agenda-time-grid"
       onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
       style={[ui.panel, { overflow: "hidden" }]}
     >
-      <ScrollView horizontal contentContainerStyle={{ width: gridWidth }}>
+      <ScrollView
+        horizontal
+        scrollEnabled={!fitWeek}
+        contentContainerStyle={{ width: gridWidth }}
+      >
         <View style={{ width: gridWidth }}>
           <View style={s.header}>
             <View style={{ width: TIMES }} />
@@ -148,10 +164,17 @@ export default function AgendaGrid({
                     ((minutesInDay(p.end, day) - minutesInDay(p.start, day)) /
                       60) *
                     hourHeight;
-                  const color =
-                    p.event.color ||
-                    (p.event.isExam ? C.status.warning : C.primary);
+                  const color = p.event.isExam
+                    ? "#492700"
+                    : p.event.color ||
+                      (p.event.isExam ? C.status.warning : C.primary);
                   const shared = !!p.event.userName;
+                  const identity = agendaColors(p.event.color || "#26264C");
+                  const ink = p.event.isExam
+                    ? "#492700"
+                    : shared
+                      ? identity.text
+                      : C.text.primary;
                   const showRoom = eventHeight >= (shared ? 104 : 80);
                   const titleLines = Math.max(
                     1,
@@ -174,20 +197,44 @@ export default function AgendaGrid({
                           height: Math.max(22, eventHeight - 4),
                           left: (p.column * dayWidth) / p.columns + 3,
                           width: dayWidth / p.columns - 6,
-                          borderLeftColor: color,
-                          backgroundColor: color + "13",
-                          padding: eventHeight < 44 ? 4 : 8,
+                          borderLeftColor: shared
+                            ? identity.border
+                            : p.event.isExam
+                              ? "#9B3900"
+                              : color,
+                          backgroundColor: p.event.isExam
+                            ? "#FFCE38"
+                            : shared
+                              ? identity.background
+                              : getColorMode() === "dark"
+                                ? "#294863"
+                                : color + "13",
+                          padding:
+                            fitWeek && dayWidth < 80
+                              ? 2
+                              : eventHeight < 44
+                                ? 4
+                                : 8,
                         },
                       ]}
                     >
                       {shared && eventHeight >= 64 && (
-                        <Text style={[s.owner, { color }]} numberOfLines={1}>
+                        <Text
+                          style={[
+                            s.owner,
+                            {
+                              color: ink,
+                            },
+                            fitWeek && dayWidth < 80 && { fontSize: 8 },
+                          ]}
+                          numberOfLines={1}
+                        >
                           {p.event.userName}
                         </Text>
                       )}
                       {!shared && (
                         <Text
-                          style={[s.eventTime, { color }]}
+                          style={[s.eventTime, { color: ink }]}
                           numberOfLines={1}
                         >
                           {formatTime(p.event.start)}
@@ -200,6 +247,11 @@ export default function AgendaGrid({
                         <Text
                           style={[
                             s.eventTitle,
+                            {
+                              color: ink,
+                            },
+                            fitWeek &&
+                              dayWidth < 80 && { fontSize: 9, lineHeight: 12 },
                             viewMode === "day" && {
                               fontSize: 13,
                               lineHeight: 18,
@@ -217,7 +269,7 @@ export default function AgendaGrid({
                       {shared && (
                         <View style={s.sharedDetails}>
                           <Text
-                            style={[s.eventTime, { color }]}
+                            style={[s.eventTime, { color: ink }]}
                             numberOfLines={1}
                           >
                             {formatTime(p.event.start)}
@@ -226,14 +278,20 @@ export default function AgendaGrid({
                               : ""}
                           </Text>
                           {showRoom && (
-                            <Text style={s.eventMeta} numberOfLines={2}>
+                            <Text
+                              style={[s.eventMeta, shared && { color: ink }]}
+                              numberOfLines={2}
+                            >
                               {p.event.location}
                             </Text>
                           )}
                         </View>
                       )}
                       {!shared && showRoom && (
-                        <Text style={s.eventMeta} numberOfLines={2}>
+                        <Text
+                          style={[s.eventMeta, shared && { color: ink }]}
+                          numberOfLines={2}
+                        >
                           {p.event.location}
                         </Text>
                       )}
@@ -268,7 +326,11 @@ export default function AgendaGrid({
             : "Sélectionnez un cours pour ses détails."}
         </Text>
         {shortEvents.length > 0 && (
-          <Text style={ui.small}>Cours courts · accès détaillé</Text>
+          <Text style={ui.small}>
+            {fitWeek
+              ? "Cours de la semaine · accès détaillé"
+              : "Cours courts · accès détaillé"}
+          </Text>
         )}
         {shortEvents.map((p) => (
           <Pressable
@@ -295,7 +357,7 @@ export default function AgendaGrid({
     </View>
   );
 }
-const s = StyleSheet.create({
+const s = themedStyles(() => ({
   header: {
     flexDirection: "row",
     borderBottomWidth: 1,
@@ -351,4 +413,4 @@ const s = StyleSheet.create({
   },
   eventMeta: { fontSize: 11, lineHeight: 14, color: C.text.secondary },
   sharedDetails: { marginTop: "auto", paddingTop: 4 },
-});
+}));

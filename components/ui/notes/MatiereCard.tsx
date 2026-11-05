@@ -1,5 +1,6 @@
+import { themedStyles } from "../../../constants/themedStyles";
 import React, { useState } from "react";
-import { Text, View, StyleSheet, TextInput } from "react-native";
+import { Text, View, TextInput } from "react-native";
 import Slider from "@react-native-community/slider";
 import type { Evaluations } from "../../../types/note";
 import { parseGrade } from "../../../utils/notes";
@@ -203,7 +204,7 @@ function Evaluation({
     </View>
   );
 }
-const s = StyleSheet.create({
+const s = themedStyles(() => ({
   evaluation: {
     paddingHorizontal: 20,
     paddingVertical: 16,
@@ -233,4 +234,4 @@ const s = StyleSheet.create({
     color: C.text.primary,
     backgroundColor: C.surface,
   },
-});
+}));

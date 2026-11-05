@@ -7,18 +7,23 @@ import {
   saveStructureToCache,
 } from "./storage";
 import { validateStructure } from "../utils/notes";
-import { validCatalog, type CurriculumCatalog } from "../types/config";
+import {
+  validCatalog,
+  mergeCatalog,
+  type CurriculumCatalog,
+} from "../types/config";
 import { timedFetch } from "./http";
 const ROOT = "https://raw.githubusercontent.com/Tony83400/CalculNotesIsen/";
 export async function updateStructureConfig(
   forceRefresh = false,
 ): Promise<CurriculumCatalog> {
   const local = localMapping["structure.json"];
+  if (!validCatalog(local)) throw new Error("Catalogue de cursus invalide.");
   if (Platform.OS === "web") return local;
   if (!forceRefresh) {
     try {
       const cached = await loadStructureFromCache();
-      if (validCatalog(cached)) return cached;
+      if (validCatalog(cached)) return mergeCatalog(cached, local);
     } catch {}
   }
   try {
@@ -28,8 +33,9 @@ export async function updateStructureConfig(
     if (response.ok) {
       const data: unknown = await response.json();
       if (validCatalog(data)) {
-        await saveStructureToCache(data);
-        return data;
+        const catalog = mergeCatalog(data, local);
+        await saveStructureToCache(catalog);
+        return catalog;
       }
     }
   } catch {}
