@@ -124,3 +124,49 @@ it("validates personal course details before rendering list fields", async () =>
   expect(result?.teachers).toEqual([]);
   expect(result?.groups).toEqual(["Groupe fictif"]);
 });
+
+it("matches a unique course when the summary omits the end but rejects ambiguity", async () => {
+  const start = Date.UTC(2026, 10, 4, 8),
+    end = start + 3600000;
+  const fetch = vi.spyOn(globalThis, "fetch");
+  fetch.mockResolvedValueOnce(
+    new Response(JSON.stringify([{ id: "fiction", start: start / 1000 }])),
+  );
+  expect(await getEventIdByTime(start, end)).toBe("fiction");
+  fetch.mockResolvedValueOnce(
+    new Response(
+      JSON.stringify([
+        { id: "a", start },
+        { id: "b", start },
+      ]),
+    ),
+  );
+  await expect(getEventIdByTime(start, end)).rejects.toThrow("Plusieurs cours");
+  fetch.mockResolvedValueOnce(
+    new Response(JSON.stringify([{ id: "a", start, end: end + 3600000 }])),
+  );
+  expect(await getEventIdByTime(start, end)).toBeNull();
+});
+it("accepts course details without redundant timestamps, retaining validated student lists", async () => {
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        students: ["Étudiant fictif", 42],
+        teachers: ["Prof fictif"],
+        subject: "Cours fictif",
+      }),
+    ),
+  );
+  const details = await getEventDetails("fiction");
+  expect(details?.students).toEqual(["Étudiant fictif"]);
+  expect(details?.start).toBe("");
+});
+it("reports unexpected API contracts instead of disguising them as a missing course", async () => {
+  const fetch = vi.spyOn(globalThis, "fetch");
+  fetch.mockResolvedValueOnce(new Response(JSON.stringify({ unexpected: [] })));
+  await expect(getEventIdByTime(1, 2)).rejects.toThrow("format");
+  fetch.mockResolvedValueOnce(
+    new Response(JSON.stringify({ unexpected: true })),
+  );
+  await expect(getEventDetails("fiction")).rejects.toThrow("format");
+});

@@ -76,7 +76,17 @@ export async function getNotes(signal?: AbortSignal) {
     await (await authorized(`${API_URL}/notations`, signal)).json(),
   );
 }
-/** Require a unique exact time interval; never guess the nearest person's course. */
+/** API timestamps may be ISO strings, Unix milliseconds or Unix seconds. */
+function eventTimestamp(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value))
+    return Math.abs(value) < 1e11 ? value * 1000 : value;
+  if (typeof value !== "string" || !value.trim()) return NaN;
+  if (/^\d{10}(?:\.\d+)?$|^\d{13}$/.test(value))
+    return eventTimestamp(Number(value));
+  return Date.parse(value);
+}
+/** Match only the owner's agenda. Missing end is acceptable only for a unique
+ * matching start; a supplied end must agree and ambiguity is never guessed. */
 export async function getEventIdByTime(
   startTs: number,
   endTs: number,
@@ -86,16 +96,49 @@ export async function getEventIdByTime(
     `${API_URL}/agenda?start=${startTs - 300000}&end=${endTs + 300000}`,
     signal,
   );
-  const data = await res.json();
-  if (!Array.isArray(data)) return null;
-  const matches = data.filter(
+  const data: unknown = await res.json();
+  if (!Array.isArray(data))
+    throw new Error(
+      "Le format de l’agenda personnel renvoyé par ISEN n’est pas reconnu.",
+    );
+  const rows = data.filter(
     (e) =>
-      (typeof e.id === "string" ||
-        (typeof e.id === "number" && Number.isFinite(e.id))) &&
-      Math.abs(+new Date(e.start) - startTs) <= 60000 &&
-      Math.abs(+new Date(e.end) - endTs) <= 60000,
+      e &&
+      typeof e === "object" &&
+      ((typeof e.id === "string" && e.id.trim()) ||
+        (typeof e.id === "number" && Number.isFinite(e.id))),
   );
-  return matches.length === 1 ? String(matches[0].id) : null;
+  if (
+    data.length &&
+    !rows.some((e) => Number.isFinite(eventTimestamp(e.start)))
+  )
+    throw new Error(
+      "Les horaires de l’agenda personnel renvoyés par ISEN ne sont pas reconnus.",
+    );
+  const starts = rows.filter(
+    (e) => Math.abs(eventTimestamp(e.start) - startTs) <= 60000,
+  );
+  const hasEnd = (e: Record<string, unknown>) =>
+    e.end !== undefined && e.end !== null && e.end !== "";
+  if (starts.length === 1) {
+    const e = starts[0];
+    if (!hasEnd(e) || Math.abs(eventTimestamp(e.end) - endTs) <= 60000)
+      return String(e.id);
+    return null;
+  }
+  if (starts.length > 1) {
+    if (
+      starts.some((e) => !hasEnd(e) || !Number.isFinite(eventTimestamp(e.end)))
+    )
+      throw new Error(
+        "Plusieurs cours personnels commencent à cet horaire ; impossible d’identifier le bon avec certitude.",
+      );
+    const exact = starts.filter(
+      (e) => Math.abs(eventTimestamp(e.end) - endTs) <= 60000,
+    );
+    if (exact.length === 1) return String(exact[0].id);
+  }
+  return null;
 }
 export async function getEventDetails(
   eventId: string,
@@ -110,10 +153,21 @@ export async function getEventDetails(
   if (
     !data ||
     typeof data !== "object" ||
-    !Number.isFinite(Date.parse(data.start)) ||
-    !Number.isFinite(Date.parse(data.end))
+    Array.isArray(data) ||
+    ![
+      "students",
+      "teachers",
+      "rooms",
+      "groups",
+      "subject",
+      "courseName",
+      "module",
+      "status",
+    ].some((key) => key in data)
   )
-    return null;
+    throw new Error(
+      "Le format des détails du cours renvoyé par ISEN n’est pas reconnu.",
+    );
   const text = (key: string) =>
     typeof data[key] === "string" ? data[key] : "";
   const list = (key: string) =>

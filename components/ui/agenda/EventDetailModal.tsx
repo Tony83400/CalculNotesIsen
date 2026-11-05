@@ -54,12 +54,16 @@ export default function EventDetailModal({
           setDetails(data);
           if (!data)
             setMessage(
-              "Aucun cours personnel identifié avec certitude à cet horaire.",
+              "Aucun cours correspondant trouvé dans l’agenda personnel ISEN à cet horaire.",
             );
         }
-      } catch {
+      } catch (error) {
         if (!abort.signal.aborted)
-          setMessage("Les détails personnels ne sont pas disponibles.");
+          setMessage(
+            error instanceof Error
+              ? error.message
+              : "Les détails personnels ne sont pas disponibles.",
+          );
       } finally {
         if (!abort.signal.aborted) setLoading(false);
       }
@@ -179,7 +183,7 @@ export default function EventDetailModal({
                   label="Étudiants"
                   value={
                     details.students.length
-                      ? details.students.join(", ")
+                      ? details.students.join("\n")
                       : "Non précisé"
                   }
                 />
