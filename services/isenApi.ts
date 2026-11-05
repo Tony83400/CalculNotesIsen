@@ -1,194 +1,126 @@
-import { API_URL } from "@/constants/Config";
-import { getToken, loadNotesFromCache, saveNotesToCache, isTokenExpired, getId, getPasswordStorage, setToken, setLastUpdate } from "./storage";
-import { Note } from "@/types/note";
-import { EventDetails } from "@/types/agenda";
+import { API_URL } from "../constants/Config";
+import {
+  getToken,
+  isTokenExpired,
+  getId,
+  getPasswordStorage,
+  setToken,
+} from "./storage";
+import { getDataGeneration, assertCurrent } from "./dataScope";
+import { timedFetch, createAuthorizedRequest } from "./http";
+import { validateNotes } from "../utils/notes";
+import type { EventDetails } from "../types/agenda";
 
-/**
- * Tente une reconnexion silencieuse avec les identifiants en cache
- */
+export async function login(
+  data: { username: string; password: string },
+  signal?: AbortSignal,
+) {
+  const res = await timedFetch(`${API_URL}/token`, {
+    method: "POST",
+    headers: { Accept: "*/*", "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    signal,
+  });
+  if (!res.ok)
+    throw Object.assign(
+      new Error(
+        [400, 401].includes(res.status)
+          ? "Identifiant ou mot de passe incorrect."
+          : `Connexion indisponible (${res.status}).`,
+      ),
+      { status: res.status },
+    );
+  const token = (await res.text()).trim();
+  if (!token || token.length > 16000 || token.startsWith("<"))
+    throw new Error("Réponse de connexion invalide.");
+  return { token };
+}
 async function silentLogin() {
-    const username = await getId();
-    const password = await getPasswordStorage();
-    if (username && password) {
-        try {
-            const res = await fetch(`${API_URL}/token`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
-            });
-            if (res.ok) {
-                const newToken = await res.text();
-                await setToken(newToken);
-                return newToken;
-            }
-        } catch (e) {
-            console.error("Échec silent login", e);
-        }
-    }
+  const generation = getDataGeneration();
+  const [username, password] = await Promise.all([
+    getId(),
+    getPasswordStorage(),
+  ]);
+  if (!username || !password) return null;
+  try {
+    const result = await login({ username, password });
+    assertCurrent(generation);
+    await setToken(result.token, generation);
+    assertCurrent(generation);
+    return result.token;
+  } catch (e) {
+    if ([400, 401].includes((e as { status: number }).status)) return null;
+    throw e;
+  }
+}
+const authorized = createAuthorizedRequest({
+  token: getToken,
+  expired: isTokenExpired,
+  renew: silentLogin,
+  scope: getDataGeneration,
+  fetch: timedFetch,
+});
+export async function getNotes(signal?: AbortSignal) {
+  return validateNotes(
+    await (await authorized(`${API_URL}/notations`, signal)).json(),
+  );
+}
+/** Require a unique exact time interval; never guess the nearest person's course. */
+export async function getEventIdByTime(
+  startTs: number,
+  endTs: number,
+  signal?: AbortSignal,
+): Promise<string | null> {
+  const res = await authorized(
+    `${API_URL}/agenda?start=${startTs - 300000}&end=${endTs + 300000}`,
+    signal,
+  );
+  const data = await res.json();
+  if (!Array.isArray(data)) return null;
+  const matches = data.filter(
+    (e) =>
+      (typeof e.id === "string" ||
+        (typeof e.id === "number" && Number.isFinite(e.id))) &&
+      Math.abs(+new Date(e.start) - startTs) <= 60000 &&
+      Math.abs(+new Date(e.end) - endTs) <= 60000,
+  );
+  return matches.length === 1 ? String(matches[0].id) : null;
+}
+export async function getEventDetails(
+  eventId: string,
+  signal?: AbortSignal,
+): Promise<EventDetails | null> {
+  const data = await (
+    await authorized(
+      `${API_URL}/agenda/event/${encodeURIComponent(eventId)}`,
+      signal,
+    )
+  ).json();
+  if (
+    !data ||
+    typeof data !== "object" ||
+    !Number.isFinite(Date.parse(data.start)) ||
+    !Number.isFinite(Date.parse(data.end))
+  )
     return null;
-}
-
-export async function login(loginData: { username: string; password: string }) {
-  try {
-    const res = await fetch(`${API_URL}/token`, {
-      method: "POST",
-      headers: {
-        Accept: "*/*",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(loginData),
-    });
-
-    if (!res.ok) {
-      if (res.status === 401 || res.status === 400) {
-        throw new Error("Identifiants incorrects");
-      }
-      const errorText = await res.text();
-      throw new Error(errorText || `Erreur de connexion (${res.status})`);
-    }
-
-    const token = await res.text();
-    return { token: token };
-  } catch (error: any) {
-    console.error("Erreur dans Login :", error);
-    throw error;
-  }
-}
-
-export async function getNotes() {
-  const cachedData = await loadNotesFromCache();
-  
-  try {
-    let token = await getToken();
-    const expired = await isTokenExpired();
-    
-    // Tentative de reconnexion automatique si expiré
-    if (!token || expired) {
-      token = await silentLogin();
-    }
-
-    if (!token) {
-      throw new Error("Session expirée");
-    }
-
-    const res = await fetch(`${API_URL}/notations`, {
-      method: "GET",
-      headers: {
-        Accept: "*/*",
-        Token: token,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!res.ok) {
-      if (res.status === 401) {
-        // Si 401 après fetch, on tente une dernière fois le silent login
-        const freshToken = await silentLogin();
-        if (freshToken) {
-            // On retente l'appel avec le nouveau token
-            return await getNotes(); 
-        }
-        throw new Error("Session expirée");
-      }
-      const errorText = await res.text();
-      throw new Error(errorText || `Erreur serveur (${res.status})`);
-    }
-    const rep = await res.json();
-    const formattedNotes: Note[] = rep.map((elt: any) => ({
-      code: elt.code,
-      name: elt.name,
-      note: Number(elt.note),
-      date: elt.date,
-    }));
-    await saveNotesToCache(formattedNotes);
-    
-    // Sauvegarde de l'heure de mise à jour
-    const now = new Date();
-    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-    const dateStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}`;
-    await setLastUpdate(`${dateStr} à ${timeStr}`);
-    
-    return formattedNotes;
-  } catch (error: any) {
-    console.error("Erreur dans getNotes :", error);
-    if (cachedData && error.message !== "Session expirée") {
-        return cachedData;
-    }
-    throw error;
-  }
-}
-
-/**
- * Récupère l'ID d'un événement à partir de son timestamp de début et fin
- */
-export async function getEventIdByTime(startTs: number, endTs: number): Promise<string | null> {
-    try {
-        let token = await getToken();
-        if (await isTokenExpired()) token = await silentLogin();
-        if (!token) return null;
-
-        // On élargit légèrement la recherche (+/- 5 min) pour être robuste aux arrondis
-        const searchStart = startTs - (5 * 60 * 1000);
-        const searchEnd = endTs + (5 * 60 * 1000);
-
-        const res = await fetch(`${API_URL}/agenda?start=${searchStart}&end=${searchEnd}`, {
-            method: "GET",
-            headers: {
-                Accept: "application/json",
-                Token: token,
-            },
-        });
-
-        if (!res.ok) return null;
-        const data = await res.json();
-        
-        if (Array.isArray(data) && data.length > 0) {
-            // Filtrage des événements avec des dates valides uniquement
-            const validEvents = data.filter(e => e.id && e.start && !isNaN(new Date(e.start).getTime()));
-            
-            if (validEvents.length === 0) return null;
-
-            // On cherche celui dont le début est le plus proche du startTs demandé
-            const bestMatch = validEvents.reduce((prev, curr) => {
-                const prevDiff = Math.abs(new Date(prev.start).getTime() - startTs);
-                const currDiff = Math.abs(new Date(curr.start).getTime() - startTs);
-                return currDiff < prevDiff ? curr : prev;
-            });
-
-            // Si le décalage est trop grand (> 15 min), c'est probablement un autre cours
-            const finalDiff = Math.abs(new Date(bestMatch.start).getTime() - startTs);
-            if (finalDiff > 15 * 60 * 1000) return null;
-
-            return bestMatch.id;
-        }
-        return null;
-    } catch (e) {
-        console.error("Erreur getEventIdByTime", e);
-        return null;
-    }
-}
-
-/**
- * Récupère les détails avancés d'un événement par son ID
- */
-export async function getEventDetails(eventId: string): Promise<EventDetails | null> {
-    try {
-        let token = await getToken();
-        if (await isTokenExpired()) token = await silentLogin();
-        if (!token) return null;
-
-        const res = await fetch(`${API_URL}/agenda/event/${eventId}`, {
-            method: "GET",
-            headers: {
-                Accept: "application/json",
-                Token: token,
-            },
-        });
-
-        if (!res.ok) return null;
-        return await res.json();
-    } catch (e) {
-        console.error("Erreur getEventDetails", e);
-        return null;
-    }
+  const text = (key: string) =>
+    typeof data[key] === "string" ? data[key] : "";
+  const list = (key: string) =>
+    Array.isArray(data[key])
+      ? data[key].filter((v: unknown) => typeof v === "string")
+      : [];
+  return {
+    start: text("start"),
+    end: text("end"),
+    status: text("status"),
+    subject: text("subject"),
+    type: text("type"),
+    isPaper: data.isPaper === true,
+    rooms: list("rooms"),
+    teachers: list("teachers"),
+    students: list("students"),
+    groups: list("groups"),
+    courseName: text("courseName"),
+    module: text("module"),
+  };
 }

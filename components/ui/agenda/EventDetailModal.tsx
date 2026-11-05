@@ -1,340 +1,231 @@
-import React, { useEffect, useState } from "react";
-import { 
-    StyleSheet, 
-    View, 
-    Text, 
-    TouchableOpacity, 
-    Modal, 
-    Pressable,
-    ActivityIndicator,
-    ScrollView
+import React, { useEffect, useRef, useState } from "react";
+import {
+  View,
+  Text,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
+  Platform,
 } from "react-native";
-import { Clock, MapPin, X, Users, BookOpen, Tag, Info } from "lucide-react-native";
-import { Colors } from "@/constants/Colors";
-import { AgendaEvent, EventDetails } from "@/types/agenda";
-import { formatTime, formatFullDate } from "@/utils/agenda";
-import { getEventIdByTime, getEventDetails } from "@/services/isenApi";
-
-interface EventDetailModalProps {
-    event: AgendaEvent | null;
-    visible: boolean;
-    onClose: () => void;
-    hideDetails?: boolean;
+import type { AgendaEvent, EventDetails } from "../../../types/agenda";
+import { Colors as C } from "../../../constants/Colors";
+import { Theme } from "../../../constants/Theme";
+import { formatFullDate, formatTime } from "../../../utils/agenda";
+import { getEventIdByTime, getEventDetails } from "../../../services/isenApi";
+import { useAppData } from "../../../providers/AppData";
+import { Badge, Body, Button, ui } from "../Primitives";
+interface Props {
+  event: AgendaEvent | null;
+  visible: boolean;
+  onClose: () => void;
+  hideDetails?: boolean;
 }
-
-export default function EventDetailModal({ event, visible, onClose, hideDetails = false }: EventDetailModalProps) {
-    const [loading, setLoading] = useState(false);
-    const [details, setDetails] = useState<EventDetails | null>(null);
-
-    const shouldHideDetails = hideDetails || !!event?.userName;
-
-    useEffect(() => {
-        if (visible && event && !shouldHideDetails) {
-            loadDetails();
-        } else {
-            setDetails(null);
+export default function EventDetailModal({
+  event,
+  visible,
+  onClose,
+  hideDetails = false,
+}: Props) {
+  const app = useAppData(),
+    [details, setDetails] = useState<EventDetails | null>(null),
+    [loading, setLoading] = useState(false),
+    [message, setMessage] = useState("");
+  const closeRef = useRef<View>(null);
+  const personal = !hideDetails && !event?.userName && !app.demo;
+  useEffect(() => {
+    const abort = new AbortController();
+    setDetails(null);
+    setMessage("");
+    setLoading(false);
+    if (!visible || !event || !personal) return () => abort.abort();
+    setLoading(true);
+    void (async () => {
+      try {
+        const id = await getEventIdByTime(
+          +event.start,
+          +event.end,
+          abort.signal,
+        );
+        const data = id ? await getEventDetails(id, abort.signal) : null;
+        if (!abort.signal.aborted) {
+          setDetails(data);
+          if (!data)
+            setMessage(
+              "Aucun cours personnel identifié avec certitude à cet horaire.",
+            );
         }
-    }, [visible, event, shouldHideDetails]);
-
-    const loadDetails = async () => {
-        if (!event) return;
-        setLoading(true);
-        try {
-            const startTs = event.start.getTime();
-            const endTs = event.end.getTime();
-            const eventId = await getEventIdByTime(startTs, endTs);
-            
-            if (eventId) {
-                const detailedInfo = await getEventDetails(eventId);
-                setDetails(detailedInfo);
-            }
-        } catch (error) {
-            console.error("Erreur lors du chargement des détails :", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (!event) return null;
-
-    return (
-        <Modal
-            transparent
-            visible={visible}
-            animationType="fade"
-            onRequestClose={onClose}
-        >
-            <Pressable 
-                style={styles.modalOverlay} 
-                onPress={onClose}
-            >
-                <View style={styles.modalContent}>
-                    <View style={[
-                        styles.modalHeader,
-                        event.isExam ? styles.examModalHeader : styles.regularModalHeader
-                    ]}>
-                        <View style={{ flex: 1 }}>
-                            {event.isExam && <Text style={styles.examLabelModal}>EXAMEN</Text>}
-                            {event.userName && (
-                                <View style={[styles.examBadgeModal, { backgroundColor: event.color + '20' }]}>
-                                    <Text style={[styles.examBadgeTextModal, { color: event.color }]}>{event.userName.toUpperCase()}</Text>
-                                </View>
-                            )}
-                            <ScrollView 
-                                nestedScrollEnabled={true} 
-                                style={{ maxHeight: 75 }}
-                                showsVerticalScrollIndicator={true}
-                            >
-                                <Text style={styles.modalTitle}>{event.title}</Text>
-                            </ScrollView>
-                        </View>
-                        <TouchableOpacity 
-                            onPress={onClose}
-                            style={styles.closeButton}
-                        >
-                            <X size={24} color={Colors.text.secondary} />
-                        </TouchableOpacity>
-                    </View>
-
-                    <ScrollView bounces={false} contentContainerStyle={{ paddingBottom: 16 }}>
-                        <View style={styles.modalBody}>
-                            <View style={styles.detailItem}>
-                                <Clock size={20} color={Colors.primary} style={styles.detailIcon} />
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.detailLabel}>Horaire</Text>
-                                    <Text style={styles.detailValue}>
-                                        {formatFullDate(event.start)}
-                                    </Text>
-                                    <Text style={styles.detailSubValue}>
-                                        {formatTime(event.start)} - {formatTime(event.end)}
-                                    </Text>
-                                </View>
-                            </View>
-
-                            <View style={styles.detailItem}>
-                                <MapPin size={20} color={Colors.primary} style={styles.detailIcon} />
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.detailLabel}>Lieu</Text>
-                                    <Text style={styles.detailValue}>{event.location}</Text>
-                                </View>
-                            </View>
-
-                            {!shouldHideDetails && (
-                                loading ? (
-                                    <View style={styles.loadingContainer}>
-                                        <ActivityIndicator color={Colors.primary} />
-                                        <Text style={styles.loadingText}>Chargement des détails...</Text>
-                                    </View>
-                                ) : details ? (
-                                    <>
-                                        <View style={styles.detailItem}>
-                                            <BookOpen size={20} color={Colors.primary} style={styles.detailIcon} />
-                                            <View style={{ flex: 1 }}>
-                                                <Text style={styles.detailLabel}>Module</Text>
-                                                <Text style={styles.detailValue}>{details.module || 'Non défini'}</Text>
-                                            </View>
-                                        </View>
-
-                                        <View style={styles.detailItem}>
-                                            <Tag size={20} color={Colors.primary} style={styles.detailIcon} />
-                                            <View style={{ flex: 1 }}>
-                                                <Text style={styles.detailLabel}>Groupe</Text>
-                                                <Text style={styles.detailValue}>
-                                                    {details.type || ''} {
-                                                        (details.groups?.length ?? 0) > 1 
-                                                        ? `- ${details.groups?.[1]}` 
-                                                        : ((details.groups?.length ?? 0) > 0 ? `- ${details.groups?.[0]}` : '')
-                                                    }
-                                                </Text>
-                                            </View>
-                                        </View>
-
-                                        <View style={styles.detailItem}>
-                                            <Info size={20} color={Colors.primary} style={styles.detailIcon} />
-                                            <View style={{ flex: 1 }}>
-                                                <Text style={styles.detailLabel}>Enseignants</Text>
-                                                <Text style={styles.detailValue}>
-                                                    {(details.teachers?.length ?? 0) > 0 ? details.teachers?.join(', ') : 'Non défini'}
-                                                </Text>
-                                            </View>
-                                        </View>
-
-                                        <View style={styles.detailItem}>
-                                            <Users size={20} color={Colors.primary} style={styles.detailIcon} />
-                                            <View style={{ flex: 1 }}>
-                                                <Text style={styles.detailLabel}>Étudiants ({details.students?.length ?? 0})</Text>
-                                                <View style={[
-                                                    styles.studentsListContainer,
-                                                    { maxHeight: (details.students?.length ?? 0) > 5 ? 180 : undefined }
-                                                ]}>
-                                                    <ScrollView 
-                                                        nestedScrollEnabled={true} 
-                                                        style={styles.studentsScrollView}
-                                                        showsVerticalScrollIndicator={(details.students?.length ?? 0) > 5}
-                                                    >
-                                                        <View style={styles.studentsList}>
-                                                            {(details.students ?? []).map((student, index) => (
-                                                                <Text key={index} style={styles.studentName}>
-                                                                    • {student}
-                                                                </Text>
-                                                            ))}
-                                                        </View>
-                                                    </ScrollView>
-                                                </View>
-                                            </View>
-                                        </View>
-                                    </>
-                                ) : !loading && (
-                                    <View style={styles.noDetailsContainer}>
-                                        <Text style={styles.noDetailsText}>Détails non disponibles pour ce cours.</Text>
-                                    </View>
-                                )
-                            )}
-                        </View>
-                    </ScrollView>
-                </View>
-            </Pressable>
-        </Modal>
-    );
-}
-
-const styles = StyleSheet.create({
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.3)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
-    modalContent: {
-        width: '100%',
-        maxWidth: 450,
-        maxHeight: '80%',
-        alignSelf: 'center',
-        backgroundColor: Colors.surface,
-        borderRadius: 20,
-        overflow: 'hidden',
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.04,
-        shadowRadius: 16,
-    },
-    modalHeader: {
-        padding: 20,
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-    },
-    regularModalHeader: {
-        borderBottomWidth: 0.5,
-        borderBottomColor: Colors.divider,
-    },
-    examModalHeader: {
-        borderBottomWidth: 0.5,
-        borderBottomColor: Colors.divider,
-        backgroundColor: '#FFF1F2',
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: Colors.text.primary,
-        lineHeight: 24,
-        letterSpacing: -0.3,
-    },
-    examLabelModal: {
-        fontSize: 9,
-        fontWeight: '800',
-        color: Colors.status.error,
-        marginBottom: 4,
-        letterSpacing: 0.5,
-    },
-    examBadgeModal: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
-        alignSelf: 'flex-start',
-        marginBottom: 8,
-    },
-    examBadgeTextModal: {
-        fontSize: 10,
-        fontWeight: '800',
-    },
-    closeButton: {
-        padding: 4,
-        marginLeft: 12,
-        borderRadius: 14,
-        backgroundColor: Colors.background,
-    },
-    modalBody: {
-        padding: 20,
-        paddingTop: 16,
-        gap: 20,
-    },
-    detailItem: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-    },
-    detailIcon: {
-        marginTop: 2,
-        marginRight: 12,
-    },
-    detailLabel: {
-        fontSize: 10,
-        fontWeight: '600',
-        color: Colors.text.tertiary,
-        textTransform: 'uppercase',
-        letterSpacing: 0.3,
-        marginBottom: 2,
-    },
-    detailValue: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: Colors.text.primary,
-    },
-    detailSubValue: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: Colors.primary,
-        marginTop: 1,
-    },
-    loadingContainer: {
-        paddingVertical: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row',
-        gap: 10,
-    },
-    loadingText: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: Colors.text.tertiary,
-    },
-    studentsListContainer: {
-        marginTop: 6,
-        backgroundColor: '#F8FAFC',
-        borderRadius: 10,
-        borderWidth: 0.5,
-        borderColor: Colors.divider,
-        overflow: 'hidden',
-    },
-    studentsScrollView: {
-        padding: 10,
-    },
-    studentsList: {
-        gap: 3,
-    },
-    studentName: {
-        fontSize: 12,
-        fontWeight: '500',
-        color: Colors.text.secondary,
-    },
-    noDetailsContainer: {
-        paddingVertical: 10,
-        alignItems: 'center',
-    },
-    noDetailsText: {
-        fontSize: 13,
-        color: Colors.text.tertiary,
-        fontStyle: 'italic',
+      } catch {
+        if (!abort.signal.aborted)
+          setMessage("Les détails personnels ne sont pas disponibles.");
+      } finally {
+        if (!abort.signal.aborted) setLoading(false);
+      }
+    })();
+    return () => abort.abort();
+  }, [visible, event, personal]);
+  useEffect(() => {
+    if (visible && Platform.OS === "web") {
+      const previous = document.activeElement as HTMLElement | null;
+      const key = (e: KeyboardEvent) => {
+        if (e.key === "Escape") onClose();
+      };
+      document.addEventListener("keydown", key);
+      return () => {
+        document.removeEventListener("keydown", key);
+        previous?.focus();
+      };
     }
+  }, [visible, onClose]);
+  if (!event) return null;
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={onClose}
+      onShow={() => {
+        (closeRef.current as (View & { focus?: () => void }) | null)?.focus?.();
+      }}
+    >
+      <View style={s.overlay}>
+        <Pressable
+          accessibilityLabel="Fermer les détails"
+          accessibilityRole="button"
+          onPress={onClose}
+          style={StyleSheet.absoluteFill}
+        />
+        <View accessibilityViewIsModal style={s.dialog}>
+          <View
+            style={[
+              ui.row,
+              {
+                justifyContent: "space-between",
+                padding: 24,
+                borderBottomWidth: 1,
+                borderBottomColor: C.border,
+              },
+            ]}
+          >
+            <Badge tone={event.isExam ? "warning" : "success"}>
+              {event.userName || (event.isExam ? "Examen" : "Cours")}
+            </Badge>
+            <Pressable
+              ref={closeRef}
+              accessibilityRole="button"
+              accessibilityLabel="Fermer les détails du cours"
+              onPress={onClose}
+              style={{
+                minHeight: 44,
+                minWidth: 70,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ color: C.primary, fontWeight: "500" }}>
+                Fermer
+              </Text>
+            </Pressable>
+          </View>
+          <ScrollView contentContainerStyle={{ padding: 24, gap: 24 }}>
+            <Text accessibilityRole="header" style={s.title}>
+              {event.title}
+            </Text>
+            <View style={{ gap: 4 }}>
+              <Text style={ui.label}>Horaire</Text>
+              <Body>{formatFullDate(event.start)}</Body>
+              <Body>
+                {formatTime(event.start)} →{" "}
+                {event.start.toDateString() !== event.end.toDateString()
+                  ? formatFullDate(event.end) + " · "
+                  : ""}
+                {formatTime(event.end)}
+              </Body>
+            </View>
+            <View style={{ gap: 4 }}>
+              <Text style={ui.label}>Lieu</Text>
+              <Body>{event.location}</Body>
+            </View>
+            {event.userName ? (
+              <Text style={ui.small}>
+                Comparaison des horaires uniquement. Les détails personnels de
+                ce cours ne sont pas recherchés avec votre session.
+              </Text>
+            ) : app.demo ? (
+              <Text style={ui.small}>
+                Cours fictif de démonstration. Aucun appel à l’API personnelle.
+              </Text>
+            ) : loading ? (
+              <View style={ui.row}>
+                <ActivityIndicator color={C.primary} />
+                <Text style={ui.small}>Recherche des détails personnels…</Text>
+              </View>
+            ) : details ? (
+              <>
+                <Detail
+                  label="Module"
+                  value={details.module || details.courseName}
+                />
+                <Detail
+                  label="Enseignants"
+                  value={details.teachers?.join(", ")}
+                />
+                <Detail label="Groupes" value={details.groups?.join(", ")} />
+                <Detail label="Type" value={details.type} />
+                <Detail label="Statut" value={details.status} />
+                <Detail
+                  label="Étudiants"
+                  value={
+                    details.students.length
+                      ? details.students.join(", ")
+                      : "Non précisé"
+                  }
+                />
+                <Detail label="Salles" value={details.rooms?.join(", ")} />
+              </>
+            ) : (
+              <Text style={ui.small}>
+                {message || "Détails non disponibles."}
+              </Text>
+            )}
+            <Button label="Revenir à l’agenda" onPress={onClose} />
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+function Detail({ label, value }: { label: string; value?: string }) {
+  return (
+    <View style={{ gap: 8 }}>
+      <Text style={ui.label}>{label}</Text>
+      <Body>{value || "Non précisé"}</Body>
+    </View>
+  );
+}
+const s = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: C.overlay,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+  dialog: {
+    width: "100%",
+    maxWidth: 520,
+    maxHeight: "90%",
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  title: {
+    fontSize: 26,
+    fontFamily: Theme.font.heading,
+    color: C.text.primary,
+    lineHeight: 34,
+  },
 });

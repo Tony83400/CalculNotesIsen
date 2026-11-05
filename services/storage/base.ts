@@ -1,79 +1,140 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
+import { invalidateDataScope, assertCurrent } from "../dataScope";
+export const isWeb = Platform.OS === "web";
+export const tokenName = "Token",
+  tokenExpirationName = "TokenExpiration",
+  userName = "User",
+  passwordName = "Password";
+export const secureKeys = [
+  tokenName,
+  tokenExpirationName,
+  userName,
+  passwordName,
+];
+const volatile = new Map<string, string>();
+const prefix = "cnisen:v3:";
+let migrated = false;
+let secureQueue: Promise<unknown> = Promise.resolve();
+let ordinaryQueue: Promise<unknown> = Promise.resolve();
+function ordinaryOperation<T>(task: () => Promise<T>): Promise<T> {
+  const next = ordinaryQueue.then(task, task);
+  ordinaryQueue = next.catch(() => {});
+  return next;
+}
+function secureOperation<T>(task: () => Promise<T>): Promise<T> {
+  const next = secureQueue.then(task, task);
+  secureQueue = next.catch(() => {});
+  return next;
+}
+let nativeMigration: Promise<unknown> | null = null;
+function migrateNative() {
+  return (
+    nativeMigration ??
+    (nativeMigration = AsyncStorage.multiRemove([
+      "Notes",
+      "Agenda",
+      "LastUpdate",
+      "@multi_agenda_users",
+      "@recent_multi_users",
+    ]))
+  );
+}
 
-export const isWeb = Platform.OS === 'web';
-
-export const tokenName = "Token";
-export const tokenExpirationName = "TokenExpiration";
-export const userName = "User";
-export const passwordName = "Password";
-
-export const secureKeys = [tokenName, tokenExpirationName, userName, passwordName];
-
-export const getStorageItem = async (key: string): Promise<string | null> => {
-  if (isWeb) {
-    if (secureKeys.includes(key)) {
-      const name = key + "=";
-      const decodedCookie = decodeURIComponent(document.cookie);
-      const ca = decodedCookie.split(';');
-      for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === ' ') c = c.substring(1);
-        if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
-      }
-      return null; 
-    }
-    return localStorage.getItem(key);
-  } else {
-    if (secureKeys.includes(key)) {
-      return await SecureStore.getItemAsync(key);
-    }
-    return await AsyncStorage.getItem(key);
-  }
-};
-
-export const setStorageItem = async (key: string, value: string) => {
-  if (isWeb) {
-    if (secureKeys.includes(key)) {
-      const expires = new Date();
-      expires.setTime(expires.getTime() + (365 * 24 * 60 * 60 * 1000));
-      document.cookie = `${key}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict;Secure`;
-    } else {
-      localStorage.setItem(key, value);
-    }
-  } else {
-    if (secureKeys.includes(key)) {
-      await SecureStore.setItemAsync(key, value);
-    } else {
-      await AsyncStorage.setItem(key, value);
-    }
-  }
-};
-
-export const removeStorageItem = async (key: string) => {
-  if (isWeb) {
-    if (secureKeys.includes(key)) {
-      document.cookie = `${key}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Strict;Secure`;
-    }
-    localStorage.removeItem(key);
-  } else {
-    if (secureKeys.includes(key)) {
-      await SecureStore.deleteItemAsync(key);
-    } else {
-      await AsyncStorage.removeItem(key);
+function migrateWeb() {
+  if (migrated || typeof document === "undefined") return;
+  migrated = true;
+  // Remove the old one-year JavaScript-readable credentials and unscoped caches.
+  for (const key of [
+    ...secureKeys,
+    "Notes",
+    "Agenda",
+    "LastUpdate",
+    "@multi_agenda_users",
+    "@recent_multi_users",
+  ]) {
+    for (const secure of ["", ";Secure"])
+      document.cookie = `${key}=;Max-Age=0;path=/;SameSite=Strict${secure}`;
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      /* Storage can be unavailable. */
     }
   }
-};
-
-export async function clearAllStorage() {
+}
+export async function getStorageItem(key: string): Promise<string | null> {
   if (isWeb) {
-    localStorage.clear();
-    secureKeys.forEach(key => {
-      document.cookie = `${key}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Strict;Secure`;
-    });
+    migrateWeb();
+    if (secureKeys.includes(key)) return volatile.get(key) ?? null;
+    try {
+      return typeof localStorage === "undefined"
+        ? null
+        : localStorage.getItem(prefix + key);
+    } catch {
+      return null;
+    }
+  }
+  await migrateNative();
+  return secureKeys.includes(key)
+    ? secureOperation(() => SecureStore.getItemAsync(key))
+    : ordinaryOperation(() => AsyncStorage.getItem(prefix + key));
+}
+export async function setStorageItem(
+  key: string,
+  value: string,
+  generation?: number,
+) {
+  if (generation !== undefined) assertCurrent(generation);
+  if (isWeb) {
+    migrateWeb();
+    if (secureKeys.includes(key)) {
+      volatile.set(key, value);
+      return;
+    }
+    localStorage.setItem(prefix + key, value);
     return;
   }
-  await AsyncStorage.clear();
-  await Promise.all(secureKeys.map(key => SecureStore.deleteItemAsync(key)));
+  if (secureKeys.includes(key))
+    await secureOperation(() => {
+      if (generation !== undefined) assertCurrent(generation);
+      return SecureStore.setItemAsync(key, value);
+    });
+  else
+    await ordinaryOperation(() => {
+      if (generation !== undefined) assertCurrent(generation);
+      return AsyncStorage.setItem(prefix + key, value);
+    });
+}
+export async function removeStorageItem(key: string) {
+  if (isWeb) {
+    migrateWeb();
+    volatile.delete(key);
+    try {
+      localStorage.removeItem(prefix + key);
+    } catch {}
+    return;
+  }
+  if (secureKeys.includes(key))
+    await secureOperation(() => SecureStore.deleteItemAsync(key));
+  else await ordinaryOperation(() => AsyncStorage.removeItem(prefix + key));
+}
+export async function storageKeys() {
+  if (!isWeb) await ordinaryQueue;
+  const keys = isWeb
+    ? typeof localStorage === "undefined"
+      ? []
+      : Array.from({ length: localStorage.length }, (_, i) =>
+          localStorage.key(i),
+        ).filter((k): k is string => k !== null)
+    : await AsyncStorage.getAllKeys();
+  return keys
+    .filter((k) => k.startsWith(prefix))
+    .map((k) => k.slice(prefix.length));
+}
+export async function clearAllStorage() {
+  invalidateDataScope();
+  volatile.clear();
+  const keys = await storageKeys().catch(() => []);
+  await Promise.all([...keys, ...secureKeys].map(removeStorageItem));
 }

@@ -1,0 +1,19 @@
+{
+  "node": "v26.13.0",
+  "results": {
+    "before": {
+      "medianMs": 0.020749999999992497,
+      "p95Ms": 0.026250000000004547,
+      "iterations": 2000,
+      "evaluations": 17,
+      "apiNotes": 252
+    },
+    "after": {
+      "medianMs": 0.027999999999991587,
+      "p95Ms": 0.035125000000022055,
+      "iterations": 2000,
+      "evaluations": 17,
+      "apiNotes": 252
+    }
+  }
+}

@@ -1,8 +1,26 @@
 {
-    "rewrites": [
+  "rewrites": [
+    {
+      "source": "/api-proxy/:path*",
+      "destination": "https://api-ent.isenengineering.fr/v1/:path*"
+    }
+  ],
+  "buildCommand": "npm run build:web",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/api-proxy/:path*",
+      "headers": [
         {
-            "source": "/api-proxy/:path*",
-            "destination": "https://api-ent.isenengineering.fr/v1/:path*"
+          "key": "Cache-Control",
+          "value": "private, no-store"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
         }
-    ]
+      ]
+    }
+  ]
 }

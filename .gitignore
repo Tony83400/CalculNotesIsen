@@ -149,3 +149,8 @@ dist/
 /android
 *.png
 /.agents
+
+.bench/
+dist-native/
+
+!assets/brand/*.png

@@ -1,35 +1,39 @@
 export interface Note {
   code: string;
   name: string;
-  note: number; 
+  note: number;
   date: string;
 }
-
 export interface Evaluations {
   name: string;
   code: string;
   coeff: number;
-  noteReelle?: number | null; // Note finale (Simulée ou Réelle)
-  
-  // Nouveaux champs pour gérer ton affichage
-  hasApiNote?: boolean;       // True si la note vient de l'API (cache le slider)
-  uniqueId?: string;          // Identifiant unique pour le state du slider
+  noteReelle?: number | null;
+  publishedNote?: number | null;
+  hasApiNote?: boolean;
+  uniqueId?: string;
+  source?: "published" | "simulation" | "retake" | "missing";
 }
-
 export interface Matiere {
   name: string;
-  coeff_matiere: number; 
+  coeff_matiere: number;
   evaluations: Evaluations[];
-  moyenne?: number | null; 
-  code_rattrapage?: string; // Code utilisé pour identifier les notes de rattrapage liées à cette matière
+  moyenne?: number | null;
+  code_rattrapage?: string;
+  isComplete?: boolean;
 }
-
 export interface Ue {
   ue: string;
   ects: number;
   matieres: Matiere[];
-  moyenne?: number | null; 
-  isValidated?: boolean; 
+  moyenne?: number | null;
+  isValidated?: boolean;
   hasEliminatoryNote?: boolean;
   hasRattrapageApplied?: boolean;
+  isComplete?: boolean;
+  hasSimulation?: boolean;
+  outsideStructure?: boolean;
+}
+export interface SemesterConfig {
+  filieres: Record<string, Ue[]>;
 }

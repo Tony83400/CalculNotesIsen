@@ -1,12 +1,9 @@
-import { Platform } from 'react-native';
-
-// Fonction utilitaire pour détecter localhost proprement
-const isLocalhost =
-    Platform.OS === 'web' &&
-    typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
+import { Platform } from "react-native";
 export const API_URL =
-    Platform.OS === 'web' && !isLocalhost
-        ? '/api-proxy'                           // Web en Production (Vercel) -> On passe par le proxy
-        : 'https://api-ent.isenengineering.fr/v1'; // Mobile OU Localhost -> URL directe
+  Platform.OS === "web"
+    ? "/api-proxy"
+    : "https://api-ent.isenengineering.fr/v1";
+export const CALENDAR_URL =
+  Platform.OS === "web"
+    ? "/api/calendar"
+    : "https://calcul-notes-isen.vercel.app/api/calendar";

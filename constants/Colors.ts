@@ -1,30 +1,36 @@
+// Brand colors observed on https://educ.isen-mediterranee.fr/fr/.
+// The coral is an identity accent; text actions use navy for accessible contrast.
+const navy = "#26264C";
 export const Colors = {
-  // Palette Moderne & Vibrante
-  primary: '#2563EB', // Bleu Royal plus pur
-  primaryLight: '#EFF6FF', 
-
-  // Fonds épurés
-  background: '#F1F5F9', // Plus prononcé pour le contraste (était #F8FAFC)
-  surface: '#FFFFFF',    
-
-  // Typographie
+  primary: navy,
+  primaryLight: "#EEEEF5",
+  background: "#F5F5F9",
+  surface: "#FFFFFF",
+  surfaceMuted: "#F0F0F6",
+  surfaceSubtle: "#F8F8FC",
+  brand: {
+    navy,
+    coral: "#EC4040",
+    muted: "#D4D4E5",
+    border: "#505074",
+    panel: "#35355D",
+  },
   text: {
-    primary: '#0F172A',   // Slate 900
-    secondary: '#475569', // Slate 600
-    tertiary: '#94A3B8',  // Slate 400
-    inverse: '#FFFFFF',   
+    primary: navy,
+    secondary: "#54566C",
+    tertiary: "#656779",
+    inverse: "#FFFFFF",
   },
-
-  // États sémantiques
   status: {
-    success: '#10B981', 
-    warning: '#F59E0B', 
-    error: '#F43F5E',   // Rose-rouge plus moderne
-    info: '#0EA5E9',    
-    neutral: '#E2E8F0', // Plus sombre (était #F1F5F9)
+    success: "#21664E",
+    warning: "#805316",
+    error: "#AC2D35",
+    info: "#365977",
+    neutral: "#E9E9F0",
   },
-
-  // Bordures
-  border: '#CBD5E1',   // Slate 300 (était #E2E8F0)
-  divider: '#E2E8F0',  // Slate 200 (était #F1F5F9)
+  feedback: { errorBackground: "#FBEEF0", infoBackground: "#EDF1F7" },
+  border: "#DADBE4",
+  controlBorder: "#797C91",
+  divider: "#E7E7EE",
+  overlay: "#16162E80",
 };

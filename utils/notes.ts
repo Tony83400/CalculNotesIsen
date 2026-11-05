@@ -1,218 +1,253 @@
-import { Ue, Note, Matiere, Evaluations } from "../types/note";
+import type { Ue, Note } from "../types/note";
 
-/**
- * Fusionne les notes de l'API avec la structure locale et gère les simulations.
- */
-function mergeNotesWithStructure(
-  structure: Ue[],
-  normalNotes: Note[],
-  simulatedNotes: Record<string, number | null>,
-  usedNoteCodes: Set<string>
-) {
-  structure.forEach((ue) => {
-    ue.matieres.forEach((matiere) => {
-      matiere.evaluations.forEach((evaluation, indexEval) => {
-        const uniqueId = evaluation.code || `${matiere.name}_${evaluation.name}_${indexEval}`;
-        evaluation.uniqueId = uniqueId;
-
-        let noteFromApi = null;
-        if (evaluation.code) {
-          noteFromApi = normalNotes.find((n) => n.code === evaluation.code) || 
-                        normalNotes.find((n) => n.code.startsWith(evaluation.code));
-          
-          if (noteFromApi) {
-            usedNoteCodes.add(noteFromApi.code);
-            evaluation.name = noteFromApi.name; // On utilise toujours le nom de l'API si dispo
-          }
-        }
-
-        const simu = simulatedNotes[uniqueId];
-        if (simu !== undefined && simu !== null) {
-          evaluation.noteReelle = simu;
-          evaluation.hasApiNote = false;
-        } else if (noteFromApi) {
-          evaluation.noteReelle = noteFromApi.note;
-          evaluation.hasApiNote = true;
-        } else {
-          evaluation.noteReelle = null;
-          evaluation.hasApiNote = false;
-        }
-      });
-    });
+export const validGrade = (n: unknown): n is number =>
+  typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 20;
+export function parseGrade(text: string): number | null {
+  if (!/^\d{1,2}([.,]\d{1,2})?$/.test(text.trim())) return null;
+  const n = Number(text.trim().replace(",", "."));
+  return validGrade(n) ? n : null;
+}
+export function validateNotes(data: unknown): Note[] {
+  if (!Array.isArray(data)) throw new Error("Réponse de notes invalide.");
+  return data.flatMap((n) => {
+    if (!n || typeof n.code !== "string" || typeof n.name !== "string")
+      return [];
+    const value =
+      typeof n.note === "string"
+        ? /^\d+(?:[.,]\d+)?$/.test(n.note.trim())
+          ? Number(n.note.trim().replace(",", "."))
+          : null
+        : n.note;
+    return validGrade(value)
+      ? [
+          {
+            code: n.code,
+            name: n.name,
+            note: value,
+            date: typeof n.date === "string" ? n.date : "",
+          },
+        ]
+      : [];
   });
 }
-
-/**
- * Applique la logique des rattrapages ISEN.
- */
-function applyRattrapagesLogic(
-  structure: Ue[],
-  rattrapageNotes: Note[],
-  usedNoteCodes: Set<string>
-) {
-  structure.forEach((ue) => {
-    let ueAUtiliseRattrapage = false;
-
-    ue.matieres.forEach((matiere) => {
-      const applicableRattrapages = rattrapageNotes.filter(r => {
-        return matiere.code_rattrapage && r.code.includes(matiere.code_rattrapage);
-      });
-
-      if (applicableRattrapages.length > 0) {
-        const bestRattrapage = [...applicableRattrapages].sort((a, b) => b.note - a.note)[0];
-        usedNoteCodes.add(bestRattrapage.code);
-        
-        matiere.evaluations.forEach(ev => {
-          if (bestRattrapage.note > (ev.noteReelle ?? -1)) {
-            ev.noteReelle = bestRattrapage.note;
-            ev.name = bestRattrapage.name; // On affiche le nom du rattrapage
-            ev.hasApiNote = true;
-            ueAUtiliseRattrapage = true;
-          }
-        });
-      }
-    });
-    
-    ue.hasRattrapageApplied = ueAUtiliseRattrapage;
-  });
-}
-
-/**
- * Calcule les moyennes par matière et par UE, ainsi que la validation.
- */
-function calculateAverages(structure: Ue[], showRattrapages: boolean) {
-  let ectsValides = 0;
-  let totalPointsSemestre = 0;
-  let totalEctsSemestre = 0;
-
-  structure.forEach((ue) => {
-    let sommePointsUE = 0;
-    let totalCoeffUE = 0;
-    let ueEstComplete = true;
-    let pasDeNoteEliminatoire = true;
-
-    ue.matieres.forEach((matiere) => {
-      let sommePointsMat = 0;
-      let totalCoeffMat = 0;
-
-      matiere.evaluations.forEach((ev) => {
-        if (ev.noteReelle !== null && typeof ev.noteReelle === 'number') {
-          sommePointsMat += ev.noteReelle * ev.coeff;
-          totalCoeffMat += ev.coeff;
-        } else {
-          ueEstComplete = false;
-        }
-      });
-
-      if (totalCoeffMat > 0) {
-        matiere.moyenne = sommePointsMat / totalCoeffMat;
-        if (matiere.moyenne < 6) pasDeNoteEliminatoire = false;
-        sommePointsUE += matiere.moyenne * matiere.coeff_matiere;
-        totalCoeffUE += matiere.coeff_matiere;
-      } else {
-        matiere.moyenne = null;
-        ueEstComplete = false;
-      }
-    });
-
-    if (totalCoeffUE > 0) {
-      const moyenneCalculee = sommePointsUE / totalCoeffUE;
-
-      if (showRattrapages && ue.hasRattrapageApplied) {
-        ue.moyenne = Math.min(moyenneCalculee, 10);
-      } else {
-        ue.moyenne = moyenneCalculee;
-      }
-
-      ue.isValidated = ueEstComplete && ue.moyenne >= 10 && pasDeNoteEliminatoire;
-      ue.hasEliminatoryNote = !pasDeNoteEliminatoire;
-
-      if (ue.isValidated) ectsValides += ue.ects;
-      totalPointsSemestre += ue.moyenne * ue.ects;
-      totalEctsSemestre += ue.ects;
-    } else {
-      ue.moyenne = null;
-      ue.isValidated = false;
-    }
-  });
-
-  return { ectsValides, totalPointsSemestre, totalEctsSemestre };
-}
-
-/**
- * Gère les notes "orphelines" (non présentes dans la structure).
- */
-function appendOrphanNotes(structure: Ue[], notes: Note[], usedNoteCodes: Set<string>) {
-  let currentSemester = "";
-  structure.some(ue => ue.matieres.some(m => m.evaluations?.some(e => {
-    const match = e.code?.match(/_S(\d)_/);
-    if (match) currentSemester = `S${match[1]}`;
-    return !!currentSemester;
-  })));
-
-  const unusedNotes = notes.filter(n => !usedNoteCodes.has(n.code) && (!currentSemester || n.code.includes(`_${currentSemester}_`)));
-
-  if (unusedNotes.length > 0) {
-    const sortedUnused = [...unusedNotes].sort((a, b) => {
-      const dateA = a.date ? new Date(a.date.split('/').reverse().join('-')) : new Date(0);
-      const dateB = b.date ? new Date(b.date.split('/').reverse().join('-')) : new Date(0);
-      return dateB.getTime() - dateA.getTime();
-    });
-
-    structure.push({
-      ue: "Autres notes (Hors Moyenne)",
-      ects: 0,
-      matieres: sortedUnused.map(n => ({
-        name: n.name,
-        coeff_matiere: 1,
-        evaluations: [{ name: n.name, code: n.code, coeff: 1, noteReelle: n.note, hasApiNote: true, uniqueId: n.code }],
-        moyenne: n.note,
-      })),
-      moyenne: sortedUnused.reduce((acc, n) => acc + n.note, 0) / sortedUnused.length,
-      isValidated: false,
-    });
+export function validateStructure(data: unknown): Ue[] {
+  if (
+    !Array.isArray(data) ||
+    !data.every(
+      (u) =>
+        u &&
+        typeof u.ue === "string" &&
+        Number.isFinite(u.ects) &&
+        u.ects >= 0 &&
+        Array.isArray(u.matieres) &&
+        u.matieres.length > 0 &&
+        u.matieres.every(
+          (m: Ue["matieres"][number]) =>
+            typeof m.name === "string" &&
+            Number.isFinite(m.coeff_matiere) &&
+            m.coeff_matiere > 0 &&
+            Array.isArray(m.evaluations) &&
+            m.evaluations.length > 0 &&
+            m.evaluations.every(
+              (e) =>
+                typeof e.name === "string" &&
+                typeof e.code === "string" &&
+                Number.isFinite(e.coeff) &&
+                e.coeff > 0,
+            ),
+        ),
+    )
+  ) {
+    throw new Error("Structure de semestre invalide ou indisponible.");
   }
+  return data;
 }
+const average = (
+  items: { value: number | null | undefined; weight: number }[],
+) => {
+  let sum = 0,
+    weight = 0;
+  for (const i of items)
+    if (validGrade(i.value) && Number.isFinite(i.weight) && i.weight > 0) {
+      sum += i.value * i.weight;
+      weight += i.weight;
+    }
+  return weight ? sum / weight : null;
+};
+const boundaryPrefix = (code: string, prefix: string) =>
+  code === prefix ||
+  code.startsWith(prefix.endsWith("_") ? prefix : `${prefix}_`);
 
-/**
- * Calcule les moyennes et fusionne les notes de l'API avec la structure de la filière.
- * Gère les simulations et le mode rattrapage spécifique à l'ISEN.
- */
-const getDonneesAvecNotes = (
+/** Pure projection. Preserves the existing retake cap pending the institution's rule. */
+export default function getDonneesAvecNotes(
   dataFiliere: Ue[] = [],
   notes: Note[] = [],
   simulatedNotes: Record<string, number | null> = {},
-  showRattrapages: boolean = false
-) => {
-  if (!dataFiliere) dataFiliere = [];
-  
-  const structureCopie: Ue[] = JSON.parse(JSON.stringify(dataFiliere));
-  const usedNoteCodes = new Set<string>();
-
-  const rattrapageNotes = notes.filter(n => n.code.includes("_RATTRAPAGE_"));
-  const normalNotes = notes.filter(n => !n.code.includes("_RATTRAPAGE_"));
-
-  // 1. Fusion initiale
-  mergeNotesWithStructure(structureCopie, normalNotes, simulatedNotes, usedNoteCodes);
-
-  // 2. Rattrapages
-  if (showRattrapages) {
-    applyRattrapagesLogic(structureCopie, rattrapageNotes, usedNoteCodes);
-  }
-
-  // 3. Calcul des moyennes
-  const { ectsValides, totalPointsSemestre, totalEctsSemestre } = calculateAverages(structureCopie, showRattrapages);
-
-  // 4. Notes orphelines
-  appendOrphanNotes(structureCopie, notes, usedNoteCodes);
-
+  showRattrapages = false,
+  semesterId?: string,
+) {
+  const valid = notes.filter((n) => validGrade(n.note));
+  const normal = valid.filter((n) => !n.code.includes("_RATTRAPAGE_"));
+  const retakes = valid.filter((n) => n.code.includes("_RATTRAPAGE_"));
+  const exact = new Map<string, Note[]>();
+  for (const n of normal) exact.set(n.code, [...(exact.get(n.code) || []), n]);
+  const used = new Set<Note>();
+  const configCodes = dataFiliere
+    .flatMap((u) => u.matieres.flatMap((m) => m.evaluations.map((e) => e.code)))
+    .filter(Boolean);
+  let published = 0,
+    total = 0,
+    entered = 0;
+  const structure: Ue[] = dataFiliere.map((ue, ui) => {
+    let retakeApplied = false,
+      hasSimulation = false;
+    const matieres = ue.matieres.map((m, mi) => {
+      const applicable =
+        showRattrapages && m.code_rattrapage
+          ? retakes.filter(
+              (n) =>
+                boundaryPrefix(n.code, m.code_rattrapage!) ||
+                n.code.includes(`_${m.code_rattrapage}_`),
+            )
+          : [];
+      applicable.forEach((n) => used.add(n));
+      const best = applicable.reduce<Note | null>(
+        (a, b) => (!a || b.note > a.note ? b : a),
+        null,
+      );
+      const evaluations = m.evaluations.map((e, ei) => {
+        total++;
+        const uniqueId = `${ui}:${mi}:${ei}:${e.code || e.name}`;
+        const exactMatches = e.code ? exact.get(e.code) : undefined;
+        const candidates =
+          exactMatches ||
+          (e.code
+            ? normal.filter(
+                (n) =>
+                  boundaryPrefix(n.code, e.code) &&
+                  !configCodes.some(
+                    (c) =>
+                      c !== e.code &&
+                      c.length > e.code.length &&
+                      boundaryPrefix(n.code, c),
+                  ),
+              )
+            : []);
+        const api = candidates?.length === 1 ? candidates[0] : undefined;
+        if (api) {
+          used.add(api);
+          published++;
+        }
+        const simulation = simulatedNotes[uniqueId];
+        const isSimulation = validGrade(simulation);
+        if (isSimulation) hasSimulation = true;
+        let value = isSimulation ? simulation : (api?.note ?? null);
+        let source: "published" | "simulation" | "retake" | "missing" =
+          isSimulation ? "simulation" : api ? "published" : "missing";
+        if (best && best.note > (value ?? -1)) {
+          value = best.note;
+          source = "retake";
+          retakeApplied = true;
+        }
+        if (value !== null) entered++;
+        return {
+          ...e,
+          uniqueId,
+          publishedNote: api?.note ?? null,
+          noteReelle: value,
+          hasApiNote: !!api,
+          source,
+        };
+      });
+      return {
+        ...m,
+        evaluations,
+        moyenne: average(
+          evaluations.map((e) => ({ value: e.noteReelle, weight: e.coeff })),
+        ),
+        isComplete:
+          evaluations.length > 0 &&
+          evaluations.every((e) => validGrade(e.noteReelle)),
+      };
+    });
+    const raw = average(
+      matieres.map((m) => ({ value: m.moyenne, weight: m.coeff_matiere })),
+    );
+    const moyenne =
+      raw === null ? null : retakeApplied ? Math.min(10, raw) : raw;
+    const isComplete =
+      matieres.length > 0 && matieres.every((m) => m.isComplete);
+    const hasEliminatoryNote = matieres.some(
+      (m) => m.moyenne !== null && m.moyenne < 6,
+    );
+    return {
+      ...ue,
+      matieres,
+      moyenne,
+      isComplete,
+      hasSimulation,
+      hasEliminatoryNote,
+      hasRattrapageApplied: retakeApplied,
+      isValidated:
+        isComplete && moyenne !== null && moyenne >= 10 && !hasEliminatoryNote,
+    };
+  });
+  const academic = structure.filter((u) => u.ects > 0);
+  const moyenne = average(
+    academic.map((u) => ({ value: u.moyenne, weight: u.ects })),
+  );
+  const semester =
+    semesterId?.match(/^S(\d+)$/)?.[1] ||
+    configCodes.map((c) => c.match(/_S(\d+)_/)?.[1]).find(Boolean);
+  const unused = valid.filter(
+    (n) => !used.has(n) && (!semester || n.code.includes(`_S${semester}_`)),
+  );
+  if (unused.length)
+    structure.push({
+      ue: "Notes hors structure",
+      ects: 0,
+      outsideStructure: true,
+      moyenne: null,
+      matieres: [...unused]
+        .sort((a, b) => noteTimestamp(b.date) - noteTimestamp(a.date))
+        .map((n) => ({
+          name: n.name,
+          coeff_matiere: 1,
+          moyenne: n.note,
+          evaluations: [
+            {
+              name: n.name,
+              code: n.code,
+              coeff: 1,
+              noteReelle: n.note,
+              publishedNote: n.note,
+              hasApiNote: true,
+              uniqueId: `orphan:${n.code}:${n.date}`,
+              source: "published",
+            },
+          ],
+        })),
+    });
   return {
-    structure: structureCopie,
+    structure,
     stats: {
-      ects: ectsValides,
-      moyenne: totalEctsSemestre > 0 ? totalPointsSemestre / totalEctsSemestre : 0
+      moyenne,
+      ects: academic
+        .filter((u) => u.isValidated)
+        .reduce((a, u) => a + u.ects, 0),
+      totalEcts: academic.reduce((a, u) => a + u.ects, 0),
+      published,
+      total,
+      entered,
+      complete: academic.length > 0 && academic.every((u) => u.isComplete),
     },
   };
-};
+}
 
-export default getDonneesAvecNotes;
+export function noteTimestamp(date: string) {
+  return (
+    Date.parse(
+      date.includes("/") ? date.split("/").reverse().join("-") : date,
+    ) || 0
+  );
+}

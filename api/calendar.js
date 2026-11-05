@@ -1,77 +1,31 @@
-const https = require('https');
-
+const https = require('node:https');
+const {Buffer}=require('node:buffer');
+const MAX_BYTES = 4 * 1024 * 1024;
+// The upstream ICS service is public by name; this endpoint cannot impose ISEN
+// authorization without a documented upstream identity/permission mechanism.
 module.exports = (req, res) => {
-  // 1. RÉCUPÉRATION DES PARAMÈTRES
-  // L'URL ressemblera à : /api/calendar?prenom=john&nom=smith
-  const { prenom, nom } = req.query;
-
-  // Sécurité : Si pas de nom ou prénom, on arrête tout
-  if (!prenom || !nom) {
-    return res.status(400).json({ 
-      error: "Paramètres manquants", 
-      message: "Utilisez l'URL sous la forme : /api/calendar?prenom=votrePrenom&nom=votreNom" 
-    });
-  }
-
-  // 2. CONSTRUCTION DE L'URL DYNAMIQUE
-  // On met tout en minuscule (toLowerCase) car les fichiers ISEN sont souvent en minuscule
-  // On "encode" pour gérer les espaces ou accents éventuels
-  const safePrenom = encodeURIComponent(prenom.toLowerCase());
-  const safeNom = encodeURIComponent(nom.toLowerCase());
-  
-  const ICS_URL = `https://ent.isen-mediterranee.fr/webaurion/ICS/${safePrenom}.${safeNom}.ics`;
-
-  console.log("Cible :", ICS_URL); // Utile pour les logs Vercel
-
-  // 3. HEADERS CORS (Rien ne change ici)
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  // 4. Options HTTPS (Mode "Bulldozer")
-  const options = {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': 'text/calendar, text/plain, */*'
-    },
-    rejectUnauthorized: false // On ignore les erreurs SSL
-  };
-
-  // 5. La requête vers l'ISEN
-  https.get(ICS_URL, options, (externalRes) => {
-    
-    // Si l'utilisateur n'existe pas, l'ISEN renverra probablement une 404
-    if (externalRes.statusCode !== 200) {
-      return res.status(404).json({ 
-        error: "Introuvable",
-        details: `Impossible de trouver l'agenda pour ${safePrenom}.${safeNom} (Code ISEN: ${externalRes.statusCode})`
-      });
-    }
-
-    let data = '';
-
-    externalRes.on('data', (chunk) => {
-      data += chunk;
-    });
-
-    externalRes.on('end', () => {
-      // On renvoie le fichier
-      res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
-      res.setHeader('Content-Disposition', `attachment; filename="${safePrenom}-${safeNom}.ics"`);
-      res.setHeader('Cache-Control', 's-maxage=900, stale-while-revalidate=60');
-      res.status(200).send(data);
-    });
-
-  }).on('error', (err) => {
-    console.error("ERREUR:", err);
-    res.status(500).json({ error: 'Erreur de connexion', details: err.message });
+  res.setHeader('Cache-Control', 'private, no-store');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  if(req.method === 'OPTIONS') {res.setHeader('Allow','GET, OPTIONS');return res.status(204).end();}
+  if(req.method !== 'GET') {res.setHeader('Allow','GET, OPTIONS');return res.status(405).json({error:'Méthode non autorisée.'});}
+  const {prenom, nom}=req.query;
+  const valid=v=>typeof v==='string' && v.length>0 && v.length<=80 && /^[\p{L}\p{M}\p{N}' -]+$/u.test(v);
+  if(!valid(prenom)||!valid(nom))return res.status(400).json({error:'Prénom et nom invalides.'});
+  const clean=v=>encodeURIComponent(v.trim().toLowerCase().replace(/[\s']+/g,'-'));
+  const url=`https://ent.isen-mediterranee.fr/webaurion/ICS/${clean(prenom)}.${clean(nom)}.ics`;
+  let finished=false;
+  const fail=(status,message)=>{if(finished)return;finished=true;res.status(status).json({error:message});};
+  const upstream=https.get(url,{rejectUnauthorized:true,headers:{Accept:'text/calendar','User-Agent':'CalculNotesISEN/3'}},response=>{
+    if(response.statusCode!==200){response.resume();return fail(response.statusCode===404?404:502,'Le calendrier amont est indisponible.');}
+    const chunks=[];let size=0;
+    response.on('data',chunk=>{size+=chunk.length;if(size>MAX_BYTES){fail(502,'Calendrier amont trop volumineux.');upstream.destroy();}else chunks.push(chunk);});
+    response.on('error',()=>fail(502,'Lecture du calendrier interrompue.'));
+    response.on('end',()=>{if(finished)return;const data=Buffer.concat(chunks).toString('utf8');if(!data.trimStart().startsWith('BEGIN:VCALENDAR'))return fail(502,'Format du calendrier amont invalide.');finished=true;res.setHeader('Content-Type','text/calendar; charset=utf-8');res.status(200).send(data);});
   });
+  // Absolute deadline as well as idle timeout: a slowly trickling response must end.
+  const deadline=setTimeout(()=>{fail(504,'Le calendrier amont ne répond pas.');upstream.destroy();},15000);
+  upstream.setTimeout(10000,()=>{fail(504,'Le calendrier amont ne répond pas.');upstream.destroy();});
+  upstream.on('error',()=>fail(502,'Connexion sécurisée au calendrier amont impossible.'));
+  res.on('close',()=>{clearTimeout(deadline);if(!finished)upstream.destroy();});
+  upstream.on('close',()=>clearTimeout(deadline));
 };

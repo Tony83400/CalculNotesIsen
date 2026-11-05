@@ -1,73 +1,37 @@
-# 🚀 CalculNotesIsen - Documentation Technique & Développement
+# Consignes techniques — CalculNotesISEN
 
-> [!IMPORTANT]
-> Ce fichier **DOIT** être régulièrement mis à jour après chaque changement architectural, modification des règles métier ou mise à jour du système de design. Il sert de boussole technique pour Gemini.
+Le brief de refonte de novembre 2026 remplace les anciennes prescriptions « Premium v2 ». Ne pas réintroduire les ombres généralisées, grandes cartes imbriquées ou palette bleue de l’ancienne interface.
 
-## 🛠️ Stack Technique
-- **Framework :** Expo (SDK 54) avec React Native (0.81).
-- **Navigation :** Expo Router (File-based routing, v6).
-- **Langage :** TypeScript (Strict mode).
-- **Styles :** StyleSheet standard avec un système de constantes évolué (`constants/Colors.ts`).
-- **Icônes :** `lucide-react-native`.
-- **Animations :** `react-native-reanimated` (v4) et `expo-haptics` pour les retours tactiles. 
-- **Stockage :** `@react-native-async-storage/async-storage` et `expo-secure-store`.
-- **Utilitaires :** `ical.js` (Agenda), `Vercel Analytics`.
+## Base conservée
 
-## 📏 Règles Métier (ISEN)
+Expo SDK 54, React Native 0.81.5, React 19.1, Expo Router, TypeScript strict, StyleSheet, Lucide, AsyncStorage, SecureStore, ical.js. Préserver web, Android et iOS. Voir le README pour les commandes, relais locaux et limites de validation native.
 
-### Validation des UE
-Pour qu'une Unité d'Enseignement (UE) soit validée, deux conditions sont nécessaires :
-1. **Moyenne de l'UE ≥ 10/20**.
-2. **Aucune matière constitutive de l'UE n'a une moyenne < 6/20** (Note éliminatoire).
+## Design
 
-### Calcul des Moyennes & Rattrapages
-- **Matière :** Moyenne pondérée des évaluations selon leurs coefficients respectifs.
-- **UE :** Moyenne pondérée des matières selon les coefficients de matière.
-- **Semestre :** Moyenne pondérée des UE selon leurs ECTS.
-- **Logique de Rattrapage :** 
-  - Si la moyenne initiale de l'UE est `< 10`, la nouvelle moyenne (après rattrapage) est **plafonnée à 10**.
-## 🎨 Système de Design (Premium v2)
-- **Primary :** `#2563EB` (Bleu Royal moderne).
-- **Background :** `#F1F5F9` (Gris ardoise très clair pour le contraste).
-- **Success :** `#10B981` (Vert émeraude).
-- **Error :** `#F43F5E` (Rose-rouge corail).
-- **Rayons de courbure (Border Radius) :** 
-  - `24px` pour les grandes cartes principales (`UeCard`).
-  - `16px` pour les sous-sections et éléments internes.
-  - `12px` pour les boutons et badges.
-- **Ombres (Shadows) :** Opacité très faible (`0.02` à `0.04`) avec un rayon de diffusion large pour un effet premium et léger.
-- **Typographie :** Graisses `800` pour les titres et moyennes `600/700` pour les informations clés. Espacement des lettres (`letterSpacing: -0.5`) sur les titres.
+Un carnet de campus adapté à la charte du portail https://educ.isen-mediterranee.fr/fr/ : bleu nuit `#26264C`, accent corail `#EC4040`, blanc et fonds clairs `#F5F5F9`, séparateurs fins, chiffres tabulaires. La finition unslop conserve les titres éditoriaux mais utilise la police d’interface pour les chiffres, des libellés en casse de phrase et les graisses 400/500 (600 réservé au nom du produit). Éviter les petites capitales espacées et les flèches décoratives répétées. La navigation et la connexion utilisent le bleu nuit ; le corail repère les actions et sections actives. Réserver les verts aux états de réussite. Ne pas poser de petit texte blanc sur le corail vif, qui n’offre pas le contraste nécessaire. Utiliser les tokens dans `constants/Colors.ts` et `Theme.ts`, les contrôles de `Primitives.tsx` et le cadre `AppShell`. Les états sémantiques doivent toujours posséder un libellé. Cibles tactiles de 44 px ; les cours courts dans la grille ont aussi une entrée de liste accessible. Le web a des focus visibles et aucune animation n’est nécessaire aux parcours.
 
-## 📂 Structure du Code
-- `app/` : Routes de l'application (Navigation).
-- `components/ui/` : Composants atomiques et cartes complexes (`agenda/`, `notes/`, `selection/`).
-- `services/` : Appels API (`isenApi`, `agendaApi`, `configApi`) et gestion du stockage modulaire (`storage/`).
-- `utils/` : Logique pure de traitement de données (`notes.ts` décomposé, `agenda.ts`, `notifications.ts`).
-- `hooks/` : Hooks de données et d'état (`useNotesData.ts`, `useAuth.ts`, `useAgenda.ts`).
-- `types/` : Definitions TypeScript globales.
-- `structures_notes/` : **Source de vérité pour la configuration.** Contient `structure.json` (global), les fichiers par semestre, et `localMapping.ts`.
+## Architecture et sécurité
 
-## ⌨️ Standards de Code pour Gemini
-1. **Typage :** Toujours définir des interfaces dans `types/` avant d'implémenter une nouvelle fonctionnalité.
-2. **Surgical Updates :** Utiliser `replace` avec un contexte suffisant pour éviter les erreurs de duplication.
-3. **Architecture Config :** **NE JAMAIS** utiliser `structure_note.json` (legacy supprimé). Toujours utiliser `structures_notes/structure.json` via `configApi.ts`.
-4. **Validation :** Après chaque changement de logique de calcul, vérifier l'impact dans `utils/notes.ts`.
-5. **Composants Screens :** Les fichiers dans `app/` doivent rester "bêtes" (UI uniquement). Toute la logique de chargement, de cache et d'état complexe doit être extraite dans un hook personnalisé (ex: `useNotesData`).
-6. **Performance :** Utiliser `useCallback` et `useMemo` pour les calculs lourds et les listes.
-7. **UI Premium :** Toujours respecter le système de design v2 (arrondis généreux, ombres douces).
+Les routes composent les écrans ; la session et les données personnelles partagées appartiennent à `AppDataProvider`. Les accès réseau sont dans les services, les projections pures dans `utils/`. Ne pas créer de nouveau cache mémoire global indépendant.
 
-## 🔄 Flux de Données
-1. **Notes :** Récupération via `isenApi.ts` -> Gestion par `useNotesData` (Cache `storage/cacheStorage.ts`) -> Fusion avec la structure via `getDonneesAvecNotes` (`utils/notes.ts`) -> Affichage.
-2. **Authentification :** Gérée par `useAuth` utilisant `authStorage.ts` (SecureStore pour le mobile, Cookies pour le web).
-3. **Config Globale (`structure.json`) :** Chargée via `updateStructureConfig` (configApi.ts).
-    - **Web :** Mapping local par défaut.
-    - **Native :** Cache (`storage.ts`) -> GitHub RAW -> Fallback Local.
-    - **Actualisation :** Le bouton "Actualiser" force le téléchargement GitHub et met à jour le cache (Native uniquement).
-- **Config Semestre :** Chargée via `fetchSemesterStructure` (configApi.ts) après sélection de l'année/filière.
-    - **Web :** Mapping local (bundled).
-    - **Native :** Cache (`StructureConfig_` prefix) -> GitHub RAW -> Fallback Local.
-- **Gestion des Rattrapages :** Chaque matière (`Matiere`) peut posséder un `code_rattrapage` dans le JSON. S'il est présent, toute note de l'API contenant ce code ET `_RATTRAPAGE_` sera considérée comme un rattrapage pour cette matière.
-4. **Agenda :** Récupération via `agendaApi.ts` -> Parsing `ical.js` (`utils/agenda.ts`) -> Hook `useAgenda.ts`.
-5. **Notifications :** Programmées via `notifications.ts` (30 min avant le cours, limité aux 4 prochains jours, build natif uniquement).
-6. **Simulations :** Les notes simulées par l'utilisateur sont stockées localement et fusionnées en temps réel dans `getDonneesAvecNotes`.
-7. **Cache & Refresh :** `clearAppCache` (storage.ts) vide l'agenda, les notes et toutes les structures configurées (globales et semestres) pour garantir une fraîcheur totale lors d'un refresh manuel.
+Capturer la génération de `dataScope` avant une requête personnelle et la revérifier avant toute publication ou écriture. Utiliser un AbortSignal. Les caches sont isolés par compte, datés, validés et distingués du réseau dans l’interface. Ne jamais afficher une réponse périmée après déconnexion ou changement de compte/cursus.
+
+Web : authentification en mémoire uniquement, aucun mot de passe persistant ni cookie d’authentification écrit en JavaScript. Ne pas annoncer HttpOnly sans mécanisme serveur réel. Natif : SecureStore pour les secrets, reconnexion mutualisée et bornée. La déconnexion efface les données de l’application et annule les rappels.
+
+Le proxy calendrier doit vérifier TLS et conserver les restrictions de méthode, paramètres, délai, taille et cache privé. Ne pas journaliser de noms, identifiants, jetons, notes ou horaires personnels. La comparaison n’accède jamais aux détails personnels d’un autre étudiant via la session du titulaire.
+
+## Règles métier
+
+`structures_notes/` reste la référence technique de configuration ; sa conformité au règlement n’est pas établie. Les évaluations, matières et UE sont pondérées respectivement par coefficient d’évaluation, `coeff_matiere` et ECTS. Moyenne sans note = `null`. Aucune conversion des valeurs absentes en zéro ; refuser NaN et les valeurs hors 0–20. Notes hors structure et UE zéro ECTS hors moyenne du semestre. Les simulations ne modifient jamais la source.
+
+Validation estimée : données complètes, moyenne d’UE ≥ 10, aucune matière < 6. **Rattrapage à confirmer : conserver le code de `7be717f`**, c’est-à-dire meilleur rattrapage améliorant les évaluations puis plafond UE 10 dès qu’une amélioration a été appliquée. Le responsable a demandé de maintenir ce comportement dans l’attente d’une règle fiable. Ne pas adopter l’ancienne formulation « seulement si UE initiale < 10 » sans nouvelle confirmation.
+
+N2 et S2/N1 sont incomplets ; de nombreux codes M1 sont vides. Les signaler sans inventer de correspondance ou de pondération.
+
+## Vérification
+
+Exécuter typecheck, lint, tests ciblés et export web après une modification substantielle. Exporter aussi les bundles Android/iOS lorsqu’un composant partagé change. Une compilation ou un aperçu web ne valent pas un essai natif. Mesurer avant d’annoncer une amélioration de performance. Maintenir README et `docs/REFONTE.md` lorsque les parcours, contrats de données ou règles changent.
+
+## Comparaison des agendas
+
+Conserver une grille temporelle commune en vue jour et semaine pour les agendas partagés. Les événements simultanés doivent être côte à côte au même niveau horaire, selon `layoutDay`. Les sélecteurs Jour/Semaine restent disponibles sur mobile ; une semaine comprend sept jours (lundi–dimanche). Le défilement est interne à la grille. Ne pas réintroduire une liste verticale pour la comparaison quotidienne ni forcer le mode jour après un choix explicite de la semaine. L’agenda personnel garde son comportement mobile existant.

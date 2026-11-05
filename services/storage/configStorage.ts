@@ -1,10 +1,13 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getStorageItem, setStorageItem, isWeb } from "./base";
+import {
+  getStorageItem,
+  setStorageItem,
+  removeStorageItem,
+  storageKeys,
+} from "./base";
 
 const structureName = "StructureConfig";
 const selectedYearName = "SelectedYear";
 const selectedSemesterName = "SelectedSemester";
-const selectedFiliereName = "SelectedFiliere";
 const selectedMajorsName = "SelectedMajors";
 const selectedMajorsUrlsName = "SelectedMajorsUrls";
 
@@ -24,12 +27,21 @@ export async function setSelectedSemester(value: string) {
   await setStorageItem(selectedSemesterName, value);
 }
 
-export async function getSelectedMajors(): Promise<Record<string, string> | null> {
+export async function getSelectedMajors(): Promise<Record<
+  string,
+  string
+> | null> {
   const data = await getStorageItem(selectedMajorsName);
   if (!data || data === "undefined") return null;
   try {
-    return JSON.parse(data);
-  } catch (e) {
+    const parsed: unknown = JSON.parse(data);
+    return parsed &&
+      typeof parsed === "object" &&
+      !Array.isArray(parsed) &&
+      Object.values(parsed).every((v) => typeof v === "string")
+      ? (parsed as Record<string, string>)
+      : null;
+  } catch {
     return null;
   }
 }
@@ -38,12 +50,21 @@ export async function setSelectedMajors(value: Record<string, string>) {
   await setStorageItem(selectedMajorsName, JSON.stringify(value));
 }
 
-export async function getSelectedMajorsUrls(): Promise<Record<string, string> | null> {
+export async function getSelectedMajorsUrls(): Promise<Record<
+  string,
+  string
+> | null> {
   const data = await getStorageItem(selectedMajorsUrlsName);
   if (!data || data === "undefined") return null;
   try {
-    return JSON.parse(data);
-  } catch (e) {
+    const parsed: unknown = JSON.parse(data);
+    return parsed &&
+      typeof parsed === "object" &&
+      !Array.isArray(parsed) &&
+      Object.values(parsed).every((v) => typeof v === "string")
+      ? (parsed as Record<string, string>)
+      : null;
+  } catch {
     return null;
   }
 }
@@ -53,64 +74,62 @@ export async function setSelectedMajorsUrls(value: Record<string, string>) {
 }
 
 export async function clearStructureCache() {
-  if (isWeb) {
-    const keys = Object.keys(localStorage);
-    keys.forEach(key => {
-      if (key.startsWith(structureName)) {
-        localStorage.removeItem(key);
-      }
-    });
-    return;
-  }
-  try {
-    const keys = await AsyncStorage.getAllKeys();
-    const structureKeys = keys.filter(key => key.startsWith(structureName));
-    if (structureKeys.length > 0) {
-      await AsyncStorage.multiRemove(structureKeys);
-    }
-  } catch (e) {
-    console.error("Erreur clearStructureCache", e);
-  }
+  const keys = await storageKeys();
+  await Promise.all(
+    keys.filter((k) => k.startsWith(structureName)).map(removeStorageItem),
+  );
 }
 
-export async function saveStructureToCache(structure: any) {
+export async function saveStructureToCache(structure: unknown) {
   try {
     await setStorageItem(structureName, JSON.stringify(structure));
-  } catch (e) {
-    console.error("Erreur sauvegarde structure", e);
+  } catch {
+    // A full cache must not prevent using the downloaded structure.
   }
 }
 
-export async function loadStructureFromCache(): Promise<any | null> {
+export async function loadStructureFromCache(): Promise<unknown | null> {
   const cachedString = await getStorageItem(structureName);
   if (cachedString) {
     try {
       return JSON.parse(cachedString);
-    } catch (e) {
-      console.error("Erreur parsing structure", e);
+    } catch {
+      return null;
     }
   }
-  return null; 
+  return null;
 }
 
-export async function saveSemesterStructureToCache(semester: string, url: string, structure: any) {
+export async function saveSemesterStructureToCache(
+  semester: string,
+  url: string,
+  structure: unknown,
+) {
   try {
-    const urlId = url.split('/').pop()?.replace('.json', '') || 'unknown';
-    await setStorageItem(`${structureName}_${semester}_${urlId}`, JSON.stringify(structure));
-  } catch (e) {
-    console.error(`Erreur sauvegarde structure ${semester}`, e);
+    const urlId = url.split("/").pop()?.replace(".json", "") || "unknown";
+    await setStorageItem(
+      `${structureName}_${semester}_${urlId}`,
+      JSON.stringify(structure),
+    );
+  } catch {
+    // Network data remains usable without a persistent cache.
   }
 }
 
-export async function loadSemesterStructureFromCache(semester: string, url: string): Promise<any | null> {
+export async function loadSemesterStructureFromCache(
+  semester: string,
+  url: string,
+): Promise<unknown | null> {
   try {
-    const urlId = url.split('/').pop()?.replace('.json', '') || 'unknown';
-    const cachedString = await getStorageItem(`${structureName}_${semester}_${urlId}`);
+    const urlId = url.split("/").pop()?.replace(".json", "") || "unknown";
+    const cachedString = await getStorageItem(
+      `${structureName}_${semester}_${urlId}`,
+    );
     if (cachedString) {
       return JSON.parse(cachedString);
     }
-  } catch (e) {
-    console.error(`Erreur parsing structure ${semester}`, e);
+  } catch {
+    return null;
   }
   return null;
 }
