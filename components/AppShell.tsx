@@ -21,7 +21,7 @@ import {
 import { Colors as C } from "../constants/Colors";
 import { Theme } from "../constants/Theme";
 import { useAppData } from "../providers/AppData";
-import { Button, Heading, ui } from "./ui/Primitives";
+import { Button, Heading, Notice, ui } from "./ui/Primitives";
 const routes = [
   { path: "/selection", label: "Accueil", Icon: Home },
   { path: "/notes", label: "Mes notes", Icon: NotebookPen },
@@ -145,6 +145,7 @@ export default function AppShell({
           </Text>
         </View>
       )}
+      {app.sessionError && <Notice error>{app.sessionError}</Notice>}
       {app.notes.error?.startsWith("Session expirée") && (
         <View style={s.demo}>
           <Text style={ui.small}>
@@ -215,7 +216,9 @@ export default function AppShell({
               inverse
               variant="quiet"
               onPress={() => {
-                void app.logout().then(() => router.replace("/"));
+                void app.logout().then((ok) => {
+                  if (ok) router.replace("/");
+                });
               }}
             />
           </View>

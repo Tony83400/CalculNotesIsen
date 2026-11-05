@@ -15,7 +15,7 @@ npm ci
 npm run web
 ```
 
-Le web est exporté puis servi sur **http://127.0.0.1:8081** avec les deux relais serveur nécessaires (`/api-proxy` pour l’API ISEN, `/api/calendar` pour les ICS). `PORT=8082 npm run preview` permet de choisir un autre port après un export. Le serveur de prévisualisation écoute uniquement sur la boucle locale.
+Le web est exporté puis servi sur **http://127.0.0.1:8081** avec les relais serveur nécessaires (`/api/session` pour la connexion mémorisée, `/api-proxy` pour l’API ISEN et `/api/calendar` pour les ICS). `PORT=8082 npm run preview` permet de choisir un autre port après un export. Le serveur de prévisualisation écoute uniquement sur la boucle locale.
 
 **Découvrir avec des données fictives** permet d’explorer toute l’interface sans compte et sans appel aux données personnelles. Les noms saisis dans la comparaison restent fictifs dans ce mode. La démo se termine au rechargement.
 
@@ -46,7 +46,7 @@ npm run benchmark
 
 Les tests utilisent uniquement des fixtures fictives, des réponses HTTP simulées et des adaptateurs de stockage simulés. Les tests de composants utilisent `react-test-renderer` ; ils ne remplacent pas les essais VoiceOver, TalkBack ou sur appareil. Le benchmark compare le calcul actuel à la copie du calcul de `7be717f` et écrit ses modules temporaires dans `.bench/`.
 
-Vercel utilise `npm run build:web`, le dossier `dist`, la fonction `api/calendar.js` et la réécriture `/api-proxy` vers l’API ISEN. **Ne pas héberger uniquement `dist/` sur un serveur statique pour une utilisation connectée** : les relais serveur sont nécessaires. Les réponses personnelles du proxy sont marquées `private, no-store`. La refonte n’effectue aucune publication automatique sur le site existant.
+Vercel utilise `npm run build:web`, le dossier `dist`, les fonctions `api/calendar.js` et `api/session.js` ainsi que la réécriture `/api-proxy` vers l’API ISEN. **Ne pas héberger uniquement `dist/` sur un serveur statique pour une utilisation connectée** : les relais serveur sont nécessaires. Les réponses personnelles du proxy sont marquées `private, no-store`. La refonte n’effectue aucune publication automatique sur le site existant.
 
 ## Parcours
 
@@ -70,7 +70,7 @@ Les icônes sont fournies dans `assets/brand/`. Leurs sources vectorielles sont 
 | `providers/AppData.tsx`                                           | Session courante, cursus, ressources personnelles partagées, provenance réseau/cache et simulations |
 | `services/dataScope.ts`                                           | Génération synchrone : empêche les réponses d’une session précédente de publier leurs résultats     |
 | `services/isenApi.ts`, `http.ts`                                  | Validation des réponses, délais, reconnexion mutualisée et bornée                                   |
-| `services/storage/`                                               | SecureStore, stockage web en mémoire pour l’authentification, caches nommés par compte et migration |
+| `services/storage/`                                               | SecureStore, jeton web en mémoire, caches nommés par compte et migration                            |
 | `hooks/useCalendarNavigation.ts`, `useMultiAgenda.ts`             | Navigation commune des agendas et chargement indépendant des comparaisons                           |
 | `utils/notes.ts`, `utils/agenda.ts`                               | Calculs purs, validation, ICS, récurrences et collisions                                            |
 | `structures_notes/`                                               | Configuration métier de référence, conservée                                                        |
@@ -80,7 +80,9 @@ Les anciens hooks `useNotesData` et `useAgenda` sont de petits adaptateurs vers 
 
 ## Session et données locales
 
-**Web :** aucun mot de passe persistant, aucun jeton en cookie ou localStorage. Le jeton et l’identité restent en mémoire de l’onglet. Recharger la page, ouvrir un autre onglet ou fermer le navigateur demande une nouvelle connexion. La session ne peut donc pas se rétablir silencieusement après expiration sur web. Ce choix fonctionne avec l’API actuelle, sans supposer un refresh token ni simuler un cookie HttpOnly côté client. Une session web persistante demanderait un véritable serveur de session, des cookies HttpOnly créés par ce serveur et une politique d’expiration adaptée.
+**Web :** la case **Rester connecté sur cet appareil** est disponible à la connexion. Décochée : jeton en mémoire uniquement, reconnexion après rechargement. Cochée : reprise automatique pendant **7 jours**, y compris après fermeture du navigateur, grâce à un vrai cookie **HttpOnly, Secure, SameSite=Strict** créé par `/api/session`. Le jeton API reste en mémoire ; les identifiants nécessaires au renouvellement sont chiffrés et authentifiés par le serveur (AES-256-GCM) dans le cookie, jamais en clair ni dans localStorage. La clé de déchiffrement reste exclusivement sur le serveur. Cette stratégie n’invente pas de refresh token absent du contrat actuel de l’API. La durée de 7 jours est fixe, sans prolongation à chaque visite. Déconnexion, choix décoché lors d’une nouvelle connexion et entrée en démo suppriment la mémorisation. Une déconnexion hors ligne laisse un marqueur local non secret qui bloque toute reprise et impose de réessayer la suppression du cookie. Un cookie refusé ou expiré redemande une connexion ; une panne ISEN temporaire ne le supprime pas.
+
+**Configuration serveur :** `npm run preview` crée automatiquement une clé locale dans `.env.local` (ignoré par Git), réutilisée aux lancements suivants. Sur **Vercel**, définir **SESSION_ENCRYPTION_KEY** avec **64 caractères hexadécimaux aléatoires**, indépendants de la clé locale, dans les environnements Production/Preview concernés, puis redéployer. On peut générer la valeur avec `openssl rand -hex 32` dans son terminal. Ne jamais employer le préfixe `EXPO_PUBLIC_`, publier cette valeur ni committer un vrai fichier `.env`. La connexion temporaire reste utilisable sans cette clé ; une tentative de mémorisation affiche une erreur explicite si elle manque. Changer la clé invalide les cookies de mémorisation existants. Voir [le fonctionnement, les tests et les limites](docs/SESSION_WEB.md).
 
 **Natif :** jeton et, si « Rester connecté » est coché, identifiants dans SecureStore. La durée locale d’une heure est une estimation conservée du projet ; les réponses 401 restent déterminantes. Une seule reconnexion est partagée entre les requêtes simultanées ; un appel protégé n’est jamais relancé récursivement.
 

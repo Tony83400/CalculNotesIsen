@@ -6,6 +6,11 @@ import * as storage from "../services/storage";
 import { getNotes, login } from "../services/isenApi";
 import { getAgendaFor } from "../services/agendaApi";
 import { invalidateDataScope } from "../services/dataScope";
+import { restoreWebSession, clearWebSession } from "../services/webSession";
+vi.mock("../services/webSession", () => ({
+  restoreWebSession: vi.fn(async () => null),
+  clearWebSession: vi.fn(async () => {}),
+}));
 vi.mock("../services/isenApi", () => ({
   getNotes: vi.fn(),
   login: vi.fn(async () => ({ token: "fiction-token" })),
@@ -59,6 +64,8 @@ beforeEach(async () => {
   vi.mocked(getNotes).mockReset();
   vi.mocked(getAgendaFor).mockClear();
   seen.length = 0;
+  vi.mocked(restoreWebSession).mockReset().mockResolvedValue(null);
+  vi.mocked(clearWebSession).mockClear();
 });
 it("never exposes the previous account while switching or after late completion", async () => {
   await configure("fiction.alice");
@@ -116,6 +123,7 @@ it("invalidates simulations and all projected data on logout", async () => {
   expect(app.notes.data).toEqual([]);
   expect(app.agenda.data).toEqual([]);
   expect(app.simulations).toEqual({});
+  expect(clearWebSession).toHaveBeenCalled();
   await act(async () => renderer.unmount());
 });
 it("drops simulations and reloads configuration after a curriculum generation change", async () => {
@@ -131,5 +139,52 @@ it("drops simulations and reloads configuration after a curriculum generation ch
     invalidateDataScope();
   });
   expect(app.simulations).toEqual({});
+  await act(async () => renderer.unmount());
+});
+it("restores a remembered account at startup before loading its account-scoped data", async () => {
+  vi.mocked(restoreWebSession).mockResolvedValueOnce({
+    username: "fiction.camille",
+    token: "fiction-token",
+  });
+  vi.mocked(getNotes).mockResolvedValue([
+    { code: "restored", name: "Fictif", note: 14, date: "" },
+  ]);
+  const renderer = await mount();
+  expect(app.user).toBe("fiction.camille");
+  expect(app.notes.data[0].code).toBe("restored");
+  expect(await storage.getPasswordStorage()).toBeNull();
+  expect(localStorage.getItem("Password")).toBeNull();
+  await act(async () => renderer.unmount());
+});
+it("does not reinstate a session when a delayed startup restoration finishes after logout", async () => {
+  let finish: (data: { username: string; token: string }) => void = () => {};
+  vi.mocked(restoreWebSession).mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const renderer = await mount();
+  await act(async () => app.logout());
+  await act(async () =>
+    finish({ username: "fiction.old", token: "old-token" }),
+  );
+  expect(app.user).toBeNull();
+  expect(await storage.getToken()).toBeNull();
+  expect(app.notes.data).toEqual([]);
+  await act(async () => renderer.unmount());
+});
+it("shows a logout failure instead of claiming the remembered session was removed", async () => {
+  await configure("fiction.camille");
+  vi.mocked(getNotes).mockResolvedValue([]);
+  const renderer = await mount();
+  vi.mocked(clearWebSession).mockRejectedValueOnce(
+    new Error("Offline and storage blocked"),
+  );
+  await act(async () => {
+    expect(await app.logout()).toBe(false);
+  });
+  expect(app.sessionError).toContain("déconnexion");
+  expect(app.user).toBe("fiction.camille");
   await act(async () => renderer.unmount());
 });

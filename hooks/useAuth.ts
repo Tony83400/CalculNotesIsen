@@ -11,7 +11,7 @@ export function useAuth() {
     [keepLogin, setKeepLogin] = useState(false),
     [loading, setLoading] = useState(false);
   const handleLogin = async (id: string, pass: string) => {
-    if (loading) return;
+    if (loading || !app.ready) return;
     if (!id.trim() || !pass) {
       setErrorText("Renseignez votre identifiant et votre mot de passe.");
       return;
@@ -33,8 +33,12 @@ export function useAuth() {
     }
   };
   const loginWithoutAccount = async () => {
-    await app.startDemo();
-    router.replace("/selection");
+    try {
+      await app.startDemo();
+      router.replace("/selection");
+    } catch (e) {
+      setErrorText((e as Error).message);
+    }
   };
   return {
     email,

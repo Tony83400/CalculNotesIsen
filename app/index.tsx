@@ -104,6 +104,7 @@ export default function Login() {
                     <Text
                       style={{
                         fontSize: 13,
+                        fontFamily: Theme.font.body,
                         fontWeight: "500",
                         color: C.text.primary,
                       }}
@@ -158,10 +159,40 @@ export default function Login() {
                       </Pressable>
                     </View>
                   </View>
-                  {Platform.OS !== "web" && (
+                  {Platform.OS === "web" ? (
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        minHeight: 44,
+                        fontSize: 13,
+                        color: C.text.secondary,
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={a.keepLogin}
+                        disabled={a.loading || !app.ready}
+                        onChange={(e) =>
+                          a.setKeepLogin(e.currentTarget.checked)
+                        }
+                        style={{
+                          width: 20,
+                          height: 20,
+                          margin: 0,
+                          accentColor: C.primary,
+                        }}
+                      />
+                      Rester connecté sur cet appareil
+                    </label>
+                  ) : (
                     <Pressable
                       accessibilityRole="checkbox"
+                      accessibilityLabel="Rester connecté sur cet appareil"
                       accessibilityState={{ checked: a.keepLogin }}
+                      disabled={a.loading || !app.ready}
                       onPress={() => a.setKeepLogin(!a.keepLogin)}
                       style={[ui.row, { minHeight: 44 }]}
                     >
@@ -180,11 +211,13 @@ export default function Login() {
                       </Text>
                     </Pressable>
                   )}
-                  {a.errorText ? <Notice error>{a.errorText}</Notice> : null}
+                  {a.errorText || (!app.user && app.notes.error) ? (
+                    <Notice error>{a.errorText || app.notes.error}</Notice>
+                  ) : null}
                   <Button
                     label="Ouvrir mon carnet"
                     variant="primary"
-                    loading={a.loading}
+                    loading={a.loading || !app.ready}
                     icon={
                       <ArrowRight strokeWidth={1.5} size={18} color="white" />
                     }
@@ -193,7 +226,9 @@ export default function Login() {
                 </View>
                 <Text style={ui.small}>
                   {Platform.OS === "web"
-                    ? "Votre mot de passe n’est jamais conservé dans le navigateur. La session se termine au rechargement."
+                    ? a.keepLogin
+                      ? "Connexion mémorisée pendant 7 jours sur cet appareil. Vos identifiants sont protégés par le serveur dans un cookie chiffré."
+                      : "Sans cette option, la session se termine au rechargement de la page."
                     : "Les identifiants mémorisés sont protégés par le stockage sécurisé de votre appareil."}
                 </Text>
                 <View style={[ui.rule, { marginTop: 4 }]} />
@@ -201,7 +236,7 @@ export default function Login() {
                   <Button
                     label="Découvrir avec des données fictives"
                     onPress={() => void a.loginWithoutAccount()}
-                    disabled={a.loading}
+                    disabled={a.loading || !app.ready}
                   />
                   <Text
                     style={[ui.small, { fontSize: 12, textAlign: "center" }]}

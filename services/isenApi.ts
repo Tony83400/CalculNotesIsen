@@ -10,15 +10,18 @@ import { getDataGeneration, assertCurrent } from "./dataScope";
 import { timedFetch, createAuthorizedRequest } from "./http";
 import { validateNotes } from "../utils/notes";
 import type { EventDetails } from "../types/agenda";
+import { Platform } from "react-native";
+import { loginWeb, restoreWebSession } from "./webSession";
 
 export async function login(
-  data: { username: string; password: string },
+  data: { username: string; password: string; remember?: boolean },
   signal?: AbortSignal,
 ) {
+  if (Platform.OS === "web") return loginWeb(data, signal);
   const res = await timedFetch(`${API_URL}/token`, {
     method: "POST",
     headers: { Accept: "*/*", "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body: JSON.stringify({ username: data.username, password: data.password }),
     signal,
   });
   if (!res.ok)
@@ -37,6 +40,14 @@ export async function login(
 }
 async function silentLogin() {
   const generation = getDataGeneration();
+  if (Platform.OS === "web") {
+    const username = await getId();
+    const session = await restoreWebSession();
+    assertCurrent(generation);
+    if (!session || session.username !== username) return null;
+    await setToken(session.token, generation);
+    return session.token;
+  }
   const [username, password] = await Promise.all([
     getId(),
     getPasswordStorage(),

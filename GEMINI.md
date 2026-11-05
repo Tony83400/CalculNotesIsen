@@ -16,7 +16,7 @@ Les routes composent les écrans ; la session et les données personnelles parta
 
 Capturer la génération de `dataScope` avant une requête personnelle et la revérifier avant toute publication ou écriture. Utiliser un AbortSignal. Les caches sont isolés par compte, datés, validés et distingués du réseau dans l’interface. Ne jamais afficher une réponse périmée après déconnexion ou changement de compte/cursus.
 
-Web : authentification en mémoire uniquement, aucun mot de passe persistant ni cookie d’authentification écrit en JavaScript. Ne pas annoncer HttpOnly sans mécanisme serveur réel. Natif : SecureStore pour les secrets, reconnexion mutualisée et bornée. La déconnexion efface les données de l’application et annule les rappels.
+Web : jeton API en mémoire ; option « Rester connecté » via `/api/session`, cookie HttpOnly/Secure/SameSite=Strict scellé en AES-256-GCM par le serveur, durée fixe de 7 jours. Identifiants chiffrés nécessaires au renouvellement, jamais persistés en clair ni accessibles au JavaScript. Clé SESSION_ENCRYPTION_KEY exclusivement serveur ; aucun préfixe EXPO_PUBLIC_. Sans option, aucune persistance. Conserver le contrôle d’origine, le marqueur de déconnexion hors ligne, la sérialisation connexion/déconnexion et les barrières de génération. Voir docs/SESSION_WEB.md. Natif : SecureStore pour les secrets, reconnexion mutualisée et bornée. La déconnexion efface les données de l’application et annule les rappels.
 
 Le proxy calendrier doit vérifier TLS et conserver les restrictions de méthode, paramètres, délai, taille et cache privé. Ne pas journaliser de noms, identifiants, jetons, notes ou horaires personnels. La comparaison n’accède jamais aux détails personnels d’un autre étudiant via la session du titulaire.
 

@@ -210,7 +210,7 @@ export default function Settings() {
           {app.demo
             ? "Démonstration : aucune donnée personnelle."
             : Platform.OS === "web"
-              ? "Le jeton reste en mémoire. Un rechargement du navigateur demande une nouvelle connexion. Aucun mot de passe n’est enregistré sur le web."
+              ? "Si vous avez coché « Rester connecté », la connexion reprend automatiquement pendant 7 jours grâce à un cookie chiffré par le serveur. La déconnexion supprime cette connexion mémorisée. Le mot de passe n’est jamais enregistré en clair dans le navigateur."
               : "Le jeton et les identifiants mémorisés sont conservés dans SecureStore. La déconnexion les efface et annule les rappels."}
         </Text>
         <View style={{ alignSelf: "flex-start" }}>
@@ -218,7 +218,9 @@ export default function Settings() {
             label={app.demo ? "Quitter la démonstration" : "Se déconnecter"}
             variant="danger"
             onPress={() => {
-              void app.logout().then(() => router.replace("/"));
+              void app.logout().then((ok) => {
+                if (ok) router.replace("/");
+              });
             }}
           />
         </View>

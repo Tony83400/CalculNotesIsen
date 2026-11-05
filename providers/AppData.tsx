@@ -16,6 +16,7 @@ import {
 import * as storage from "../services/storage";
 import { getNotes, login } from "../services/isenApi";
 import { getAgendaFor } from "../services/agendaApi";
+import { restoreWebSession, clearWebSession } from "../services/webSession";
 import {
   fetchSemesterStructure,
   updateStructureConfig,
@@ -51,6 +52,7 @@ function useAppState() {
   const [ready, setReady] = useState(false),
     [user, setUser] = useState<string | null>(null),
     [demo, setDemo] = useState(false);
+  const [sessionError, setSessionError] = useState<string | null>(null);
   const [year, setYear] = useState<string | null>(null),
     [semester, setSemester] = useState<string | null>(null),
     [majors, setMajors] = useState<Record<string, string>>({}),
@@ -175,6 +177,16 @@ function useAppState() {
           setReady(true);
           return;
         }
+        if (!(await storage.getId())) {
+          const restored = await restoreWebSession();
+          assertCurrent(generation, abort.signal);
+          if (restored) {
+            await storage.setId(restored.username);
+            await storage.setToken(restored.token);
+            invalidateDataScope();
+            return;
+          }
+        }
         const [id, y, s, m, urls] = await Promise.all([
           storage.getId(),
           storage.getSelectedYear(),
@@ -244,10 +256,12 @@ function useAppState() {
     password: string,
     remember: boolean,
   ) => {
+    setSessionError(null);
     const g = getDataGeneration();
     const result = await login({
       username: username.trim().toLowerCase(),
       password,
+      remember,
     });
     assertCurrent(g);
     await storage.clearAllStorage();
@@ -259,17 +273,28 @@ function useAppState() {
     invalidateDataScope();
   };
   const startDemo = async () => {
+    await clearWebSession();
     await storage.clearAllStorage();
     await cancelCourseNotifications();
     demoRef.current = true;
     invalidateDataScope();
   };
   const logout = async () => {
+    setSessionError(null);
+    try {
+      await clearWebSession();
+    } catch {
+      setSessionError(
+        "La déconnexion n’a pas pu être confirmée. Réessayez avec une connexion réseau.",
+      );
+      return false;
+    }
     demoRef.current = false;
     controller.current?.abort();
     await storage.clearAllStorage();
     await cancelCourseNotifications();
     invalidateDataScope();
+    return true;
   };
   const selectSemester = async (s: string) => {
     if (!majors[s]) return;
@@ -351,6 +376,7 @@ function useAppState() {
     ready: ready && current,
     user: current ? user : null,
     demo: current && demo,
+    sessionError,
     year: current ? year : null,
     semester: current ? semester : null,
     majors: current ? majors : {},

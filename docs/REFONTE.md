@@ -1,5 +1,7 @@
 # Bilan de la refonte — 5 novembre 2026
 
+La session web persistante a été ajoutée ensuite à la demande du responsable : les mentions historiques « mémoire uniquement » ci-dessous décrivent la première livraison. Le comportement actuel et la configuration Vercel sont détaillés dans [SESSION_WEB.md](SESSION_WEB.md).
+
 ## Livraison et direction visuelle
 
 Intervention depuis le commit **7be717f** du dépôt `Tony83400/CalculNotesIsen`, sans changement de framework. Expo 54, React Native 0.81.5, React 19.1, Expo Router, StyleSheet et TypeScript strict sont conservés. Le web reste compatible Vercel ; les mêmes écrans et services servent Android/iOS.
@@ -82,7 +84,7 @@ L’amélioration vérifiée des interactions est l’absence de commit global p
 2. **Appareils Android/iOS :** SDK Android absent ; Xcode présent mais aucun appareil/runtime de simulateur disponible. Construire et tester les development builds : claviers, grands textes, zones sûres, rotation, SecureStore, rappels, refus de permission, VoiceOver/TalkBack et consommation réseau.
 3. **Agendas réels :** les variations ICS exotiques et la disponibilité amont restent à confirmer. Expansion bornée à trois années civiles autour de l’année courante et 20 000 occurrences par série ; les fuseaux inconnus et les calendriers invalides donnent une erreur plutôt qu’une heure arbitraire.
 4. **Accès aux ICS :** le service amont est publiquement adressable par nom. Le proxy ne prétend pas ajouter une autorisation institutionnelle absente de l’amont. Clarifier cette politique avec l’établissement si le service doit devenir privé.
-5. **Web persistant :** une reconnexion après rechargement est volontaire. Pour « Rester connecté » sur web, concevoir un véritable serveur de session avec cookie HttpOnly et politique d’expiration, selon les capacités de l’API ; ne pas remettre un mot de passe dans le navigateur.
+5. **Web persistant :** désormais implémenté avec une case explicite et `/api/session`. Configurer SESSION_ENCRYPTION_KEY dans Vercel avant d’activer la mémorisation en production, puis valider la reprise avec un vrai compte ISEN. Voir SESSION_WEB.md ; aucun mot de passe persistant en clair.
 6. **Déploiement Vercel :** configuration et code livrés localement ; aucun push ou déploiement de production effectué. Refaire un essai authentifié après déploiement pour vérifier les réécritures et la fonction calendrier dans l’environnement Vercel.
 
 Les captures livrées utilisent exclusivement les données fictives de la démonstration. Le README détaille l’installation, les commandes, les responsabilités et la maintenance des structures.

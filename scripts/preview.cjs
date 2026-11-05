@@ -3,6 +3,8 @@ const https = require("node:https");
 const fs = require("node:fs");
 const path = require("node:path");
 const calendar = require("../api/calendar");
+require("./setup-session.cjs")();
+const session = require("../api/session");
 const root = path.resolve("dist");
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -16,6 +18,7 @@ const types = {
 };
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, "http://localhost");
+  if (url.pathname === "/api/session") return void session(req, res);
   if (url.pathname === "/api/calendar") {
     req.query = Object.fromEntries(url.searchParams);
     res.status = (code) => {
@@ -30,6 +33,8 @@ const server = http.createServer((req, res) => {
     const headers = { ...req.headers, host: "api-ent.isenengineering.fr" };
     delete headers.origin;
     delete headers.referer;
+    // Never forward our same-origin HttpOnly cookie to the upstream API.
+    delete headers.cookie;
     const upstream = https.request(
       {
         hostname: "api-ent.isenengineering.fr",
