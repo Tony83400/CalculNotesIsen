@@ -285,7 +285,7 @@ const s = themedStyles(() => ({
     fontFamily: Theme.font.heading,
     fontSize: 56,
     lineHeight: 64,
-    color: C.text.inverse,
+    color: C.brand.muted,
   },
   intro: { fontSize: 16, lineHeight: 26, color: C.brand.muted, maxWidth: 370 },
   sample: { marginTop: 64, borderTopWidth: 1, borderTopColor: C.brand.border },
@@ -300,7 +300,7 @@ const s = themedStyles(() => ({
   sampleLabel: { fontSize: 12, letterSpacing: 0, color: C.brand.muted },
   sampleText: {
     fontSize: 16,
-    color: C.text.inverse,
+    color: C.brand.muted,
   },
   signature: { marginTop: 48, fontSize: 11, color: C.brand.muted },
   formSide: {
