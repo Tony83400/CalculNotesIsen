@@ -68,9 +68,7 @@ export default function AppShell({
     { width } = useWindowDimensions();
   const desktop = width >= 1080;
   const nav = (r: (typeof routes)[number], mobile = false) => {
-    const active =
-      path === r.path ||
-      (r.path === "/agenda" && path === "/multi-agenda" && mobile);
+    const active = path === r.path;
     return (
       <Pressable
         key={r.path}
@@ -106,7 +104,7 @@ export default function AppShell({
             },
           ]}
         >
-          {r.label}
+          {mobile && r.path === "/multi-agenda" ? "Comparer" : r.label}
         </Text>
       </Pressable>
     );
