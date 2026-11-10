@@ -1,345 +1,326 @@
-import { useAppearance } from "../providers/Appearance";
-import { themedStyles } from "../constants/themedStyles";
-import React, { useRef, useState } from "react";
+import React, { useEffect } from "react";
 import {
-  View,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
+  View,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
-  useWindowDimensions,
-  Pressable,
+  ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Redirect } from "expo-router";
-import { ArrowRight, Eye, EyeOff } from "lucide-react-native";
+import {
+  Lock,
+  User,
+  ChevronRight,
+  CheckCircle2,
+  Circle,
+  AlertCircle,
+  GraduationCap,
+} from "lucide-react-native";
+import { Analytics } from "@vercel/analytics/react";
+import { router } from "expo-router";
+
 import { useAuth } from "../hooks/useAuth";
+import { Colors } from "../constants/Colors";
 import { useAppData } from "../providers/AppData";
-import { Brand } from "../components/AppShell";
-import { Colors as C } from "../constants/Colors";
-import { Theme } from "../constants/Theme";
-import { Button, Field, Notice, ui } from "../components/ui/Primitives";
-export default function Login() {
-  const appearance = useAppearance();
-  const a = useAuth(),
-    app = useAppData(),
-    { width } = useWindowDimensions(),
-    pass = useRef<TextInput>(null),
-    [visible, setVisible] = useState(false);
-  if (app.ready && app.user && !app.notes.error?.startsWith("Session expirée"))
-    return <Redirect href="/selection" />;
+
+export default function LoginScreen() {
+  const app = useAppData();
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    errorText,
+    keepLogin,
+    setKeepLogin,
+    loading,
+    handleLogin,
+    loginWithoutAccount,
+  } = useAuth();
+
+  useEffect(() => {
+    if (app.ready && app.user) {
+      if (app.year && Object.keys(app.majors).length > 0) {
+        router.replace("/selection");
+      } else {
+        router.replace("/selectionAnnee");
+      }
+    }
+  }, [app.ready, app.user, app.year, app.majors]);
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.brand.navy }}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
       <KeyboardAvoidingView
-        style={{ flex: 1, backgroundColor: C.background }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardView}
       >
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={[s.layout, width < 850 && { flexDirection: "column" }]}>
-            {width >= 850 && (
-              <View style={s.editorial}>
-                <Brand light />
-                <View style={{ marginTop: 96, gap: 28 }}>
-                  <Text style={s.issue}>CalculNotesISEN · espace étudiant</Text>
-                  <Text style={s.statement}>
-                    Vos cours{"\n"}Vos notes{"\n"}Votre semestre
-                  </Text>
-                  <Text style={s.intro}>
-                    Consultez vos cours, suivez vos moyennes et simulez les
-                    évaluations à venir avec votre cursus ISEN.
-                  </Text>
-                </View>
-                <View style={s.sample}>
-                  <View style={s.sampleRow}>
-                    <Text style={s.sampleLabel}>Agenda</Text>
-                    <Text style={s.sampleText}>Cours et examens</Text>
-                  </View>
-                  <View style={s.sampleRow}>
-                    <Text style={s.sampleLabel}>Résultats</Text>
-                    <Text style={s.sampleText}>Moyennes et ECTS</Text>
-                  </View>
-                  <View style={s.sampleRow}>
-                    <Text style={s.sampleLabel}>Simulations</Text>
-                    <Text style={s.sampleText}>Hypothèses de notes</Text>
-                  </View>
-                </View>
-                <Text style={s.signature}>
-                  Un outil étudiant par Anthony Coulais et Mattéo Sautron
-                </Text>
-              </View>
-            )}
-            <View style={[s.formSide, width < 850 && { padding: 24 }]}>
-              <View style={{ width: "100%", maxWidth: 390, gap: 24 }}>
-                {width < 850 && (
-                  <View style={{ marginBottom: 28 }}>
-                    <Brand />
-                  </View>
-                )}
-                <View style={{ gap: 12 }}>
-                  <Text style={s.eyebrow}>Accès étudiant</Text>
-                  <Text accessibilityRole="header" style={s.title}>
-                    Connexion ISEN
-                  </Text>
-                  <Text style={ui.small}>
-                    Connectez-vous avec vos identifiants ISEN.
-                  </Text>
-                </View>
-                <View style={{ gap: 16 }}>
-                  <Field
-                    label="Identifiant ISEN"
-                    placeholder="prenom.nom"
-                    value={a.email}
-                    onChangeText={a.setEmail}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    autoComplete="username"
-                    textContentType="username"
-                    returnKeyType="next"
-                    onSubmitEditing={() => pass.current?.focus()}
-                    editable={!a.loading}
-                  />
-                  <View style={{ gap: 8 }}>
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        fontWeight: "500",
-                        color: C.text.primary,
-                      }}
-                    >
-                      Mot de passe
-                    </Text>
-                    <View style={ui.row}>
-                      <TextInput
-                        ref={pass}
-                        accessibilityLabel="Mot de passe"
-                        style={s.password}
-                        value={a.password}
-                        onChangeText={a.setPassword}
-                        secureTextEntry={!visible}
-                        autoComplete="current-password"
-                        textContentType="password"
-                        autoCapitalize="none"
-                        returnKeyType="go"
-                        onSubmitEditing={() =>
-                          void a.handleLogin(a.email, a.password)
-                        }
-                        editable={!a.loading}
-                      />
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel={
-                          visible
-                            ? "Masquer le mot de passe"
-                            : "Afficher le mot de passe"
-                        }
-                        onPress={() => setVisible((v) => !v)}
-                        style={{
-                          minWidth: 44,
-                          minHeight: 48,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        {visible ? (
-                          <EyeOff
-                            strokeWidth={1.5}
-                            color={C.text.secondary}
-                            size={18}
-                          />
-                        ) : (
-                          <Eye
-                            strokeWidth={1.5}
-                            color={C.text.secondary}
-                            size={18}
-                          />
-                        )}
-                      </Pressable>
-                    </View>
-                  </View>
-                  {Platform.OS === "web" ? (
-                    <label
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        minHeight: 44,
-                        fontSize: 13,
-                        fontFamily: Theme.font.body,
-                        color: C.text.secondary,
-                        cursor: "pointer",
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={a.keepLogin}
-                        disabled={a.loading || !app.ready}
-                        onChange={(e) =>
-                          a.setKeepLogin(e.currentTarget.checked)
-                        }
-                        style={{
-                          width: 20,
-                          height: 20,
-                          margin: 0,
-                          accentColor: C.primary,
-                        }}
-                      />
-                      Rester connecté sur cet appareil
-                    </label>
-                  ) : (
-                    <Pressable
-                      accessibilityRole="checkbox"
-                      accessibilityLabel="Rester connecté sur cet appareil"
-                      accessibilityState={{ checked: a.keepLogin }}
-                      disabled={a.loading || !app.ready}
-                      onPress={() => a.setKeepLogin(!a.keepLogin)}
-                      style={[ui.row, { minHeight: 44 }]}
-                    >
-                      <View
-                        style={[
-                          s.checkbox,
-                          a.keepLogin && { backgroundColor: C.primary },
-                        ]}
-                      >
-                        <Text style={{ color: "white" }}>
-                          {a.keepLogin ? "✓" : ""}
-                        </Text>
-                      </View>
-                      <Text style={ui.small}>
-                        Rester connecté sur cet appareil
-                      </Text>
-                    </Pressable>
-                  )}
-                  {a.errorText || (!app.user && app.notes.error) ? (
-                    <Notice error>{a.errorText || app.notes.error}</Notice>
-                  ) : null}
-                  <Button
-                    label="Ouvrir mon carnet"
-                    variant="primary"
-                    loading={a.loading || !app.ready}
-                    icon={
-                      <ArrowRight strokeWidth={1.5} size={18} color="white" />
-                    }
-                    onPress={() => void a.handleLogin(a.email, a.password)}
-                  />
-                </View>
-                <Text style={ui.small}>
-                  {Platform.OS === "web"
-                    ? a.keepLogin
-                      ? "Connexion mémorisée pendant 7 jours sur cet appareil. Vos identifiants sont protégés par le serveur dans un cookie chiffré."
-                      : "Sans cette option, la session se termine au rechargement de la page."
-                    : "Les identifiants mémorisés sont protégés par le stockage sécurisé de votre appareil."}
-                </Text>
-                <View style={[ui.rule, { marginTop: 4 }]} />
-                <View style={{ gap: 8 }}>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      gap: 12,
-                      alignItems: "stretch",
-                    }}
-                  >
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <Button
-                        label={appearance.dark ? "Mode clair" : "Mode sombre"}
-                        onPress={appearance.toggle}
-                        style={{ flex: 1 }}
-                      />
-                    </View>
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <Button
-                        label="Données fictives"
-                        accessibilityLabel="Découvrir avec des données fictives"
-                        onPress={() => void a.loginWithoutAccount()}
-                        disabled={a.loading || !app.ready}
-                        style={{ flex: 1 }}
-                      />
-                    </View>
-                  </View>
-                  <Text
-                    style={[ui.small, { fontSize: 12, textAlign: "center" }]}
-                  >
-                    Sans compte · aucune donnée personnelle
-                  </Text>
-                </View>
-                <Text style={[ui.small, { fontSize: 11, marginTop: 12 }]}>
-                  CalculNotesISEN est un outil indépendant. Les moyennes
-                  affichées sont des estimations, pas des résultats certifiés.
-                </Text>
-              </View>
+        <View style={styles.contentContainer}>
+          {/* LOGO SECTION */}
+          <View style={styles.logoContainer}>
+            <View style={styles.logoIcon}>
+              <GraduationCap size={44} color={Colors.primary} />
             </View>
+            <Text style={styles.logoTitle}>
+              CalculNotes<Text style={{ color: Colors.primary }}>ISEN</Text>
+            </Text>
           </View>
-        </ScrollView>
+
+          {/* TITLE SECTION */}
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Connexion</Text>
+            <Text style={styles.subtitle}>
+              Identifiez-vous avec vos identifiants ISEN
+            </Text>
+          </View>
+
+          {/* INPUTS SECTION */}
+          <View style={styles.form}>
+            <View style={styles.inputWrapper}>
+              <User
+                size={20}
+                color={Colors.text.tertiary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="prenom.nom"
+                placeholderTextColor={Colors.text.tertiary}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <Lock
+                size={20}
+                color={Colors.text.tertiary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Mot de passe"
+                placeholderTextColor={Colors.text.tertiary}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={true}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.keepLoginContainer}
+              onPress={() => setKeepLogin(!keepLogin)}
+              activeOpacity={0.7}
+            >
+              {keepLogin ? (
+                <CheckCircle2 size={20} color={Colors.primary} />
+              ) : (
+                <Circle size={20} color={Colors.text.tertiary} />
+              )}
+              <Text
+                style={[
+                  styles.keepLoginText,
+                  keepLogin && { color: Colors.primary },
+                ]}
+              >
+                Rester connecté
+              </Text>
+            </TouchableOpacity>
+
+            {errorText ? (
+              <View style={styles.errorContainer}>
+                <AlertCircle size={18} color={Colors.status.error} />
+                <Text style={styles.errorText}>{errorText}</Text>
+              </View>
+            ) : null}
+
+            <TouchableOpacity
+              style={[
+                styles.loginButton,
+                (loading || !app.ready) && styles.loginButtonDisabled,
+              ]}
+              onPress={() => handleLogin(email, password)}
+              disabled={loading || !app.ready}
+              activeOpacity={0.8}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <>
+                  <Text style={styles.loginButtonText}>Se connecter</Text>
+                  <ChevronRight size={20} color="#FFF" />
+                </>
+              )}
+            </TouchableOpacity>
+
+            {errorText ? (
+              <TouchableOpacity
+                style={styles.ghostButton}
+                onPress={loginWithoutAccount}
+              >
+                <Text style={styles.ghostButtonText}>
+                  Continuer sans connexion
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </View>
       </KeyboardAvoidingView>
+      {Platform.OS === "web" && <Analytics />}
     </SafeAreaView>
   );
 }
-const s = themedStyles(() => ({
-  layout: { flex: 1, flexDirection: "row", minHeight: 700 },
-  editorial: { width: "33.333%", backgroundColor: C.brand.navy, padding: 48 },
-  issue: { fontSize: 12, letterSpacing: 0, color: C.brand.muted },
-  statement: {
-    fontFamily: Theme.font.heading,
-    fontSize: 56,
-    lineHeight: 64,
-    color: C.brand.muted,
-  },
-  intro: { fontSize: 16, lineHeight: 26, color: C.brand.muted, maxWidth: 370 },
-  sample: { marginTop: 64, borderTopWidth: 1, borderTopColor: C.brand.border },
-  sampleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: C.brand.border,
-    paddingVertical: 16,
-  },
-  sampleLabel: { fontSize: 12, letterSpacing: 0, color: C.brand.muted },
-  sampleText: {
-    fontSize: 16,
-    color: C.brand.muted,
-  },
-  signature: { marginTop: 48, fontSize: 11, color: C.brand.muted },
-  formSide: {
+
+const styles = StyleSheet.create({
+  container: {
     flex: 1,
-    padding: 48,
+    backgroundColor: Colors.background,
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    maxWidth: 480,
+    width: "100%",
+    alignSelf: "center",
+  },
+  // Logo
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 48,
+  },
+  logoIcon: {
+    width: 88,
+    height: 88,
+    borderRadius: 24,
+    backgroundColor: Colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: Colors.primary + "15",
   },
-  eyebrow: {
-    fontSize: 12,
-    fontWeight: "500",
-    letterSpacing: 0,
-    color: C.primary,
+  logoTitle: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: Colors.text.primary,
+    letterSpacing: -1,
+  },
+  // Header Text
+  headerText: {
+    marginBottom: 32,
   },
   title: {
-    fontFamily: Theme.font.heading,
-    fontSize: 36,
-    lineHeight: 44,
-    color: C.text.primary,
+    fontSize: 32,
+    fontWeight: "800",
+    color: Colors.text.primary,
+    letterSpacing: -1,
   },
-  password: {
-    flex: 1,
-    minWidth: 0,
-    minHeight: 48,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: C.controlBorder,
-    backgroundColor: C.surface,
-    borderRadius: 6,
+  subtitle: {
     fontSize: 16,
-    color: C.text.primary,
+    color: Colors.text.secondary,
+    marginTop: 6,
+    fontWeight: "500",
   },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderWidth: 1,
-    borderColor: C.controlBorder,
-    borderRadius: 4,
+  // Form
+  form: {
+    gap: 16,
+  },
+  inputWrapper: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: Colors.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: 20,
+    height: 60,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    elevation: 1,
   },
-}));
+  inputIcon: {
+    marginRight: 14,
+  },
+  input: {
+    flex: 1,
+    fontSize: 17,
+    color: Colors.text.primary,
+    fontWeight: "500",
+  },
+  keepLoginContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 4,
+    paddingLeft: 4,
+  },
+  keepLoginText: {
+    fontSize: 15,
+    color: Colors.text.secondary,
+    fontWeight: "600",
+  },
+  // Button
+  loginButton: {
+    flexDirection: "row",
+    backgroundColor: Colors.primary,
+    height: 60,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
+    gap: 8,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  loginButtonDisabled: {
+    opacity: 0.7,
+  },
+  loginButtonText: {
+    color: "#FFF",
+    fontSize: 17,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  ghostButton: {
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  ghostButtonText: {
+    color: Colors.text.secondary,
+    fontSize: 15,
+    fontWeight: "700",
+    textDecorationLine: "underline",
+  },
+  // Error
+  errorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.status.error + "10",
+    padding: 16,
+    borderRadius: 16,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: Colors.status.error + "20",
+  },
+  errorText: {
+    color: Colors.status.error,
+    fontSize: 14,
+    fontWeight: "600",
+    flex: 1,
+  },
+});

@@ -1,132 +1,475 @@
-import { themedStyles } from "../../../constants/themedStyles";
 import React, { useState } from "react";
-import { View, Text, Pressable } from "react-native";
-import type { AgendaEvent } from "../../../types/agenda";
-import { eventsOnDay, formatTime } from "../../../utils/agenda";
-import { Colors as C } from "../../../constants/Colors";
-import { Badge, Empty, ui } from "../Primitives";
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  useWindowDimensions,
+} from "react-native";
+import { Colors } from "@/constants/Colors";
+import { AgendaEvent } from "@/types/agenda";
+import {
+  MapPin,
+  Calendar as CalendarIcon,
+  AlertCircle,
+  Clock,
+  User,
+} from "lucide-react-native";
+import { formatTime } from "@/utils/agenda";
 import EventDetailModal from "./EventDetailModal";
-interface Props {
+
+interface DailyAgendaProps {
   events: AgendaEvent[];
   selectedDate: Date;
   scrollEnabled?: boolean;
   hideDetails?: boolean;
 }
+
 export default function DailyAgenda({
   events,
   selectedDate,
+  scrollEnabled = true,
   hideDetails = false,
-}: Props) {
-  const [chosen, setChosen] = useState<AgendaEvent | null>(null);
-  const day = eventsOnDay(events, selectedDate).sort(
-    (a, b) => +a.start - +b.start,
+}: DailyAgendaProps) {
+  const { width: windowWidth } = useWindowDimensions();
+  const [selectedEvent, setSelectedEvent] = useState<AgendaEvent | null>(null);
+
+  const HOUR_HEIGHT = 65;
+  const LEFT_COLUMN_WIDTH = 50;
+  const START_HOUR = 8;
+  const END_HOUR = 20;
+  const hours = Array.from(
+    { length: END_HOUR - START_HOUR + 1 },
+    (_, i) => i + START_HOUR,
   );
-  if (!day.length)
+
+  const dailyEvents = events
+    .filter((event) => {
+      const eventDate = new Date(event.start);
+      return eventDate.toDateString() === selectedDate.toDateString();
+    })
+    .sort((a, b) => a.start.getTime() - b.start.getTime());
+
+  const getEventLayouts = () => {
+    const layouts = dailyEvents.map((event) => ({
+      event,
+      startHour: event.start.getHours() + event.start.getMinutes() / 60,
+      endHour: event.end.getHours() + event.end.getMinutes() / 60,
+      column: 0,
+      totalColumns: 1,
+    }));
+
+    let currentCluster: typeof layouts = [];
+    let clusterEndHour = 0;
+    const allLayouts: typeof layouts = [];
+
+    layouts.forEach((item) => {
+      if (currentCluster.length > 0 && item.startHour >= clusterEndHour) {
+        const maxCol = currentCluster.reduce(
+          (max, e) => Math.max(max, e.column + 1),
+          0,
+        );
+        currentCluster.forEach((i) => (i.totalColumns = maxCol));
+        allLayouts.push(...currentCluster);
+        currentCluster = [];
+        clusterEndHour = 0;
+      }
+
+      const columnsInCluster: (typeof layouts)[] = [];
+      currentCluster.forEach((i) => {
+        if (!columnsInCluster[i.column]) columnsInCluster[i.column] = [];
+        columnsInCluster[i.column].push(i);
+      });
+
+      let placed = false;
+      for (let col = 0; col < columnsInCluster.length; col++) {
+        const columnItems = columnsInCluster[col] || [];
+        const lastItem = columnItems[columnItems.length - 1];
+        if (!lastItem || lastItem.endHour <= item.startHour) {
+          item.column = col;
+          placed = true;
+          break;
+        }
+      }
+
+      if (!placed) {
+        item.column = columnsInCluster.length;
+      }
+
+      currentCluster.push(item);
+      clusterEndHour = Math.max(clusterEndHour, item.endHour);
+    });
+
+    if (currentCluster.length > 0) {
+      const maxCol = currentCluster.reduce(
+        (max, e) => Math.max(max, e.column + 1),
+        0,
+      );
+      currentCluster.forEach((i) => (i.totalColumns = maxCol));
+      allLayouts.push(...currentCluster);
+    }
+
+    return allLayouts;
+  };
+
+  const eventLayouts = getEventLayouts();
+
+  if (dailyEvents.length === 0) {
     return (
-      <Empty
-        title="Aucun cours ce jour"
-        detail="Aucun événement disponible pour cette date."
-      />
+      <View
+        style={[
+          styles.emptyContainer,
+          !scrollEnabled && { minHeight: 250, paddingVertical: 40 },
+        ]}
+      >
+        <View style={styles.emptyIconContainer}>
+          <CalendarIcon
+            size={48}
+            color={Colors.text.tertiary}
+            strokeWidth={1.5}
+          />
+        </View>
+        <Text style={styles.emptyTitle}>Aucun cours prévu</Text>
+        <Text style={styles.emptySubtitle}>Profitez de votre temps libre !</Text>
+      </View>
     );
-  return (
-    <View style={{ gap: 12 }}>
-      {day.map((e) => {
-        const collision = day.some(
-          (o) => o.id !== e.id && o.start < e.end && o.end > e.start,
-        );
-        return (
-          <Pressable
-            key={e.id}
-            accessibilityRole="button"
-            accessibilityLabel={`${formatTime(e.start)} à ${formatTime(e.end)}, ${e.title}, ${e.location}${e.userName ? ", " + e.userName : ""}`}
-            onPress={() => setChosen(e)}
-            style={[
-              s.event,
-              e.isExam && { backgroundColor: "#FFCE38" },
-              {
-                borderLeftColor:
-                  e.color || (e.isExam ? C.status.warning : C.primary),
-              },
-            ]}
+  }
+
+  const timelineContent = (
+    <View style={styles.timelineContainer}>
+      <View style={[styles.hoursColumn, { width: LEFT_COLUMN_WIDTH }]}>
+        {hours.map((hour) => (
+          <View
+            key={hour}
+            style={[styles.hourLabelContainer, { height: HOUR_HEIGHT }]}
           >
-            <View style={s.time}>
-              <Text style={[s.start, e.isExam && { color: "#492700" }]}>
-                {formatTime(e.start)}
-              </Text>
-              <Text style={[ui.small, e.isExam && { color: "#492700" }]}>
-                {formatTime(e.end)}
-              </Text>
-            </View>
-            <View style={{ flex: 1, minWidth: 0, gap: 8 }}>
-              <View style={ui.wrap}>
-                {e.isExam && (
+            <Text style={styles.hourLabel}>{hour}h</Text>
+            <View style={styles.hourDot} />
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.eventsGrid}>
+        {hours.map((hour) => (
+          <View
+            key={hour}
+            style={[styles.gridLine, { height: HOUR_HEIGHT }]}
+          />
+        ))}
+
+        {eventLayouts.map(({ event, startHour, endHour, column, totalColumns }) => {
+          const clampedStart = Math.max(startHour, START_HOUR);
+          const clampedEnd = Math.min(endHour, END_HOUR + 1);
+
+          if (clampedStart >= clampedEnd) return null;
+
+          const top = (clampedStart - START_HOUR) * HOUR_HEIGHT;
+          const height = Math.max(
+            (clampedEnd - clampedStart) * HOUR_HEIGHT - 4,
+            35,
+          );
+
+          const availableWidth = windowWidth - LEFT_COLUMN_WIDTH - 25;
+          const colWidth = (availableWidth - (totalColumns - 1) * 6) / totalColumns;
+          const left = column * (colWidth + 6);
+
+          const isShort = height < 55;
+          const isExam = event.isExam;
+          const headerCost = (isExam ? 14 : 0) + (event.userName ? 14 : 0);
+          const infoCost = isShort ? 18 : event.professors ? 48 : 34;
+          const availableForTitle = height - 16 - headerCost - infoCost;
+          const maxTitleLines = Math.max(1, Math.floor(availableForTitle / 16));
+
+          return (
+            <TouchableOpacity
+              key={event.id}
+              style={[
+                styles.eventCard,
+                isExam ? styles.examCard : styles.regularCard,
+                event.userName && {
+                  borderLeftColor: event.color || Colors.primary,
+                  backgroundColor: (event.color || Colors.primary) + "12",
+                },
+                {
+                  top,
+                  height,
+                  left,
+                  width: colWidth,
+                },
+              ]}
+              onPress={() => setSelectedEvent(event)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.eventMain}>
+                <View style={styles.titleRow}>
+                  {isExam && (
+                    <View style={styles.examBadge}>
+                      <AlertCircle size={10} color={Colors.status.error} />
+                      <Text style={styles.examBadgeText}>EXAMEN</Text>
+                    </View>
+                  )}
+                  {event.userName && (
+                    <View
+                      style={[
+                        styles.examBadge,
+                        {
+                          backgroundColor:
+                            (event.color || Colors.primary) + "25",
+                        },
+                      ]}
+                    >
+                      <User
+                        size={10}
+                        color={event.color || Colors.primary}
+                      />
+                      <Text
+                        style={[
+                          styles.examBadgeText,
+                          { color: event.color || Colors.primary },
+                        ]}
+                      >
+                        {event.userName.toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
                   <Text
-                    style={{
-                      backgroundColor: "#492700",
-                      color: "#FFFFFF",
-                      padding: 4,
-                      fontSize: 11,
-                    }}
+                    style={[styles.eventTitle, isExam && styles.examText]}
+                    numberOfLines={isShort ? 1 : maxTitleLines}
                   >
-                    Examen
+                    {event.title}
                   </Text>
-                )}
-                {e.userName && (
-                  <Text
-                    style={[ui.small, { color: e.color, fontWeight: "500" }]}
-                  >
-                    {e.userName}
-                  </Text>
-                )}
-                {collision && <Badge tone="info">En simultané</Badge>}
+                </View>
+
+                <View
+                  style={
+                    isShort ? styles.infoContainerCompact : styles.infoContainer
+                  }
+                >
+                  <View style={styles.infoItem}>
+                    <Clock
+                      size={11}
+                      color={isExam ? Colors.status.error : Colors.text.tertiary}
+                    />
+                    <Text
+                      style={[styles.infoText, isExam && styles.examText]}
+                      numberOfLines={1}
+                    >
+                      {formatTime(event.start)} - {formatTime(event.end)}
+                    </Text>
+                  </View>
+
+                  <View style={styles.infoItem}>
+                    <MapPin
+                      size={11}
+                      color={isExam ? Colors.status.error : Colors.text.tertiary}
+                    />
+                    <Text
+                      style={[styles.infoText, isExam && styles.examText]}
+                      numberOfLines={1}
+                    >
+                      {event.location || "Non défini"}
+                    </Text>
+                  </View>
+
+                  {!isShort && event.professors && (
+                    <View style={styles.infoItem}>
+                      <User
+                        size={11}
+                        color={isExam ? Colors.status.error : Colors.text.tertiary}
+                      />
+                      <Text
+                        style={[styles.infoText, isExam && styles.examText]}
+                        numberOfLines={1}
+                      >
+                        {event.professors}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
-              <Text style={[s.title, e.isExam && { color: "#492700" }]}>
-                {e.title}
-              </Text>
-              <Text style={[ui.small, e.isExam && { color: "#492700" }]}>
-                {e.location}
-              </Text>
-              {e.start.toDateString() !== e.end.toDateString() && (
-                <Text style={ui.small}>Événement sur plusieurs jours</Text>
-              )}
-            </View>
-            <Text style={{ color: C.text.secondary, fontSize: 21 }}>›</Text>
-          </Pressable>
-        );
-      })}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={[styles.container, !scrollEnabled && { flex: undefined }]}>
+      {scrollEnabled ? (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {timelineContent}
+        </ScrollView>
+      ) : (
+        <View style={styles.scrollContent}>{timelineContent}</View>
+      )}
+
       <EventDetailModal
-        event={chosen}
-        visible={!!chosen}
-        onClose={() => setChosen(null)}
+        event={selectedEvent}
+        visible={!!selectedEvent}
+        onClose={() => setSelectedEvent(null)}
         hideDetails={hideDetails}
       />
     </View>
   );
 }
-const s = themedStyles(() => ({
-  event: {
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    maxWidth: "100%",
+    overflow: "hidden",
+  },
+  scrollContent: {
+    paddingVertical: 20,
+  },
+  timelineContainer: {
     flexDirection: "row",
-    gap: 16,
+    paddingRight: 15,
+  },
+  hoursColumn: {
     alignItems: "center",
-    padding: 16,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
+  },
+  hourLabelContainer: {
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  hourLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: Colors.text.tertiary,
+    marginTop: -6,
+  },
+  hourDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.divider,
+    marginTop: 8,
+  },
+  eventsGrid: {
+    flex: 1,
+    borderLeftWidth: 1,
+    borderLeftColor: Colors.divider,
+    marginLeft: -2,
+  },
+  gridLine: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: Colors.divider,
+  },
+  eventCard: {
+    position: "absolute",
+    borderRadius: 12,
+    padding: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 6,
+    elevation: 1,
     borderLeftWidth: 4,
+    borderWidth: 1,
+    borderColor: Colors.divider,
+    overflow: "hidden",
+  },
+  regularCard: {
+    borderLeftColor: Colors.primary,
+    backgroundColor: Colors.surface,
+  },
+  examCard: {
+    borderLeftColor: Colors.status.error,
+    backgroundColor: "#FFF1F2",
+    borderColor: "#FFE4E6",
+  },
+  eventMain: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  titleRow: {
+    marginBottom: 4,
+  },
+  eventTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: Colors.text.primary,
+    lineHeight: 18,
+    letterSpacing: -0.2,
+  },
+  examBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.status.error + "10",
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
     borderRadius: 6,
-    minHeight: 96,
+    alignSelf: "flex-start",
+    marginBottom: 4,
+    gap: 3,
   },
-  time: { width: 64, gap: 8, alignSelf: "flex-start" },
-  start: {
+  examBadgeText: {
+    fontSize: 8,
+    fontWeight: "800",
+    color: Colors.status.error,
+  },
+  infoContainer: {
+    gap: 3,
+  },
+  infoContainerCompact: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    columnGap: 12,
+  },
+  infoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  infoText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: Colors.text.secondary,
+  },
+  examText: {
+    color: "#991B1B",
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.background,
+    paddingHorizontal: 40,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.02,
+    shadowRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: Colors.divider,
+  },
+  emptyTitle: {
     fontSize: 18,
-    fontVariant: ["tabular-nums"],
-    color: C.text.primary,
-    fontWeight: "500",
+    fontWeight: "700",
+    color: Colors.text.primary,
+    marginBottom: 6,
+    letterSpacing: -0.3,
   },
-  title: {
-    fontSize: 15,
+  emptySubtitle: {
+    fontSize: 14,
     fontWeight: "500",
-    color: C.text.primary,
-    lineHeight: 22,
+    color: Colors.text.tertiary,
+    textAlign: "center",
   },
-}));
+});

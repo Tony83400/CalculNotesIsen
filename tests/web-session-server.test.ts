@@ -186,7 +186,7 @@ it("rejects oversized upstream tokens and enforces a deadline on stalled upstrea
   expect((await request()).statusCode).toBe(502);
   vi.useFakeTimers();
   vi.mocked(globalThis.fetch).mockImplementation(
-    (_url, init) =>
+    (_url: any, init: any) =>
       new Promise((_resolve, reject) =>
         init?.signal?.addEventListener("abort", () =>
           reject(new Error("timeout")),

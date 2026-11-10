@@ -1,418 +1,459 @@
-import { agendaColors } from "../../../constants/AgendaColors";
-import { themedStyles } from "../../../constants/themedStyles";
-import React, { useMemo, useState } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
-import type { AgendaEvent } from "../../../types/agenda";
+import React, { useState } from "react";
 import {
-  addDays,
-  dayStart,
-  layoutDay,
-  formatTime,
-  minutesInDay,
-} from "../../../utils/agenda";
-import { Colors as C, getColorMode } from "../../../constants/Colors";
-import { ui } from "../Primitives";
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  useWindowDimensions,
+  TouchableOpacity,
+} from "react-native";
+import { Colors } from "@/constants/Colors";
+import { AgendaEvent } from "@/types/agenda";
+import { formatTime } from "@/utils/agenda";
 import EventDetailModal from "./EventDetailModal";
-interface Props {
+
+interface AgendaGridProps {
   events: AgendaEvent[];
   startDay: Date;
-  viewMode?: "day" | "week";
   scrollEnabled?: boolean;
   hideDetails?: boolean;
 }
-const TIMES = 56;
+
 export default function AgendaGrid({
   events,
   startDay,
-  viewMode = "week",
+  scrollEnabled = true,
   hideDetails = false,
-}: Props) {
-  const [containerWidth, setContainerWidth] = useState(350);
-  const [chosen, setChosen] = useState<AgendaEvent | null>(null);
-  const dayCount = viewMode === "day" ? 1 : 7;
-  const hourHeight = viewMode === "day" ? 80 : 72;
-  const firstDayTime = +dayStart(startDay);
-  const days = useMemo(
-    () =>
-      Array.from({ length: dayCount }, (_, i) =>
-        addDays(new Date(firstDayTime), i),
-      ),
-    [firstDayTime, dayCount],
-  );
-  const layout = useMemo(
-    () => days.map((day) => layoutDay(events, day)),
-    [events, days],
-  );
-  const minHour = Math.min(
-    8,
-    ...layout.flatMap((l, i) =>
-      l.map((e) => Math.floor(minutesInDay(e.start, days[i]) / 60)),
-    ),
-  );
-  const maxHour = Math.max(
-    viewMode === "day" ? 20 : 19,
-    ...layout.flatMap((l, i) =>
-      l.map((e) => Math.ceil(minutesInDay(e.end, days[i]) / 60)),
-    ),
-  );
-  const maxColumns = Math.max(
-    1,
-    ...layout.flatMap((l) => l.map((p) => p.columns)),
-  );
-  // Two simultaneous courses fit a phone. More lanes remain readable by scrolling
-  // this container; a week always includes all seven days, including Sunday.
-  const fitWeek = hideDetails && viewMode === "week";
-  const GridViewport = fitWeek ? View : ScrollView;
-  const minimumWidth = fitWeek
-    ? 0
-    : viewMode === "week"
-      ? 900
-      : TIMES + maxColumns * 132;
-  const gridWidth = Math.max(
-    fitWeek ? containerWidth - 2 : containerWidth,
-    minimumWidth,
-  );
-  const dayWidth = (gridWidth - TIMES) / dayCount;
-  const height = (maxHour - minHour) * hourHeight;
-  const shortEvents = fitWeek
-    ? layout.flat()
-    : layout.flat().filter((p) => p.end - p.start < 3600000);
-  return (
-    <View
-      testID="agenda-time-grid"
-      onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
-      style={[ui.panel, { overflow: "hidden" }]}
-    >
-      <GridViewport
-        {...(!fitWeek && {
-          horizontal: true,
-          contentContainerStyle: { width: gridWidth },
-        })}
-      >
-        <View testID="agenda-grid-body" style={{ width: gridWidth }}>
-          <View style={s.header}>
-            <View style={{ width: TIMES }} />
-            {days.map((day) => {
-              const today = day.toDateString() === new Date().toDateString();
-              return (
-                <View
-                  key={+day}
-                  testID="agenda-day-header"
-                  accessibilityLabel={day.toLocaleDateString("fr-FR", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                  })}
-                  style={[
-                    s.dayHead,
-                    { width: dayWidth },
-                    today && { backgroundColor: C.primaryLight },
-                  ]}
-                >
-                  <Text style={[s.dayName, today && { color: C.primary }]}>
-                    {day.toLocaleDateString("fr-FR", {
-                      weekday: viewMode === "day" ? "long" : "short",
-                    })}
-                  </Text>
-                  <Text style={[s.dayDate, today && { color: C.primary }]}>
-                    {day.getDate()}
-                  </Text>
-                  {today && (
-                    <Text style={{ fontSize: 11, color: C.primary }}>
-                      Aujourd’hui
-                    </Text>
-                  )}
-                </View>
-              );
-            })}
-          </View>
-          <View style={{ height, flexDirection: "row" }}>
-            <View style={{ width: TIMES }}>
-              {Array.from({ length: maxHour - minHour + 1 }, (_, i) => (
-                <Text key={i} style={[s.hour, { top: i * hourHeight - 7 }]}>
-                  {String(minHour + i).padStart(2, "0")}:00
-                </Text>
-              ))}
-            </View>
-            {days.map((day, di) => (
-              <View
-                key={+day}
-                style={{
-                  width: dayWidth,
-                  borderLeftWidth: 1,
-                  borderLeftColor: C.divider,
-                  backgroundColor:
-                    day.toDateString() === new Date().toDateString()
-                      ? C.surfaceSubtle
-                      : C.surface,
-                }}
-              >
-                {Array.from({ length: maxHour - minHour }, (_, i) => (
-                  <View
-                    key={i}
-                    style={{
-                      position: "absolute",
-                      top: i * hourHeight,
-                      width: "100%",
-                      height: 1,
-                      backgroundColor: C.divider,
-                    }}
-                  />
-                ))}
-                {layout[di].map((p) => {
-                  const top =
-                    (minutesInDay(p.start, day) / 60 - minHour) * hourHeight;
-                  const eventHeight =
-                    ((minutesInDay(p.end, day) - minutesInDay(p.start, day)) /
-                      60) *
-                    hourHeight;
-                  const color = p.event.isExam
-                    ? "#492700"
-                    : p.event.color ||
-                      (p.event.isExam ? C.status.warning : C.primary);
-                  const shared = !!p.event.userName;
-                  const identity = agendaColors(p.event.color || "#26264C");
-                  const ink = p.event.isExam
-                    ? "#492700"
-                    : shared
-                      ? identity.text
-                      : C.text.primary;
-                  const showRoom = eventHeight >= (shared ? 104 : 80);
-                  const titleLines = Math.max(
-                    1,
-                    Math.floor(
-                      (eventHeight - (shared ? 92 : 56)) /
-                        (viewMode === "day" ? 18 : 16),
-                    ),
-                  );
-                  return (
-                    <Pressable
-                      key={p.event.id}
-                      testID={`agenda-event-${p.event.id}`}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${p.event.userName || ""} ${p.event.title}, ${formatTime(p.event.start)} à ${formatTime(p.event.end)}, ${p.event.location}`}
-                      onPress={() => setChosen(p.event)}
-                      style={[
-                        s.event,
-                        {
-                          top: Math.max(0, top) + 2,
-                          height: Math.max(22, eventHeight - 4),
-                          left: (p.column * dayWidth) / p.columns + 3,
-                          width: dayWidth / p.columns - 6,
-                          borderLeftColor: shared
-                            ? identity.border
-                            : p.event.isExam
-                              ? "#9B3900"
-                              : color,
-                          backgroundColor: p.event.isExam
-                            ? "#FFCE38"
-                            : shared
-                              ? identity.background
-                              : getColorMode() === "dark"
-                                ? "#294863"
-                                : color + "13",
-                          padding:
-                            fitWeek && dayWidth < 80
-                              ? 2
-                              : eventHeight < 44
-                                ? 4
-                                : 8,
-                        },
-                      ]}
-                    >
-                      {shared && eventHeight >= 64 && (
-                        <Text
-                          style={[
-                            s.owner,
-                            {
-                              color: ink,
-                            },
-                            fitWeek && dayWidth < 80 && { fontSize: 8 },
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {p.event.userName}
-                        </Text>
-                      )}
-                      {!shared && (
-                        <Text
-                          style={[s.eventTime, { color: ink }]}
-                          numberOfLines={1}
-                        >
-                          {formatTime(p.event.start)}
-                          {eventHeight > 40
-                            ? ` – ${formatTime(p.event.end)}`
-                            : ""}
-                        </Text>
-                      )}
-                      {eventHeight > (shared ? 64 : 30) && (
-                        <Text
-                          style={[
-                            s.eventTitle,
-                            {
-                              color: ink,
-                            },
-                            fitWeek &&
-                              dayWidth < 80 && { fontSize: 9, lineHeight: 12 },
-                            viewMode === "day" && {
-                              fontSize: 13,
-                              lineHeight: 18,
-                            },
-                          ]}
-                          numberOfLines={titleLines}
-                        >
-                          {p.event.isExam &&
-                          !/exam|partiel/i.test(p.event.title)
-                            ? "Examen · "
-                            : ""}
-                          {p.event.title}
-                        </Text>
-                      )}
-                      {shared && (
-                        <View style={s.sharedDetails}>
-                          <Text
-                            style={[s.eventTime, { color: ink }]}
-                            numberOfLines={1}
-                          >
-                            {formatTime(p.event.start)}
-                            {eventHeight > 40
-                              ? ` – ${formatTime(p.event.end)}`
-                              : ""}
-                          </Text>
-                          {showRoom && (
-                            <Text
-                              style={[s.eventMeta, shared && { color: ink }]}
-                              numberOfLines={2}
-                            >
-                              {p.event.location}
-                            </Text>
-                          )}
-                        </View>
-                      )}
-                      {!shared && showRoom && (
-                        <Text
-                          style={[s.eventMeta, shared && { color: ink }]}
-                          numberOfLines={2}
-                        >
-                          {p.event.location}
-                        </Text>
-                      )}
-                    </Pressable>
-                  );
-                })}
-              </View>
-            ))}
-          </View>
-        </View>
-      </GridViewport>
-      <View
-        style={{
-          padding: 12,
-          borderTopWidth: 1,
-          borderTopColor: C.border,
-          gap: 8,
-        }}
-      >
-        {gridWidth > containerWidth + 1 && (
-          <Text style={ui.small}>
-            Faites défiler horizontalement pour voir{" "}
-            {viewMode === "week"
-              ? "les sept jours"
-              : "tous les cours simultanés"}
-            .
-          </Text>
-        )}
-        <Text style={ui.small}>
-          {hideDetails
-            ? "Les cours simultanés sont affichés côte à côte. Sélectionnez un cours pour lire ses horaires et sa salle."
-            : "Sélectionnez un cours pour ses détails."}
-        </Text>
-        {shortEvents.length > 0 && (
-          <Text style={ui.small}>
-            {fitWeek
-              ? "Cours de la semaine · accès détaillé"
-              : "Cours courts · accès détaillé"}
-          </Text>
-        )}
-        {shortEvents.map((p) => (
-          <Pressable
-            key={`${p.event.id}:${p.start}`}
-            accessibilityRole="button"
-            onPress={() => setChosen(p.event)}
-            style={{ minHeight: 44, justifyContent: "center" }}
+}: AgendaGridProps) {
+  const { width: windowWidth } = useWindowDimensions();
+  const [selectedEvent, setSelectedEvent] = useState<AgendaEvent | null>(null);
+
+  const LEFT_COLUMN_WIDTH = 45;
+  const DAY_WIDTH = (windowWidth - LEFT_COLUMN_WIDTH) / 6;
+  const HOUR_HEIGHT = 58;
+
+  const hours = Array.from({ length: 13 }, (_, i) => i + 8);
+
+  const getDayInfo = (index: number) => {
+    const date = new Date(startDay);
+    date.setDate(date.getDate() + index);
+
+    const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+    const dayName = dayNames[date.getDay()];
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+
+    const today = new Date();
+    const isToday =
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
+
+    return {
+      dayName,
+      dateStr: `${day}/${month}`,
+      isToday,
+    };
+  };
+
+  const getEventsWithLayout = () => {
+    const eventsByDay: AgendaEvent[][] = [[], [], [], [], [], []];
+
+    events.forEach((event) => {
+      const eventDate = new Date(event.start);
+      eventDate.setHours(0, 0, 0, 0);
+      const refDate = new Date(startDay);
+      refDate.setHours(0, 0, 0, 0);
+
+      const diffTime = eventDate.getTime() - refDate.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays >= 0 && diffDays <= 5) {
+        eventsByDay[diffDays].push(event);
+      }
+    });
+
+    const allLayouts: {
+      event: AgendaEvent;
+      startHour: number;
+      endHour: number;
+      column: number;
+      totalColumns: number;
+      dayIndex: number;
+    }[] = [];
+
+    eventsByDay.forEach((dayEvents, dayIndex) => {
+      const sortedEvents = [...dayEvents].sort(
+        (a, b) => a.start.getTime() - b.start.getTime(),
+      );
+
+      const layouts = sortedEvents.map((event) => ({
+        event,
+        startHour: event.start.getHours() + event.start.getMinutes() / 60,
+        endHour: event.end.getHours() + event.end.getMinutes() / 60,
+        column: 0,
+        totalColumns: 1,
+        dayIndex,
+      }));
+
+      let currentCluster: typeof layouts = [];
+      let clusterEndHour = 0;
+
+      layouts.forEach((item) => {
+        if (currentCluster.length > 0 && item.startHour >= clusterEndHour) {
+          const maxCol = currentCluster.reduce(
+            (max, e) => Math.max(max, e.column + 1),
+            0,
+          );
+          currentCluster.forEach((i) => (i.totalColumns = maxCol));
+          allLayouts.push(...currentCluster);
+          currentCluster = [];
+          clusterEndHour = 0;
+        }
+
+        const columnsInCluster: (typeof layouts)[] = [];
+        currentCluster.forEach((i) => {
+          if (!columnsInCluster[i.column]) columnsInCluster[i.column] = [];
+          columnsInCluster[i.column].push(i);
+        });
+
+        let placed = false;
+        for (let col = 0; col < columnsInCluster.length; col++) {
+          const columnItems = columnsInCluster[col] || [];
+          const lastItem = columnItems[columnItems.length - 1];
+          if (!lastItem || lastItem.endHour <= item.startHour) {
+            item.column = col;
+            placed = true;
+            break;
+          }
+        }
+
+        if (!placed) {
+          item.column = columnsInCluster.length;
+        }
+
+        currentCluster.push(item);
+        clusterEndHour = Math.max(clusterEndHour, item.endHour);
+      });
+
+      if (currentCluster.length > 0) {
+        const maxCol = currentCluster.reduce(
+          (max, e) => Math.max(max, e.column + 1),
+          0,
+        );
+        currentCluster.forEach((i) => (i.totalColumns = maxCol));
+        allLayouts.push(...currentCluster);
+      }
+    });
+
+    return allLayouts;
+  };
+
+  const eventLayouts = getEventsWithLayout();
+
+  const gridContent = (
+    <View style={styles.gridBody}>
+      <View style={[styles.hoursColumn, { width: LEFT_COLUMN_WIDTH }]}>
+        {hours.map((hour) => (
+          <View
+            key={hour}
+            style={[styles.hourLabelContainer, { height: HOUR_HEIGHT }]}
           >
-            <Text style={ui.small}>
-              {p.event.start.toLocaleDateString("fr-FR", { weekday: "short" })}{" "}
-              · {formatTime(p.event.start)} ·{" "}
-              {p.event.userName ? `${p.event.userName} · ` : ""}
-              {p.event.title}
-            </Text>
-          </Pressable>
+            <Text style={styles.hourLabel}>{hour}h</Text>
+          </View>
         ))}
       </View>
+
+      <View style={{ flex: 1, position: "relative" }}>
+        {[0, 1, 2, 3, 4, 5].map((index) => {
+          const isToday = getDayInfo(index).isToday;
+          return (
+            <View
+              key={index}
+              style={[
+                styles.gridColumn,
+                {
+                  left: index * DAY_WIDTH,
+                  width: DAY_WIDTH,
+                  borderRightWidth: index < 5 ? 1 : 0,
+                  borderRightColor: Colors.border,
+                },
+                isToday && styles.todayColumn,
+              ]}
+            >
+              {hours.map((hour) => (
+                <View
+                  key={hour}
+                  style={[styles.gridCell, { height: HOUR_HEIGHT }]}
+                />
+              ))}
+            </View>
+          );
+        })}
+
+        {eventLayouts.map(
+          ({ event, startHour, endHour, column, totalColumns, dayIndex }) => {
+            const clampedStart = Math.max(startHour, 8);
+            const clampedEnd = Math.min(endHour, 21);
+
+            if (clampedStart >= clampedEnd) return null;
+
+            const top = (clampedStart - 8) * HOUR_HEIGHT;
+            const height = (clampedEnd - clampedStart) * HOUR_HEIGHT - 2;
+
+            const colWidth = (DAY_WIDTH - 4) / totalColumns;
+            const left = dayIndex * DAY_WIDTH + 2 + column * colWidth;
+
+            const isExam = event.isExam;
+            const blockHeight = Math.max(height, 22);
+            const headerCost = (isExam ? 11 : 0) + (event.userName ? 11 : 0);
+            const footerCost =
+              blockHeight > 50 && event.location
+                ? 22
+                : blockHeight > 30
+                  ? 12
+                  : 0;
+            const availableForTitle = blockHeight - 6 - headerCost - footerCost;
+            const maxTitleLines = Math.max(1, Math.floor(availableForTitle / 12));
+
+            return (
+              <TouchableOpacity
+                key={event.id}
+                style={[
+                  styles.eventBlock,
+                  isExam ? styles.examBlock : styles.regularBlock,
+                  event.userName && {
+                    borderLeftColor: event.color || Colors.primary,
+                    backgroundColor: (event.color || Colors.primary) + "15",
+                  },
+                  {
+                    top,
+                    height: blockHeight,
+                    left,
+                    width: Math.max(colWidth - 1, 10),
+                  },
+                ]}
+                onPress={() => setSelectedEvent(event)}
+                activeOpacity={0.8}
+              >
+                {isExam && <Text style={styles.examLabel}>EXAMEN</Text>}
+                {event.userName && (
+                  <Text
+                    style={[
+                      styles.examLabel,
+                      { color: event.color || Colors.primary },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {event.userName.toUpperCase()}
+                  </Text>
+                )}
+                <Text
+                  style={[styles.eventTitle, isExam && styles.examText]}
+                  numberOfLines={maxTitleLines}
+                >
+                  {event.title}
+                </Text>
+                {blockHeight > 30 && (
+                  <View style={styles.eventDetails}>
+                    <Text style={[styles.eventTime, isExam && styles.examText]}>
+                      {formatTime(event.start)} - {formatTime(event.end)}
+                    </Text>
+                    {blockHeight > 50 && event.location ? (
+                      <Text
+                        style={[styles.eventLocation, isExam && styles.examText]}
+                        numberOfLines={blockHeight > 80 ? 2 : 1}
+                      >
+                        {event.location}
+                      </Text>
+                    ) : null}
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          },
+        )}
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={[styles.container, !scrollEnabled && { flex: undefined }]}>
+      <View style={styles.headerRow}>
+        <View style={[styles.hoursHeaderCell, { width: LEFT_COLUMN_WIDTH }]} />
+        <View style={styles.daysRow}>
+          {[0, 1, 2, 3, 4, 5].map((index) => {
+            const { dayName, dateStr, isToday } = getDayInfo(index);
+            return (
+              <View
+                key={index}
+                style={[
+                  styles.dayLabelContainer,
+                  index < 5 && styles.dayColumnSeparator,
+                  isToday && styles.todayHeader,
+                ]}
+              >
+                <Text
+                  style={[styles.dayLabel, isToday && styles.todayLabelText]}
+                >
+                  {dayName}
+                  {"\n"}
+                  {dateStr}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      </View>
+
+      {scrollEnabled ? (
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {gridContent}
+        </ScrollView>
+      ) : (
+        gridContent
+      )}
+
       <EventDetailModal
-        event={chosen}
-        visible={!!chosen}
-        onClose={() => setChosen(null)}
+        event={selectedEvent}
+        visible={!!selectedEvent}
+        onClose={() => setSelectedEvent(null)}
         hideDetails={hideDetails}
       />
     </View>
   );
 }
-const s = themedStyles(() => ({
-  header: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
-    backgroundColor: C.surfaceMuted,
-  },
-  dayHead: {
-    alignItems: "center",
-    paddingVertical: 12,
-    gap: 4,
-    borderLeftWidth: 1,
-    borderLeftColor: C.divider,
-    minHeight: 80,
-  },
-  dayName: { fontSize: 11, color: C.text.secondary },
-  dayDate: {
-    fontSize: 22,
-    fontVariant: ["tabular-nums"],
-    color: C.text.primary,
-  },
-  hour: {
-    position: "absolute",
-    left: 4,
-    fontSize: 11,
-    color: C.text.secondary,
-    fontVariant: ["tabular-nums"],
-  },
-  event: {
-    position: "absolute",
-    borderLeftWidth: 3,
-    borderRadius: 4,
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    maxWidth: "100%",
     overflow: "hidden",
   },
-  owner: {
-    fontSize: 11,
-    lineHeight: 16,
-    fontWeight: "500",
-    textTransform: "capitalize",
-    marginBottom: 4,
+  headerRow: {
+    flexDirection: "row",
+    backgroundColor: Colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    maxWidth: "100%",
   },
-  eventTime: {
-    fontSize: 11,
-    lineHeight: 14,
-    fontVariant: ["tabular-nums"],
-    fontWeight: "500",
-    marginBottom: 4,
+  hoursHeaderCell: {
+    borderRightWidth: 1,
+    borderRightColor: Colors.border,
+  },
+  daysRow: {
+    flexDirection: "row",
+    flex: 1,
+    minWidth: 0,
+  },
+  dayLabelContainer: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  dayColumnSeparator: {
+    borderRightWidth: 1,
+    borderRightColor: Colors.border,
+  },
+  dayLabel: {
+    fontSize: 9,
+    fontWeight: "600",
+    color: Colors.text.secondary,
+    textAlign: "center",
+    lineHeight: 13,
+  },
+  todayHeader: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.primary,
+    backgroundColor: Colors.primary + "08",
+  },
+  todayLabelText: {
+    color: Colors.primary,
+    fontWeight: "800",
+  },
+  gridBody: {
+    flexDirection: "row",
+  },
+  hoursColumn: {
+    backgroundColor: Colors.surface,
+    borderRightWidth: 1,
+    borderRightColor: Colors.border,
+  },
+  hourLabelContainer: {
+    justifyContent: "flex-start",
+    alignItems: "center",
+    paddingTop: 4,
+  },
+  hourLabel: {
+    fontSize: 9,
+    fontWeight: "600",
+    color: Colors.text.tertiary,
+  },
+  gridColumn: {
+    position: "absolute",
+    height: "100%",
+  },
+  todayColumn: {
+    backgroundColor: Colors.primary + "05",
+  },
+  gridCell: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: Colors.divider,
+  },
+  eventBlock: {
+    position: "absolute",
+    borderRadius: 6,
+    padding: 3,
+    borderLeftWidth: 3,
+    borderWidth: 0.5,
+    borderColor: Colors.divider,
+    justifyContent: "flex-start",
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.01,
+    shadowRadius: 2,
+  },
+  regularBlock: {
+    backgroundColor: "#F0F6FF",
+    borderLeftColor: Colors.primary,
+  },
+  examBlock: {
+    backgroundColor: "#FFF1F2",
+    borderLeftColor: Colors.status.error,
+    borderColor: "#FFE4E6",
+  },
+  examLabel: {
+    fontSize: 7,
+    fontWeight: "800",
+    color: Colors.status.error,
+    marginBottom: 1,
+    letterSpacing: 0.3,
   },
   eventTitle: {
-    fontSize: 11,
-    fontWeight: "500",
-    lineHeight: 16,
-    color: C.text.primary,
+    fontSize: 10,
+    fontWeight: "700",
+    color: Colors.text.primary,
+    lineHeight: 12,
+    letterSpacing: -0.1,
   },
-  eventMeta: { fontSize: 11, lineHeight: 14, color: C.text.secondary },
-  sharedDetails: { marginTop: "auto", paddingTop: 4 },
-}));
+  examText: {
+    color: "#991B1B",
+  },
+  eventDetails: {
+    marginTop: 2,
+    gap: 0.5,
+  },
+  eventTime: {
+    fontSize: 8,
+    fontWeight: "500",
+    color: Colors.text.tertiary,
+  },
+  eventLocation: {
+    fontSize: 9,
+    fontWeight: "600",
+    color: Colors.text.secondary,
+  },
+});

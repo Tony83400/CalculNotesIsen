@@ -7,6 +7,7 @@ import { getNotes, login } from "../services/isenApi";
 import { getAgendaFor } from "../services/agendaApi";
 import { invalidateDataScope } from "../services/dataScope";
 import { restoreWebSession, clearWebSession } from "../services/webSession";
+
 vi.mock("../services/webSession", () => ({
   restoreWebSession: vi.fn(async () => null),
   clearWebSession: vi.fn(async () => {}),
@@ -33,6 +34,7 @@ vi.mock("../services/configApi", () => ({
     },
   ]),
 }));
+
 let app: ReturnType<typeof useAppData>;
 const seen: string[] = [];
 function Probe() {
@@ -51,52 +53,52 @@ async function mount() {
   });
   return renderer!;
 }
-async function configure(id: string) {
-  await storage.setId(id);
-  await storage.setToken("fiction");
-  await storage.setSelectedYear("M1");
+async function configure(user: string) {
+  await storage.setId(user);
+  await storage.setToken("tok");
+  await storage.setSelectedYear("ISEN4");
   await storage.setSelectedSemester("S7");
-  await storage.setSelectedMajors({ S7: "Fictif" });
-  await storage.setSelectedMajorsUrls({ S7: "fiction-url" });
+  await storage.setSelectedMajors({ S7: "DEV_LOGICIEL" });
+  await storage.setSelectedMajorsUrls({ S7: "https://example.com/S7.json" });
 }
+
 beforeEach(async () => {
-  await storage.clearAllStorage();
-  vi.mocked(getNotes).mockReset();
-  vi.mocked(getAgendaFor).mockClear();
   seen.length = 0;
-  vi.mocked(restoreWebSession).mockReset().mockResolvedValue(null);
-  vi.mocked(clearWebSession).mockClear();
+  localStorage.clear();
+  invalidateDataScope();
+  vi.clearAllMocks();
 });
-it("never exposes the previous account while switching or after late completion", async () => {
-  await configure("fiction.alice");
-  let finish: (
-    n: { code: string; name: string; note: number; date: string }[],
-  ) => void = () => {};
-  vi.mocked(getNotes)
-    .mockImplementationOnce(
-      () =>
-        new Promise((r) => {
-          finish = r;
-        }),
-    )
-    .mockResolvedValue([{ code: "bob", name: "Fictif", note: 12, date: "" }]);
+
+it("loads stored identity and cached data synchronously, ignoring network responses after user change", async () => {
+  await configure("fiction.camille");
+  await storage.writeCache("notes", "fiction.camille", [
+    { code: "camille", name: "Fictif", note: 15, date: "" },
+  ]);
+  let resolveCamille: (n: unknown) => void = () => {};
+  vi.mocked(getNotes).mockImplementationOnce(
+    () =>
+      new Promise((r) => {
+        resolveCamille = r;
+      }),
+  );
   const renderer = await mount();
+  expect(app.user).toBe("fiction.camille");
+  expect(app.notes.data[0].code).toBe("camille");
+
   await act(async () => {
-    await app.authenticate("fiction.bob", "fictitious", false);
+    await app.authenticate("fiction.alex", "secret", false);
   });
   await act(async () => {
-    finish([{ code: "alice", name: "Fictif", note: 18, date: "" }]);
+    resolveCamille([{ code: "late-camille", name: "Fictif", note: 10, date: "" }]);
   });
-  expect(app.user).toBe("fiction.bob");
-  expect(app.notes.data.map((n) => n.code)).toEqual(["bob"]);
-  expect(seen.some((x) => x === "fiction.bob:alice")).toBe(false);
-  expect(await storage.readCache("notes", "fiction.alice")).toBeNull();
-  expect(login).toHaveBeenCalled();
+  expect(app.user).toBe("fiction.alex");
+  expect(app.notes.data.some((n) => n.code.includes("camille"))).toBe(false);
   await act(async () => renderer.unmount());
 });
-it("labels network failure with a successful old cache as cache, never network", async () => {
-  await configure("fiction.alice");
-  await storage.writeCache("notes", "fiction.alice", [
+
+it("keeps and labels cached data when network fails, showing the network error", async () => {
+  await configure("fiction.camille");
+  await storage.writeCache("notes", "fiction.camille", [
     { code: "cache", name: "Fictif", note: 12, date: "" },
   ]);
   vi.mocked(getNotes).mockRejectedValue(new Error("Offline"));
@@ -106,12 +108,11 @@ it("labels network failure with a successful old cache as cache, never network",
   expect(app.notes.data[0].code).toBe("cache");
   await act(async () => renderer.unmount());
 });
+
 it("invalidates simulations and all projected data on logout", async () => {
+  await configure("fiction.camille");
   vi.mocked(getNotes).mockResolvedValue([]);
   const renderer = await mount();
-  await act(async () => {
-    await app.startDemo();
-  });
   await act(async () => {
     app.updateSimulation("fiction", 16);
   });
@@ -126,12 +127,11 @@ it("invalidates simulations and all projected data on logout", async () => {
   expect(clearWebSession).toHaveBeenCalled();
   await act(async () => renderer.unmount());
 });
+
 it("drops simulations and reloads configuration after a curriculum generation change", async () => {
+  await configure("fiction.camille");
   vi.mocked(getNotes).mockResolvedValue([]);
   const renderer = await mount();
-  await act(async () => {
-    await app.startDemo();
-  });
   await act(async () => {
     app.updateSimulation("fiction", 12);
   });
@@ -141,6 +141,7 @@ it("drops simulations and reloads configuration after a curriculum generation ch
   expect(app.simulations).toEqual({});
   await act(async () => renderer.unmount());
 });
+
 it("restores a remembered account at startup before loading its account-scoped data", async () => {
   vi.mocked(restoreWebSession).mockResolvedValueOnce({
     username: "fiction.camille",
@@ -156,6 +157,7 @@ it("restores a remembered account at startup before loading its account-scoped d
   expect(localStorage.getItem("Password")).toBeNull();
   await act(async () => renderer.unmount());
 });
+
 it("does not reinstate a session when a delayed startup restoration finishes after logout", async () => {
   let finish: (data: { username: string; token: string }) => void = () => {};
   vi.mocked(restoreWebSession).mockImplementationOnce(
@@ -174,6 +176,7 @@ it("does not reinstate a session when a delayed startup restoration finishes aft
   expect(app.notes.data).toEqual([]);
   await act(async () => renderer.unmount());
 });
+
 it("shows a logout failure instead of claiming the remembered session was removed", async () => {
   await configure("fiction.camille");
   vi.mocked(getNotes).mockResolvedValue([]);

@@ -76,7 +76,7 @@ it("orders logout after an in-flight login so its late cookie cannot reinstate t
   expect(fetch).toHaveBeenCalledTimes(1);
   finish(new Response(JSON.stringify(session)));
   await Promise.all([login, logout]);
-  expect(fetch.mock.calls.map((c) => c[1]?.method)).toEqual(["POST", "DELETE"]);
+  expect(fetch.mock.calls.map((c: any) => c[1]?.method)).toEqual(["POST", "DELETE"]);
   expect(localStorage.getItem("cnisen:logout-pending")).toBeNull();
 });
 it("keeps offline logout after clearing cached data and retries deletion before any restore", async () => {
@@ -88,7 +88,7 @@ it("keeps offline logout after clearing cached data and retries deletion before 
   expect(localStorage.getItem("cnisen:logout-pending")).toBe("1");
   fetch.mockResolvedValueOnce(new Response(null, { status: 204 }));
   expect(await restoreWebSession()).toBeNull();
-  expect(fetch.mock.calls.map((c) => c[1]?.method)).toEqual([
+  expect(fetch.mock.calls.map((c: any) => c[1]?.method)).toEqual([
     "DELETE",
     "DELETE",
   ]);

@@ -5,14 +5,15 @@ import {
   useEffect,
   useRef,
   useState,
+  useMemo,
+  useCallback,
   type ReactNode,
 } from "react";
 import type { AgendaEvent } from "../types/agenda";
 import { fetchCalendar } from "../services/agendaApi";
 import { getStorageItem, setStorageItem } from "../services/storage/base";
 import { useAppData } from "../providers/AppData";
-import { useCalendarNavigation } from "./useCalendarNavigation";
-import { demoEvents } from "../services/demo";
+
 export interface RecentUser {
   id: string;
   prenom: string;
@@ -21,34 +22,74 @@ export interface RecentUser {
 export interface MultiAgendaUser extends RecentUser {
   color: string;
 }
-const colors = [
-  "#26264C",
-  "#B2343D",
-  "#2D627A",
-  "#6A5730",
-  "#49664A",
-  "#765680",
+
+const USER_COLORS = [
+  "#2563EB", // Bleu Royal
+  "#10B981", // Vert Emeraude
+  "#F43F5E", // Rouge Corail
+  "#F59E0B", // Orange Doré
+  "#8B5CF6", // Violet
+  "#EC4899", // Rose
+  "#14B8A6", // Sarcelle (Teal)
+  "#06B6D4", // Cyan
+  "#3B82F6", // Bleu Clair
+  "#84CC16", // Citron Vert
+  "#F97316", // Orange Vif
+  "#D946EF", // Fuchsia
+  "#6366F1", // Indigo
+  "#0EA5E9", // Bleu Ciel
+  "#EAB308", // Jaune Moutarde
+  "#64748B", // Gris Ardoise
 ];
+
 export function useMultiAgendaState() {
-  const app = useAppData(),
-    nav = useCalendarNavigation({ allowWeekOnMobile: true });
-  const [users, setUsers] = useState<MultiAgendaUser[]>([]),
-    [recentUsers, setRecentUsers] = useState<RecentUser[]>([]),
-    [cache, setCache] = useState<Record<string, AgendaEvent[]>>({}),
-    [errors, setErrors] = useState<Record<string, string>>({}),
-    [loading, setLoading] = useState(false),
-    [searchError, setSearchError] = useState<string | null>(null),
-    [loadedScope, setLoadedScope] = useState<string | null>(null);
+  const app = useAppData();
+  const [users, setUsers] = useState<MultiAgendaUser[]>([]);
+  const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
+  const [cache, setCache] = useState<Record<string, AgendaEvent[]>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [loadedScope, setLoadedScope] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
+
+  const [viewMode, setViewMode] = useState<"week" | "day">("week");
+
+  // État du Lundi de la semaine affichée
+  const [currentDay, setCurrentDay] = useState<Date>(() => {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - (day === 0 ? 6 : day - 1);
+    const m = new Date(now);
+    m.setDate(diff);
+    m.setHours(0, 0, 0, 0);
+    return m;
+  });
+
+  // État du jour sélectionné (mode jour)
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  });
+
+  const endOfWeek = useMemo(() => {
+    const end = new Date(currentDay);
+    end.setDate(currentDay.getDate() + 5);
+    return end;
+  }, [currentDay]);
+
   const seq = useRef(0);
   const cacheRef = useRef<Record<string, AgendaEvent[]>>({});
   const lastRevision = useRef(0);
   const currentUsers = useRef(users);
   currentUsers.current = users;
-  const scope = app.demo ? "demo" : app.user || "guest";
+
+  const scope = app.user || "guest";
   const key = `Multi:${encodeURIComponent(scope)}`;
   const scopeKey = `${key}:${app.generation}`;
   const hydrated = loadedScope === scopeKey;
+
   useEffect(() => {
     let alive = true;
     setLoadedScope(null);
@@ -86,6 +127,7 @@ export function useMultiAgendaState() {
       alive = false;
     };
   }, [key, app.generation, scopeKey]);
+
   useEffect(() => {
     if (hydrated)
       void setStorageItem(key, JSON.stringify({ users, recentUsers })).catch(
@@ -95,6 +137,7 @@ export function useMultiAgendaState() {
           ),
       );
   }, [users, recentUsers, hydrated, key]);
+
   useEffect(() => {
     if (!hydrated) return;
     const sequence = ++seq.current,
@@ -114,14 +157,7 @@ export function useMultiAgendaState() {
       await Promise.all(
         targets.map(async (u) => {
           try {
-            const events = app.demo
-              ? demoEvents().map((e, i) => ({
-                  ...e,
-                  start: new Date(+e.start + (u.id.length % 3) * 1800000),
-                  end: new Date(+e.end + (u.id.length % 3) * 1800000),
-                  id: `${e.id}:${i}`,
-                }))
-              : await fetchCalendar(u.prenom, u.nom, abort.signal);
+            const events = await fetchCalendar(u.prenom, u.nom, abort.signal);
             if (abort.signal.aborted || sequence !== seq.current) return;
             cacheRef.current = { ...cacheRef.current, [u.id]: events };
             setCache(cacheRef.current);
@@ -137,7 +173,8 @@ export function useMultiAgendaState() {
       if (sequence === seq.current && !abort.signal.aborted) setLoading(false);
     })();
     return () => abort.abort();
-  }, [users, revision, hydrated, app.demo]);
+  }, [users, revision, hydrated]);
+
   const addUser = async (prenom: string, nom: string) => {
     const p = prenom.trim().toLowerCase(),
       n = nom.trim().toLowerCase();
@@ -162,14 +199,15 @@ export function useMultiAgendaState() {
         prenom: p,
         nom: n,
         color:
-          colors.find((c) => !used.includes(c)) ||
-          colors[currentUsers.current.length % colors.length],
+          USER_COLORS.find((c) => !used.includes(c)) ||
+          USER_COLORS[currentUsers.current.length % USER_COLORS.length],
       },
     ];
     currentUsers.current = next;
     setUsers(next);
     setSearchError(null);
   };
+
   const removeUser = (id: string) => {
     delete cacheRef.current[id];
     setCache({ ...cacheRef.current });
@@ -177,16 +215,99 @@ export function useMultiAgendaState() {
     currentUsers.current = next;
     setUsers(next);
   };
-  const allEvents = users.flatMap((u) =>
-    (cache[u.id] || []).map((e) => ({
-      ...e,
-      id: `${u.id}:${e.id}`,
-      color: u.color,
-      userName: `${u.prenom} ${u.nom}`,
-    })),
+
+  const changeDate = useCallback(
+    (offset: number) => {
+      if (viewMode === "week") {
+        setCurrentDay((prev) => {
+          const newDate = new Date(prev);
+          newDate.setDate(newDate.getDate() + offset);
+          return newDate;
+        });
+      } else {
+        setSelectedDate((prev) => {
+          const newDate = new Date(prev);
+          newDate.setDate(newDate.getDate() + offset);
+
+          const day = newDate.getDay();
+          const diff = newDate.getDate() - day + (day === 0 ? -6 : 1);
+          const m = new Date(newDate);
+          m.setDate(diff);
+          m.setHours(0, 0, 0, 0);
+
+          if (m.getTime() !== currentDay.getTime()) {
+            setCurrentDay(m);
+          }
+
+          return newDate;
+        });
+      }
+    },
+    [viewMode, currentDay],
   );
+
+  const toggleViewMode = useCallback(() => {
+    setViewMode((prev) => {
+      const newMode = prev === "week" ? "day" : "week";
+
+      if (newMode === "day") {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const startWeek = new Date(currentDay);
+        const endWeek = new Date(currentDay);
+        endWeek.setDate(endWeek.getDate() + 6);
+
+        if (today >= startWeek && today <= endWeek) {
+          setSelectedDate(today);
+        } else {
+          setSelectedDate(new Date(currentDay));
+        }
+      }
+      return newMode;
+    });
+  }, [currentDay]);
+
+  const allEvents = useMemo(
+    () =>
+      users.flatMap((u) =>
+        (cache[u.id] || []).map((e) => ({
+          ...e,
+          id: `${u.id}:${e.id}`,
+          color: u.color,
+          userName: `${u.prenom} ${u.nom}`,
+        })),
+      ),
+    [users, cache],
+  );
+
+  const weekEvents = useMemo(() => {
+    const startWeek = new Date(currentDay);
+    const endWeek = new Date(currentDay);
+    endWeek.setDate(endWeek.getDate() + 6);
+    endWeek.setHours(23, 59, 59, 999);
+
+    return allEvents.filter(
+      (event) => event.start >= startWeek && event.start <= endWeek,
+    );
+  }, [allEvents, currentDay]);
+
+  const goToToday = useCallback(() => {
+    const now = new Date();
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+
+    const day = now.getDay();
+    const diff = now.getDate() - (day === 0 ? 6 : day - 1);
+    const m = new Date(now);
+    m.setDate(diff);
+    m.setHours(0, 0, 0, 0);
+
+    setCurrentDay(m);
+    setSelectedDate(today);
+  }, []);
+
   return {
-    ...nav,
     users: hydrated ? users : [],
     addUser,
     removeUser,
@@ -194,24 +315,32 @@ export function useMultiAgendaState() {
     removeRecentUser: (id: string) =>
       setRecentUsers((p) => p.filter((u) => u.id !== id)),
     allEvents: hydrated ? allEvents : [],
-    weekEvents: hydrated ? allEvents : [],
+    weekEvents: hydrated ? weekEvents : [],
     loading,
     error: null,
     errors: hydrated ? errors : {},
     refresh: () => setRevision((r) => r + 1),
     searchError,
     setSearchError,
+    viewMode,
+    currentDay,
+    selectedDate,
+    endOfWeek,
+    changeDate,
+    goToToday,
+    toggleViewMode,
   };
 }
 
-// The comparison data belongs above appearance-driven screen remounts.
 const MultiAgendaContext = createContext<ReturnType<
   typeof useMultiAgendaState
 > | null>(null);
+
 export function MultiAgendaProvider({ children }: { children: ReactNode }) {
   const value = useMultiAgendaState();
   return createElement(MultiAgendaContext.Provider, { value }, children);
 }
+
 export function useMultiAgenda() {
   const value = useContext(MultiAgendaContext);
   if (!value) throw new Error("MultiAgendaProvider manquant");

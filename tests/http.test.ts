@@ -83,7 +83,7 @@ it("rejects late responses after account change", async () => {
 it("passes cancellation and a deadline to fetch", async () => {
   const fetch = vi
     .spyOn(globalThis, "fetch")
-    .mockImplementation(async (_u, init) => {
+    .mockImplementation(async (_u: any, init: any) => {
       if (init?.signal?.aborted)
         throw new DOMException("Aborted", "AbortError");
       return response(200);
@@ -98,7 +98,7 @@ it("passes cancellation and a deadline to fetch", async () => {
 it("keeps the deadline active until the response body is read", async () => {
   vi.useFakeTimers();
   const spy = vi.spyOn(globalThis, "fetch").mockImplementation(
-    async (_url, init) =>
+    async (_url: any, init: any) =>
       ({
         headers: new Headers(),
         text: () =>

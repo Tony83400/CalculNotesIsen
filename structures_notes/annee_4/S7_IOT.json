@@ -10,14 +10,14 @@
                 "evaluations": [
                     {
                         "name": "Generative IA",
-                        "code": "",
+                        "code": "26_ISEN_MED_ISEN4_S7_GENERATIVE_IA_EXAMEN",
                         "coeff": 1
                     }
                 ]
             },
             {
                 "name": "Plateforme de DEV",
-                "code_rattrapage": "",
+                "code_rattrapage": "26_ISEN_MED_ISEN4_S7_PF_DEV_RATTRAPAGE",
                 "coeff_matiere": 1,
                 "evaluations": [
                     {
@@ -34,7 +34,7 @@
                 "evaluations": [
                     {
                         "name": "TOOLS IA level 1",
-                        "code": "",
+                        "code": "26_ISEN_MED_ISEN4_S7_TOOLS_IA_LVL1_EXAMEN",
                         "coeff": 1
                     }
                 ]
@@ -52,7 +52,7 @@
                 "evaluations": [
                     {
                         "name": "Sensors",
-                        "code": "",
+                        "code": "26_ISEN_MED_ISEN4_S7_SENSORS_EXAMEN",
                         "coeff": 1
                     }
                 ]
@@ -64,7 +64,7 @@
                 "evaluations": [
                     {
                         "name": "STM 32 level 1",
-                        "code": "",
+                        "code": "26_ISEN_MED_ISEN4_S7_STM32_Level1_EXAMEN",
                         "coeff": 1
                     }
                 ]
@@ -76,7 +76,7 @@
                 "evaluations": [
                     {
                         "name": "STM32 EDGE",
-                        "code": "",
+                        "code": "26_ISEN_MED_ISEN4_S7_STM32_EDGEAI_EXAMEN",
                         "coeff": 1
                     }
                 ]
@@ -94,19 +94,24 @@
                 "evaluations": [
                     {
                         "name": "Linux Shell",
-                        "code": "",
+                        "code": "26_ISEN_MED_ISEN4_S7_LINUX_EXAMEN",
                         "coeff": 1
                     }
                 ]
             },
             {
-                "name": "Microservice \u0026 API IOT",
+                "name": "Microservice & API IOT",
                 "code_rattrapage": "",
                 "coeff_matiere": 2,
                 "evaluations": [
                     {
-                        "name": "Microservice \u0026 API IOT",
-                        "code": "",
+                        "name": "Examen",
+                        "code": "26_ISEN_MED_ISEN4_S7_MICROSERVICE_API_Examen",
+                        "coeff": 1
+                    },
+                    {
+                        "name": "Projet",
+                        "code": "26_ISEN_MED_ISEN4_S7_MICROSERVICE_API_Projet",
                         "coeff": 1
                     }
                 ]
@@ -124,7 +129,7 @@
                 "evaluations": [
                     {
                         "name": "RTOS",
-                        "code": "",
+                        "code": "26_ISEN_MED_ISEN4_S7_RTOS_EXAMEN",
                         "coeff": 1
                     }
                 ]
@@ -136,7 +141,7 @@
                 "evaluations": [
                     {
                         "name": "Etude et gestion de la consommation",
-                        "code": "",
+                        "code": "26_ISEN_MED_ISEN4_S7_BATTERIE_EXAMEN",
                         "coeff": 1
                     }
                 ]
@@ -148,7 +153,7 @@
                 "evaluations": [
                     {
                         "name": "Architecture UML IOT",
-                        "code": "",
+                        "code": "26_ISEN_MED_ISEN4_S7_ARCHI_UML_EXAMEN",
                         "coeff": 1
                     }
                 ]
@@ -165,8 +170,18 @@
                 "coeff_matiere": 1,
                 "evaluations": [
                     {
-                        "name": "Projet technique + workshop Archi IOT",
-                        "code": "",
+                        "name": "Soutenance mi-parcours",
+                        "code": "26_ISEN_MED_ISEN4_S7_PROJET_Avancement_MIPAROURS",
+                        "coeff": 1
+                    },
+                    {
+                        "name": "Recette",
+                        "code": "26_ISEN_MED_ISEN4_S7_PROJET_RECETTE",
+                        "coeff": 1
+                    },
+                    {
+                        "name": "Soutenance",
+                        "code": "26_ISEN_MED_ISEN4_S7_PROJET_SOUTENANCE",
                         "coeff": 1
                     }
                 ]
@@ -183,8 +198,8 @@
                 "name": "Agilité",
                 "evaluations": [
                     {
-                        "code": "26_ISEN_MED_ISEN4_S7_SHES_AGILE_PROJECT_MANAGEMENT",
                         "name": "Agilité",
+                        "code": "26_ISEN_MED_ISEN4_S7_SHES_AGILE_PROJECT_MANAGEMENT",
                         "coeff": 1
                     }
                 ]
@@ -195,8 +210,8 @@
                 "name": "Projet Personnel et Professionnel",
                 "evaluations": [
                     {
-                        "code": "",
                         "name": "Projet Personnel et Professionnel",
+                        "code": "26_ISEN_MED_ISEN4_S7_SHES_COACHING_DNF",
                         "coeff": 1
                     }
                 ]
@@ -207,8 +222,8 @@
                 "name": "Prospective et Inovation",
                 "evaluations": [
                     {
-                        "code": "",
                         "name": "Prospective et Inovation",
+                        "code": "26_ISEN_MED_ISEN4_S7_SHES_PROSPECTIVE_INNOVATION_EXAMEN",
                         "coeff": 1
                     }
                 ]
@@ -219,8 +234,8 @@
                 "name": "Start up et Entreprenariat",
                 "evaluations": [
                     {
-                        "code": "",
                         "name": "Start up et Entreprenariat",
+                        "code": "26_ISEN_MED_ISEN4_S7_SHES_ENTREPRENEURSHIP_DEVELOPMENT_OF_STARTUPS_Examen",
                         "coeff": 1
                     }
                 ]
@@ -238,7 +253,7 @@
                 "evaluations": [
                     {
                         "name": "Anglais_FISE",
-                        "code": "",
+                        "code": "26_ISEN_MED_ISEN4_S7_ANGLAIS_EXAMEN",
                         "coeff": 1
                     }
                 ]

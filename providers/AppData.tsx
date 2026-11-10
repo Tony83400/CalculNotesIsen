@@ -22,7 +22,6 @@ import {
   updateStructureConfig,
 } from "../services/configApi";
 import { validateStructure, validateNotes } from "../utils/notes";
-import { demoStructure, demoNotes, demoEvents } from "../services/demo";
 import type { Note, Ue } from "../types/note";
 import type { AgendaEvent } from "../types/agenda";
 import {
@@ -43,6 +42,7 @@ const empty = <T,>(data: T): Resource<T> => ({
   updatedAt: null,
   error: null,
 });
+
 function useAppState() {
   const generation = useSyncExternalStore(
     subscribeDataScope,
@@ -50,8 +50,7 @@ function useAppState() {
     getDataGeneration,
   );
   const [ready, setReady] = useState(false),
-    [user, setUser] = useState<string | null>(null),
-    [demo, setDemo] = useState(false);
+    [user, setUser] = useState<string | null>(null);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [year, setYear] = useState<string | null>(null),
     [semester, setSemester] = useState<string | null>(null),
@@ -66,7 +65,7 @@ function useAppState() {
   const controller = useRef<AbortController | null>(null);
   const noteFlight = useRef<Promise<void> | null>(null),
     agendaFlight = useRef<Promise<void> | null>(null);
-  const demoRef = useRef(false);
+
   const refreshNotes = useCallback(
     (id: string, g: number, signal: AbortSignal) => {
       if (noteFlight.current) return noteFlight.current;
@@ -98,6 +97,7 @@ function useAppState() {
     },
     [],
   );
+
   const refreshAgenda = useCallback(
     (id: string, g: number, signal: AbortSignal) => {
       if (agendaFlight.current) return agendaFlight.current;
@@ -130,6 +130,7 @@ function useAppState() {
     },
     [],
   );
+
   useEffect(() => {
     const abort = new AbortController();
     controller.current = abort;
@@ -143,40 +144,6 @@ function useAppState() {
     setSimulations({});
     void (async () => {
       try {
-        if (demoRef.current) {
-          setDemo(true);
-          setUser("demo");
-          setYear("ISEN4");
-          setSemester("S7");
-          setMajors({ S7: "DEV_LOGICIEL", S8: "DEV_LOGICIEL" });
-          setConfigs({
-            S7: demoStructure,
-            S8: demoStructure.map((u) => ({
-              ...u,
-              matieres: u.matieres.map((m) => ({
-                ...m,
-                evaluations: m.evaluations.map((e) => ({
-                  ...e,
-                  code: e.code.replace("_S7_", "_S8_"),
-                })),
-              })),
-            })),
-          });
-          setNotes({
-            data: demoNotes(),
-            status: "network",
-            updatedAt: new Date().toISOString(),
-            error: null,
-          });
-          setAgenda({
-            data: demoEvents(),
-            status: "network",
-            updatedAt: new Date().toISOString(),
-            error: null,
-          });
-          setReady(true);
-          return;
-        }
         if (!(await storage.getId())) {
           const restored = await restoreWebSession();
           assertCurrent(generation, abort.signal);
@@ -195,7 +162,6 @@ function useAppState() {
           storage.getSelectedMajorsUrls(),
         ]);
         assertCurrent(generation, abort.signal);
-        setDemo(false);
         setUser(id);
         setYear(y);
         setSemester(s);
@@ -251,6 +217,7 @@ function useAppState() {
     })();
     return () => abort.abort();
   }, [generation, refreshNotes, refreshAgenda]);
+
   const authenticate = async (
     username: string,
     password: string,
@@ -266,19 +233,12 @@ function useAppState() {
     assertCurrent(g);
     await storage.clearAllStorage();
     await cancelCourseNotifications();
-    demoRef.current = false;
     await storage.setId(username.trim().toLowerCase());
     await storage.setToken(result.token);
     await storage.setPasswordStorage(remember ? password : "");
     invalidateDataScope();
   };
-  const startDemo = async () => {
-    await clearWebSession();
-    await storage.clearAllStorage();
-    await cancelCourseNotifications();
-    demoRef.current = true;
-    invalidateDataScope();
-  };
+
   const logout = async () => {
     setSessionError(null);
     try {
@@ -289,18 +249,19 @@ function useAppState() {
       );
       return false;
     }
-    demoRef.current = false;
     controller.current?.abort();
     await storage.clearAllStorage();
     await cancelCourseNotifications();
     invalidateDataScope();
     return true;
   };
+
   const selectSemester = async (s: string) => {
     if (!majors[s]) return;
     setSemester(s);
-    if (!demo) await storage.setSelectedSemester(s);
+    await storage.setSelectedSemester(s);
   };
+
   const saveCurriculum = async (
     y: string,
     m: Record<string, string>,
@@ -321,15 +282,8 @@ function useAppState() {
     await storage.setSelectedSemester(sem);
     invalidateDataScope();
   };
+
   const refresh = async () => {
-    if (demo) {
-      setAgenda((p) => ({
-        ...p,
-        data: demoEvents(),
-        updatedAt: new Date().toISOString(),
-      }));
-      return;
-    }
     if (!user || !controller.current) return;
     const signal = controller.current.signal;
     await Promise.all([
@@ -361,6 +315,7 @@ function useAppState() {
       })(),
     ]);
   };
+
   const updateSimulation = (id: string, value: number | null) => {
     if (!semester) return;
     setSimulations((p) => ({
@@ -368,14 +323,15 @@ function useAppState() {
       [semester]: { ...p[semester], [id]: value },
     }));
   };
+
   const resetSimulations = () => {
     if (semester) setSimulations((p) => ({ ...p, [semester]: {} }));
   };
+
   const current = owner === generation;
   return {
     ready: ready && current,
     user: current ? user : null,
-    demo: current && demo,
     sessionError,
     year: current ? year : null,
     semester: current ? semester : null,
@@ -384,7 +340,6 @@ function useAppState() {
     notes: current ? notes : empty<Note[]>([]),
     agenda: current ? agenda : empty<AgendaEvent[]>([]),
     authenticate,
-    startDemo,
     logout,
     selectSemester,
     saveCurriculum,
@@ -395,11 +350,14 @@ function useAppState() {
     generation,
   };
 }
+
 const Context = createContext<ReturnType<typeof useAppState> | null>(null);
+
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const value = useAppState();
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
+
 export function useAppData() {
   const value = useContext(Context);
   if (!value) throw new Error("AppDataProvider manquant");

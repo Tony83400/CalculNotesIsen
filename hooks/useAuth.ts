@@ -1,19 +1,20 @@
 import { useState } from "react";
 import { router } from "expo-router";
 import { useAppData } from "../providers/AppData";
+import { setId } from "../services/storage";
+
 export function useAuth() {
   const app = useAppData();
-  const [email, setEmail] = useState(
-      app.user && app.user !== "demo" ? app.user : "",
-    ),
-    [password, setPassword] = useState(""),
-    [errorText, setErrorText] = useState(""),
-    [keepLogin, setKeepLogin] = useState(false),
-    [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState(app.user || "");
+  const [password, setPassword] = useState("");
+  const [errorText, setErrorText] = useState("");
+  const [keepLogin, setKeepLogin] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const handleLogin = async (id: string, pass: string) => {
     if (loading || !app.ready) return;
     if (!id.trim() || !pass) {
-      setErrorText("Renseignez votre identifiant et votre mot de passe.");
+      setErrorText("Veuillez remplir tous les champs");
       return;
     }
     setLoading(true);
@@ -21,25 +22,27 @@ export function useAuth() {
     try {
       await app.authenticate(id, pass, keepLogin);
       setPassword("");
-      router.replace("/selection");
+      if (app.year && Object.keys(app.majors).length > 0) {
+        router.replace("/selection");
+      } else {
+        router.replace("/selectionAnnee");
+      }
     } catch (e) {
       setErrorText(
         (e as Error).name === "AbortError"
           ? "La connexion a pris trop de temps. Réessayez."
-          : (e as Error).message,
+          : (e as Error).message || "Identifiant ou mot de passe incorrect.",
       );
     } finally {
       setLoading(false);
     }
   };
+
   const loginWithoutAccount = async () => {
-    try {
-      await app.startDemo();
-      router.replace("/selection");
-    } catch (e) {
-      setErrorText((e as Error).message);
-    }
+    await setId("");
+    router.replace("/selectionAnnee");
   };
+
   return {
     email,
     setEmail,

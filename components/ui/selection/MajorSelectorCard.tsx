@@ -1,6 +1,5 @@
-import { themedStyles } from "../../../constants/themedStyles";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Check, ChevronRight } from "lucide-react-native";
 import { Colors } from "@/constants/Colors";
 
@@ -68,7 +67,7 @@ export const MajorSelectorCard: React.FC<MajorSelectorCardProps> = ({
   );
 };
 
-const styles = themedStyles(() => ({
+const styles = StyleSheet.create({
   semesterCard: {
     backgroundColor: Colors.surface,
     borderRadius: 28,
@@ -148,4 +147,4 @@ const styles = themedStyles(() => ({
     alignItems: "center",
     justifyContent: "center",
   },
-}));
+});

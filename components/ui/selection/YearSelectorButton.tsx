@@ -1,6 +1,5 @@
-import { themedStyles } from "../../../constants/themedStyles";
 import React from "react";
-import { Text, TouchableOpacity, View, Dimensions } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, Dimensions } from "react-native";
 import { Check } from "lucide-react-native";
 import { Colors } from "@/constants/Colors";
 
@@ -43,7 +42,7 @@ export const YearSelectorButton: React.FC<YearSelectorButtonProps> = ({
   );
 };
 
-const styles = themedStyles(() => ({
+const styles = StyleSheet.create({
   yearButton: {
     backgroundColor: Colors.surface,
     paddingVertical: 16,
@@ -89,4 +88,4 @@ const styles = themedStyles(() => ({
     borderWidth: 2,
     borderColor: Colors.surface,
   },
-}));
+});

@@ -50,7 +50,7 @@ beforeEach(() => {
   vi.mocked(fetchCalendar).mockReset();
 });
 it("really refetches on refresh and keeps other agendas after one failure", async () => {
-  vi.mocked(fetchCalendar).mockImplementation(async (p) => [Event(p)]);
+  vi.mocked(fetchCalendar).mockImplementation(async (p: any) => [Event(p)]);
   const renderer = await mount();
   await act(async () => {
     await hook.addUser("Fiction", "Alice");
@@ -63,7 +63,7 @@ it("really refetches on refresh and keeps other agendas after one failure", asyn
   await act(async () => {
     await hook.addUser("Fiction", "Bob");
   });
-  vi.mocked(fetchCalendar).mockImplementation(async (_p, n) => {
+  vi.mocked(fetchCalendar).mockImplementation(async (_p: any, n: any) => {
     if (n === "alice") throw new Error("Unavailable");
     return [Event("updated-bob")];
   });
@@ -132,7 +132,7 @@ it("clears visible comparisons and never persists the previous account into the 
 });
 
 it("preserves both calendars and avoids requests when the appearance subtree remounts", async () => {
-  vi.mocked(fetchCalendar).mockImplementation(async (p) => [Event(p)]);
+  vi.mocked(fetchCalendar).mockImplementation(async (p: any) => [Event(p)]);
   let shared!: ReturnType<typeof useSharedAgenda>;
   function SharedProbe() {
     shared = useSharedAgenda();
