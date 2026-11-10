@@ -25,21 +25,21 @@ export interface MultiAgendaUser extends RecentUser {
 
 const USER_COLORS = [
   "#2563EB", // Bleu Royal
-  "#10B981", // Vert Emeraude
+  "#10B981", // Vert Émeraude
   "#F43F5E", // Rouge Corail
-  "#F59E0B", // Orange Doré
+  "#F59E0B", // Orange Ambré
   "#8B5CF6", // Violet
-  "#EC4899", // Rose
-  "#14B8A6", // Sarcelle (Teal)
-  "#06B6D4", // Cyan
-  "#3B82F6", // Bleu Clair
-  "#84CC16", // Citron Vert
+  "#EC4899", // Rose Vif
+  "#0D9488", // Sarcelle (Teal)
+  "#0284C7", // Bleu Océan
   "#F97316", // Orange Vif
+  "#A855F7", // Pourpre
+  "#16A34A", // Vert Feuille
   "#D946EF", // Fuchsia
   "#6366F1", // Indigo
-  "#0EA5E9", // Bleu Ciel
-  "#EAB308", // Jaune Moutarde
-  "#64748B", // Gris Ardoise
+  "#06B6D4", // Cyan
+  "#E11D48", // Framboise
+  "#EAB308", // Jaune Doré
 ];
 
 export function useMultiAgendaState() {
@@ -109,9 +109,17 @@ export function useMultiAgendaState() {
             (k) => typeof (x as Record<string, unknown>)[k] === "string",
           );
         if (alive && p) {
-          setUsers(
-            Array.isArray(p.users) ? p.users.filter(valid).slice(0, 16) : [],
-          );
+          const rawUsers: MultiAgendaUser[] = Array.isArray(p.users)
+            ? p.users.filter(valid).slice(0, 16)
+            : [];
+          const sanitizedUsers = rawUsers.map((u, i) => ({
+            ...u,
+            color:
+              USER_COLORS.includes(u.color) && u.color !== "#64748B"
+                ? u.color
+                : USER_COLORS[i % USER_COLORS.length],
+          }));
+          setUsers(sanitizedUsers);
           setRecentUsers(
             Array.isArray(p.recentUsers)
               ? p.recentUsers.filter(valid).slice(0, 10)

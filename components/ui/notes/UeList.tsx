@@ -93,12 +93,14 @@ interface UeCardProps {
   Ue: Ue;
   simulatedNotes: Record<string, number | null>;
   updateSimulation: (id: string, val: number | null) => void;
+  style?: any;
 }
 
 export default function UeCard({
   Ue,
   simulatedNotes,
   updateSimulation,
+  style,
 }: UeCardProps) {
   const getUeColor = (
     moyenne: number | null | undefined,
@@ -131,7 +133,7 @@ export default function UeCard({
   const ueColor = getUeColor(Ue.moyenne, Ue.isValidated, Ue.hasEliminatoryNote);
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, style]}>
       <View style={styles.cardHeader}>
         <View style={styles.headerTitleRow}>
           <View style={styles.iconContainer}>

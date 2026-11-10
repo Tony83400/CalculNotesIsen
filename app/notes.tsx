@@ -8,6 +8,7 @@ import {
   View,
   StatusBar,
   Animated,
+  useWindowDimensions,
 } from "react-native";
 import { router } from "expo-router";
 import {
@@ -29,6 +30,9 @@ import { useSpinAnimation } from "../hooks/useSpinAnimation";
 
 export default function NotesScreen() {
   const app = useAppData();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 900;
+
   const [isRattrapageMode, setIsRattrapageMode] = useState(false);
   const [showSemesterPicker, setShowSemesterPicker] = useState(false);
 
@@ -103,44 +107,51 @@ export default function NotesScreen() {
       })
     : null;
 
+  const flatListData =
+    isDesktop && donneesAffichables.length % 2 !== 0
+      ? [...donneesAffichables, { ue: "__spacer__", isSpacer: true } as any]
+      : donneesAffichables;
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
       {/* TOP BAR / NAVIGATION */}
-      <View style={styles.topHeader}>
-        <TouchableOpacity
-          onPress={() => router.push("/selection")}
-          style={styles.iconBtn}
-          activeOpacity={0.7}
-        >
-          <Home size={22} color={Colors.text.primary} />
-        </TouchableOpacity>
-
-        <View style={styles.headerTitleContainer}>
+      <View style={styles.headerWrapper}>
+        <View style={[styles.topHeader, isDesktop && styles.topHeaderDesktop]}>
           <TouchableOpacity
-            style={styles.semesterToggle}
-            onPress={() => setShowSemesterPicker(!showSemesterPicker)}
+            onPress={() => router.push("/selection")}
+            style={styles.iconBtn}
             activeOpacity={0.7}
           >
-            <Text
-              style={styles.headerTitle}
-              numberOfLines={1}
-              ellipsizeMode="tail"
+            <Home size={22} color={Colors.text.primary} />
+          </TouchableOpacity>
+
+          <View style={styles.headerTitleContainer}>
+            <TouchableOpacity
+              style={styles.semesterToggle}
+              onPress={() => setShowSemesterPicker(!showSemesterPicker)}
+              activeOpacity={0.7}
             >
-              {selectedSemester} - {currentMajor}
-            </Text>
-            <ChevronDown size={16} color={Colors.text.tertiary} />
+              <Text
+                style={styles.headerTitle}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {selectedSemester} - {currentMajor}
+              </Text>
+              <ChevronDown size={16} color={Colors.text.tertiary} />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => router.replace("/agenda")}
+            style={styles.iconBtn}
+            activeOpacity={0.7}
+          >
+            <CalendarDays size={22} color={Colors.text.primary} />
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity
-          onPress={() => router.replace("/agenda")}
-          style={styles.iconBtn}
-          activeOpacity={0.7}
-        >
-          <CalendarDays size={22} color={Colors.text.primary} />
-        </TouchableOpacity>
       </View>
 
       {/* MODAL SEMESTER PICKER */}
@@ -175,9 +186,16 @@ export default function NotesScreen() {
         </View>
       )}
 
-      {/* SÉLECTEUR DE MODE : Standard vs Rattrapage */}
-      <View style={styles.modeSelectorContainer}>
-        <View style={styles.modeSelector}>
+      {/* CONTRÔLES : Sélecteur de Mode & Actualisation */}
+      <View
+        style={[
+          styles.controlsContainer,
+          isDesktop && styles.controlsContainerDesktop,
+        ]}
+      >
+        <View
+          style={[styles.modeSelector, isDesktop && styles.modeSelectorDesktop]}
+        >
           <TouchableOpacity
             style={[styles.modeTab, !isRattrapageMode && styles.activeModeTab]}
             onPress={() => setIsRattrapageMode(false)}
@@ -207,35 +225,42 @@ export default function NotesScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
 
-      {/* BANDEAU INDICATEUR DE CHARGEMENT / ACTUALISATION */}
-      <View style={styles.refreshIndicatorContainer}>
-        <View style={styles.refreshInfoLeft}>
-          {isRefreshing ? (
-            <View style={styles.refreshingRow}>
-              <Animated.View style={{ transform: [{ rotate: refreshSpin }] }}>
-                <Loader2 size={12} color={Colors.primary} />
-              </Animated.View>
-              <Text style={styles.refreshText}>Actualisation...</Text>
-            </View>
-          ) : (
-            <TouchableOpacity onPress={() => app.refresh()} activeOpacity={0.7}>
-              <Text style={styles.refreshText}>↻ Actualiser</Text>
-            </TouchableOpacity>
+        <View
+          style={[
+            styles.refreshIndicatorContainer,
+            isDesktop && styles.refreshIndicatorDesktop,
+          ]}
+        >
+          <View style={styles.refreshInfoLeft}>
+            {isRefreshing ? (
+              <View style={styles.refreshingRow}>
+                <Animated.View style={{ transform: [{ rotate: refreshSpin }] }}>
+                  <Loader2 size={12} color={Colors.primary} />
+                </Animated.View>
+                <Text style={styles.refreshText}>Actualisation...</Text>
+              </View>
+            ) : (
+              <TouchableOpacity onPress={() => app.refresh()} activeOpacity={0.7}>
+                <Text style={styles.refreshText}>↻ Actualiser</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {formattedDate && (
+            <Text style={styles.lastUpdateText}>Mis à jour à {formattedDate}</Text>
           )}
         </View>
-        {formattedDate && (
-          <Text style={styles.lastUpdateText}>Mis à jour à {formattedDate}</Text>
-        )}
       </View>
 
       {/* LISTE DES UE & STATS */}
       <FlatList
-        data={donneesAffichables}
+        key={isDesktop ? "grid-2" : "list-1"}
+        data={flatListData}
+        numColumns={isDesktop ? 2 : 1}
+        columnWrapperStyle={isDesktop ? styles.columnWrapper : undefined}
         keyExtractor={(item, index) => item.ue + index}
         ListHeaderComponent={
-          <View style={styles.statsRow}>
+          <View style={[styles.statsRow, isDesktop && styles.statsRowDesktop]}>
             {/* CARTE MOYENNE */}
             <View style={styles.statCard}>
               <View style={styles.statHeader}>
@@ -294,14 +319,23 @@ export default function NotesScreen() {
             </View>
           </View>
         }
-        renderItem={({ item }) => (
-          <UeCard
-            Ue={item}
-            simulatedNotes={app.simulations}
-            updateSimulation={app.updateSimulation}
-          />
-        )}
-        contentContainerStyle={styles.listContent}
+        renderItem={({ item }) => {
+          if ((item as any).isSpacer) {
+            return <View style={styles.spacerCard} />;
+          }
+          return (
+            <UeCard
+              Ue={item}
+              simulatedNotes={app.simulations}
+              updateSimulation={app.updateSimulation}
+              style={isDesktop ? styles.ueCardDesktop : undefined}
+            />
+          );
+        }}
+        contentContainerStyle={[
+          styles.listContent,
+          isDesktop && styles.listContentDesktop,
+        ]}
       />
     </SafeAreaView>
   );
@@ -309,20 +343,26 @@ export default function NotesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  listContent: { paddingBottom: 40, maxWidth: 650, width: "100%", alignSelf: "center" },
+  headerWrapper: {
+    width: "100%",
+    backgroundColor: Colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    zIndex: 10,
+  },
   topHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: Colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    zIndex: 10,
     maxWidth: 650,
     width: "100%",
     alignSelf: "center",
+  },
+  topHeaderDesktop: {
+    maxWidth: 1200,
+    paddingHorizontal: 24,
   },
   iconBtn: {
     width: 44,
@@ -345,7 +385,7 @@ const styles = StyleSheet.create({
     top: 70,
     left: 16,
     right: 16,
-    maxWidth: 600,
+    maxWidth: 500,
     alignSelf: "center",
     backgroundColor: Colors.surface,
     borderRadius: 20,
@@ -373,12 +413,19 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
   semesterPickerTextActive: { color: Colors.primary, fontWeight: "700" },
-  modeSelectorContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
+  controlsContainer: {
     maxWidth: 650,
     width: "100%",
     alignSelf: "center",
+    paddingTop: 12,
+  },
+  controlsContainerDesktop: {
+    maxWidth: 1200,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingTop: 16,
   },
   modeSelector: {
     flexDirection: "row",
@@ -387,6 +434,11 @@ const styles = StyleSheet.create({
     padding: 4,
     borderWidth: 1,
     borderColor: Colors.border,
+    marginHorizontal: 16,
+  },
+  modeSelectorDesktop: {
+    marginHorizontal: 0,
+    width: 280,
   },
   modeTab: {
     flex: 1,
@@ -412,9 +464,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 0,
-    maxWidth: 650,
-    width: "100%",
-    alignSelf: "center",
+  },
+  refreshIndicatorDesktop: {
+    paddingHorizontal: 0,
+    paddingTop: 0,
+    gap: 16,
   },
   refreshInfoLeft: {
     flexDirection: "row",
@@ -437,7 +491,38 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: Colors.text.tertiary,
   },
-  statsRow: { flexDirection: "row", gap: 16, padding: 16, paddingBottom: 24 },
+  listContent: {
+    paddingBottom: 40,
+    maxWidth: 650,
+    width: "100%",
+    alignSelf: "center",
+  },
+  listContentDesktop: {
+    maxWidth: 1200,
+    paddingHorizontal: 24,
+  },
+  columnWrapper: {
+    gap: 20,
+  },
+  ueCardDesktop: {
+    flex: 1,
+    marginHorizontal: 0,
+    marginBottom: 20,
+  },
+  spacerCard: {
+    flex: 1,
+    marginHorizontal: 0,
+  },
+  statsRow: {
+    flexDirection: "row",
+    gap: 16,
+    padding: 16,
+    paddingBottom: 24,
+  },
+  statsRowDesktop: {
+    paddingHorizontal: 0,
+    paddingBottom: 20,
+  },
   statCard: {
     flex: 1,
     backgroundColor: Colors.surface,

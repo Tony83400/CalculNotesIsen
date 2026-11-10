@@ -164,7 +164,7 @@ export default function AgendaGrid({
         ))}
       </View>
 
-      <View style={{ flex: 1, position: "relative" }}>
+      <View style={{ flex: 1, position: "relative", overflow: "hidden" }}>
         {[0, 1, 2, 3, 4, 5].map((index) => {
           const isToday = getDayInfo(index).isToday;
           return (
@@ -375,6 +375,8 @@ const styles = StyleSheet.create({
   },
   gridBody: {
     flexDirection: "row",
+    overflow: "hidden",
+    maxWidth: "100%",
   },
   hoursColumn: {
     backgroundColor: Colors.surface,

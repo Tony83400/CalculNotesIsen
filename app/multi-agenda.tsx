@@ -194,6 +194,7 @@ export default function MultiAgendaScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={styles.usersScrollView}
           contentContainerStyle={styles.usersScrollList}
         >
           {users.map((u) => (
@@ -288,6 +289,7 @@ export default function MultiAgendaScreen() {
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
+                style={styles.recentUsersScrollView}
                 contentContainerStyle={styles.recentUsersList}
               >
                 {recentUsers.map((u) => (
@@ -358,6 +360,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+    maxWidth: "100%",
+    overflow: "hidden",
   },
   compactBar: {
     flexDirection: "row",
@@ -369,6 +373,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     gap: 6,
+    maxWidth: "100%",
   },
   backBtn: {
     width: 36,
@@ -441,6 +446,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     gap: 8,
+    maxWidth: "100%",
+    overflow: "hidden",
+  },
+  usersScrollView: {
+    flex: 1,
+    minWidth: 0,
   },
   toggleAddBtn: {
     flexDirection: "row",
@@ -509,17 +520,21 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
     padding: 10,
     gap: 8,
+    maxWidth: "100%",
+    overflow: "hidden",
   },
   addUserRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: 6,
     alignItems: "center",
+    width: "100%",
   },
   input: {
     flex: 1,
+    minWidth: 0,
     backgroundColor: Colors.background,
     borderRadius: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 6,
     fontSize: 13,
     color: Colors.text.primary,
@@ -533,6 +548,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
+    flexShrink: 0,
   },
   addSubmitBtnDisabled: {
     backgroundColor: Colors.text.tertiary,
@@ -557,6 +573,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
     paddingTop: 2,
+    maxWidth: "100%",
+    overflow: "hidden",
+  },
+  recentUsersScrollView: {
+    flex: 1,
+    minWidth: 0,
   },
   recentUsersTitle: {
     fontSize: 10,
@@ -591,6 +613,8 @@ const styles = StyleSheet.create({
   },
   contentArea: {
     flex: 1,
+    maxWidth: "100%",
+    overflow: "hidden",
   },
   loaderContainer: {
     flex: 1,

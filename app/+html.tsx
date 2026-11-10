@@ -12,7 +12,7 @@ export default function Root({ children }: PropsWithChildren) {
         <ScrollViewStyleReset />
         <style
           dangerouslySetInnerHTML={{
-            __html: `:focus-visible{outline:3px solid ${C.status.info}!important;outline-offset:3px}html,body,#root{height:100%;background:${C.background}}body{margin:0}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}`,
+            __html: `:focus-visible{outline:3px solid ${C.status.info}!important;outline-offset:3px}html,body,#root{height:100%;background:${C.background}}html,body{overflow-x:hidden;max-width:100%}body{margin:0}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}`,
           }}
         />
       </head>
