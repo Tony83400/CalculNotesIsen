@@ -24,9 +24,9 @@ Ajout demandé par le responsable à partir de la capture du tableau « ISENA4 �
 
 ## Évaluations provisoires
 
-Le responsable demande **1 par défaut** tant que les coefficients des DS et partiels ne sont pas disponibles. Des emplacements **DS** et **Partiel**, chacun à 1, sont préparés pour les cours. **Projet Info**, **Projet IoT** et **Entreprise** ont un seul emplacement dédié à 1. Cette répartition est une préparation technique pour les simulations ; elle n’atteste pas du nombre réel d’évaluations de chaque cours. Elle est signalée comme provisoire dans les notes. S7 comporte ainsi 18 emplacements et S8 en comporte 26.
+Le responsable demande **1 par défaut** tant que les coefficients des DS et partiels ne sont pas disponibles. Des emplacements **DS** et **Partiel**, chacun à 1, sont préparés pour les cours. **Projet Info**, **Projet IoT** et **Entreprise** ont un seul emplacement dédié à 1. Cette répartition est une préparation technique pour les simulations ; elle n’atteste pas du nombre réel d’évaluations de chaque cours. Elle est signalée comme provisoire dans les notes. S7 comporte 17 évaluations et S8 en comporte 26. En S7, Élec de puissance comporte uniquement un partiel à coefficient 1, associé au code `26_ISENA4_TLN_S7_ELECPUISS`.
 
-Les champs `code` et `code_rattrapage` restent vides : aucune correspondance API n’est inventée à partir d’un nom de matière. Les notes publiées non associées restent consultables hors structure et hors moyenne. En attendant les codes, les moyennes structurées ne peuvent utiliser que les simulations saisies par l’étudiant ; aucune absence ne devient 0. Les écrans notes et réglages signalent cette limite.
+Les codes d’évaluation et de rattrapage sont renseignés à mesure qu’ils sont fournis. Les notes publiées sans correspondance restent consultables hors structure et hors moyenne. Les écrans notes et réglages signalent les codes manquants.
 
 Pour compléter : ajuster les noms/nombres d’évaluations et leurs coefficients, renseigner les codes ISEN exacts dans les deux JSON et les codes de rattrapage éventuels, puis exporter/retester l’application. Les deux fichiers sont la configuration technique de référence ; leur conformité au règlement n’est pas certifiée.
 

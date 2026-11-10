@@ -52,6 +52,12 @@ it("transcribes the five modules and 30 ECTS of each supplied ISENA4 semester", 
     expect(() => validateStructure(data)).not.toThrow();
     expect(data.reduce((total, u) => total + u.ects, 0)).toBe(30);
     for (const m of data.flatMap((u) => u.matieres)) {
+      if (data === s7 && m.name === "Élec de puissance") {
+        expect(m.evaluations).toEqual([
+          { name: "Partiel", code: "26_ISENA4_TLN_S7_ELECPUISS", coeff: 1 },
+        ]);
+        continue;
+      }
       expect(m.coeff_matiere).toBe(1);
       expect(m.evaluations.every((e) => e.coeff === 1 && e.code === "")).toBe(
         true,
@@ -72,7 +78,7 @@ it("uses equal DS/partiel weights, excludes missing marks and resets without mod
   const empty = calc(s7, [], {}, false, "S7");
   expect(empty.stats.moyenne).toBeNull();
   expect(empty.stats.totalEcts).toBe(30);
-  const [ds, partiel] = empty.structure[0].matieres[0].evaluations;
+  const [ds, partiel] = empty.structure[0].matieres[1].evaluations;
   const result = calc(
     s7,
     [],
@@ -80,7 +86,7 @@ it("uses equal DS/partiel weights, excludes missing marks and resets without mod
     false,
     "S7",
   );
-  expect(result.structure[0].matieres[0].moyenne).toBe(12);
+  expect(result.structure[0].matieres[1].moyenne).toBe(12);
   expect(result.stats.ects).toBe(0);
   expect(result.stats.published).toBe(0);
   expect(calc(s7, [], {}, false, "S7").stats.moyenne).toBeNull();
@@ -125,4 +131,30 @@ it("reads a legacy M1 choice as ISEN4 while preserving its semester, major and U
   expect(await storage.getStorageItem("SelectedYear")).toBe("ISEN4");
   await storage.setSelectedYear("ISENA4");
   expect(await storage.getSelectedYear()).toBe("ISENA4");
+});
+
+it("associates the published power electronics mark with its only assessment", () => {
+  const result = calc(
+    s7,
+    [
+      {
+        code: "26_ISENA4_TLN_S7_ELECPUISS",
+        name: "Élec de puissance",
+        note: 14,
+        date: "",
+      },
+    ],
+    {},
+    false,
+    "S7",
+  );
+  expect(result.structure[0].matieres[0].evaluations).toEqual([
+    expect.objectContaining({
+      name: "Partiel",
+      publishedNote: 14,
+      source: "published",
+    }),
+  ]);
+  expect(result.structure[0].matieres[0].moyenne).toBe(14);
+  expect(result.stats.published).toBe(1);
 });

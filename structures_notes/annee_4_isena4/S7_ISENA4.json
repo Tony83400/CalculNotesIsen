@@ -9,13 +9,8 @@
         "code_rattrapage": "",
         "evaluations": [
           {
-            "name": "DS",
-            "code": "",
-            "coeff": 1
-          },
-          {
             "name": "Partiel",
-            "code": "",
+            "code": "26_ISENA4_TLN_S7_ELECPUISS",
             "coeff": 1
           }
         ]
