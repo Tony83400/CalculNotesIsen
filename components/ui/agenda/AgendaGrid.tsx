@@ -62,6 +62,7 @@ export default function AgendaGrid({
   // Two simultaneous courses fit a phone. More lanes remain readable by scrolling
   // this container; a week always includes all seven days, including Sunday.
   const fitWeek = hideDetails && viewMode === "week";
+  const GridViewport = fitWeek ? View : ScrollView;
   const minimumWidth = fitWeek
     ? 0
     : viewMode === "week"
@@ -82,12 +83,13 @@ export default function AgendaGrid({
       onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
       style={[ui.panel, { overflow: "hidden" }]}
     >
-      <ScrollView
-        horizontal
-        scrollEnabled={!fitWeek}
-        contentContainerStyle={{ width: gridWidth }}
+      <GridViewport
+        {...(!fitWeek && {
+          horizontal: true,
+          contentContainerStyle: { width: gridWidth },
+        })}
       >
-        <View style={{ width: gridWidth }}>
+        <View testID="agenda-grid-body" style={{ width: gridWidth }}>
           <View style={s.header}>
             <View style={{ width: TIMES }} />
             {days.map((day) => {
@@ -302,7 +304,7 @@ export default function AgendaGrid({
             ))}
           </View>
         </View>
-      </ScrollView>
+      </GridViewport>
       <View
         style={{
           padding: 12,

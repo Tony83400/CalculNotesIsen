@@ -140,16 +140,19 @@ it("uses the real container width and scrolls internally for many concurrent cou
   await act(async () => view.unmount());
 });
 
-it("fits all seven shared days inside the measured container without horizontal scrolling", async () => {
+it("fits all seven shared days without a nested scroll view intercepting vertical gestures", async () => {
   const view = await render("week");
   await act(async () =>
     view.root
       .findByProps({ testID: "agenda-time-grid" })
       .props.onLayout({ nativeEvent: { layout: { width: 390 } } }),
   );
-  const scroll = view.root.findByType("ScrollView" as React.ElementType);
-  expect(scroll.props.scrollEnabled).toBe(false);
-  expect(scroll.props.contentContainerStyle.width).toBe(388);
+  expect(
+    view.root.findAllByType("ScrollView" as React.ElementType),
+  ).toHaveLength(0);
+  expect(
+    view.root.findByProps({ testID: "agenda-grid-body" }).props.style.width,
+  ).toBe(388);
   expect(
     view.root.findAllByProps({ testID: "agenda-day-header" }),
   ).toHaveLength(7);
